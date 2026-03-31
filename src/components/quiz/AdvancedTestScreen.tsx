@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
+import type { UserBirthData } from '@/types/user-data';
+import { BaziResultView } from './BaziResultView';
+import { NumerologyResultView } from './NumerologyResultView';
 
 interface AdvancedTestScreenProps {
   onBackToResult: () => void;
   persona: any;
+  userBirthData?: UserBirthData;
 }
 
 type TestType = 'mbti' | 'enneagram' | 'motivation' | 'numerology' | 'battu' | null;
@@ -17,17 +21,54 @@ const MOCK_QUESTIONS: Record<string, any[]> = {
 };
 
 const PETALS = [
-  { id: 'mbti', label: 'MBTI', angle: 0, color: '#DBCBBD', desc: '20 câu', icon: '🌸' },
-  { id: 'enneagram', label: 'Enneagram', angle: 72, color: '#E2D5CC', desc: '30 câu', icon: '🌿' },
-  { id: 'motivation', label: 'Động lực', angle: 144, color: '#D6C8BF', desc: '15 câu', icon: '🌊' },
-  { id: 'battu', label: 'Bát tự', angle: 216, color: '#C7A180', desc: '5 phút', icon: '✨' },
-  { id: 'numerology', label: 'Thần số', angle: 288, color: '#CDA376', desc: '3 phút', icon: '⭐' }
+  { id: 'mbti', label: 'MBTI', angle: 0, color: '#9B7FCB', desc: '20 câu', icon: '🌸' },
+  { id: 'enneagram', label: 'Enneagram', angle: 72, color: '#F5A623', desc: '30 câu', icon: '🌿' },
+  { id: 'motivation', label: 'Động lực', angle: 144, color: '#E8636F', desc: '15 câu', icon: '🌊' },
+  { id: 'battu', label: 'Bát tự', angle: 216, color: '#6BB58D', desc: '5 phút', icon: '✨' },
+  { id: 'numerology', label: 'Thần số', angle: 288, color: '#1A7FA8', desc: '3 phút', icon: '⭐' }
 ];
 
-export const AdvancedTestScreen = ({ onBackToResult, persona }: AdvancedTestScreenProps) => {
+export const AdvancedTestScreen = ({ onBackToResult, persona, userBirthData }: AdvancedTestScreenProps) => {
   const [activeTest, setActiveTest] = useState<TestType>(null);
   // Initially no tests are completed
   const [completedTests, setCompletedTests] = useState<string[]>([]);
+
+  // API fetched data cache
+  const [baziData, setBaziData] = useState<any>(null);
+  const [numerologyData, setNumerologyData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handlePetalClick = async (petalId: TestType) => {
+    if (!petalId || completedTests.includes(petalId)) return;
+
+    if (petalId === 'battu' || petalId === 'numerology') {
+      if ((petalId === 'battu' && baziData) || (petalId === 'numerology' && numerologyData)) {
+        setActiveTest(petalId);
+        return;
+      }
+
+      setActiveTest(petalId);
+      setIsLoading(true);
+      try {
+        const res = await fetch('/api/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userBirthData)
+        });
+        const data = await res.json();
+        if (data.success) {
+          setBaziData(data.bazi);
+          setNumerologyData(data.numerology);
+        }
+      } catch (err) {
+        console.error("Failed to load calculation:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setActiveTest(petalId);
+    }
+  };
 
   if (completedTests.length === 5) {
     return (
@@ -51,7 +92,48 @@ export const AdvancedTestScreen = ({ onBackToResult, persona }: AdvancedTestScre
 
   if (activeTest) {
     const testInfo = PETALS.find(p => p.id === activeTest);
-    const mockQ = MOCK_QUESTIONS[activeTest]?.[0];
+
+    if (activeTest === 'battu') {
+      if (isLoading) {
+        return (
+          <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in w-full text-[#8B7E74]">
+            <Loader2 size={32} className="animate-spin text-[#8B5E3C] mb-4" />
+            <p>Đang tính toán Bát Tự...</p>
+          </div>
+        );
+      }
+      return (
+        <BaziResultView
+          baziData={baziData}
+          onBack={() => {
+            setCompletedTests(prev => Array.from(new Set([...prev, 'battu'])));
+            setActiveTest(null);
+          }}
+        />
+      );
+    }
+
+    if (activeTest === 'numerology') {
+      if (isLoading) {
+        return (
+          <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in w-full text-[#8B7E74]">
+            <Loader2 size={32} className="animate-spin text-[#CDA376] mb-4" />
+            <p>Đang phân tích Thần Số Học...</p>
+          </div>
+        );
+      }
+      return (
+        <NumerologyResultView
+          numerologyData={numerologyData}
+          onBack={() => {
+            setCompletedTests(prev => Array.from(new Set([...prev, 'numerology'])));
+            setActiveTest(null);
+          }}
+        />
+      );
+    }
+
+    const mockQ = MOCK_QUESTIONS[activeTest]?.[0] || MOCK_QUESTIONS.mbti[0];
 
     return (
       <div className="flex-1 flex flex-col animate-in slide-in-from-right-8 fade-in pb-12 w-full">
@@ -122,60 +204,56 @@ export const AdvancedTestScreen = ({ onBackToResult, persona }: AdvancedTestScre
         </p>
       </div>
 
-      {/* Flower graphic mockup */}
-      <div className="relative w-80 h-80 my-10 flex items-center justify-center">
+      {/* Flower — using the actual flower image with text overlays on each petal */}
+      <div className="relative w-[420px] h-[420px] my-6 flex items-center justify-center">
 
-        {/* Background Petals */}
+        {/* The flower image itself */}
+        <img
+          src="/flower-5-petals.png"
+          alt="5 cánh hoa Nedu"
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
+          draggable={false}
+        />
+
+        {/* Clickable text overlays on each petal */}
         {PETALS.map((petal) => {
           const isCompleted = completedTests.includes(petal.id);
-          const bgOpacity = isCompleted ? 'opacity-30 grayscale' : 'opacity-100 shadow-sm';
-
-          return (
-            <div
-              key={`bg-${petal.id}`}
-              className={`absolute top-1/2 left-1/2 w-[116px] h-[176px] rounded-[50%] transition-all duration-700 z-10 ${bgOpacity}`}
-              style={{
-                backgroundColor: petal.color,
-                transform: `translate(-50%, -50%) rotate(${petal.angle}deg) translateY(-54px)`,
-              }}
-            />
-          );
-        })}
-
-        {/* Text and Interaction Layers */}
-        {PETALS.map((petal) => {
-          const isCompleted = completedTests.includes(petal.id);
-          // Calculate proper positioning for text.
-          // angle=0 is TOP. Math standard: angle 0 is RIGHT. So subtract 90.
           const rad = (petal.angle - 90) * (Math.PI / 180);
-          const r = 85; // increased radius distance from center to push text outward
-          const x = Math.cos(rad) * r;
-          const y = Math.sin(rad) * r;
+          const r = 115; // tuned for square-cropped image in 420px container
+          const cx = Math.cos(rad) * r;
+          const cy = Math.sin(rad) * r;
 
           return (
             <button
-              key={`btn-${petal.id}`}
-              onClick={() => { if (!isCompleted) setActiveTest(petal.id as TestType); }}
-              className={`absolute top-1/2 left-1/2 w-28 h-28 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 z-20 ${isCompleted ? 'pointer-events-none opacity-50 scale-95' : 'hover:scale-110 active:scale-95'}`}
+              key={petal.id}
+              onClick={() => handlePetalClick(petal.id as TestType)}
+              className={`absolute top-1/2 left-1/2 w-[130px] h-[130px] rounded-full flex flex-col items-center justify-center cursor-pointer transition-all duration-300 z-20 ${isCompleted ? 'opacity-40 pointer-events-none' : 'hover:scale-110 active:scale-95'}`}
               style={{
-                transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
+                transform: `translate(calc(-50% + ${cx}px), calc(-50% + ${cy}px))`,
+                background: 'transparent',
               }}
             >
-              <span className="text-[26px] mb-1 filter drop-shadow-sm">{petal.icon}</span>
-              <span className={`text-[13px] font-bold tracking-wide drop-shadow-sm leading-tight ${petal.id === 'battu' || petal.id === 'numerology' ? 'text-white' : 'text-[#704B30]'}`}>
+              <span className="text-[26px] mb-1 drop-shadow-md">{petal.icon}</span>
+              <span
+                className="text-[14px] font-bold leading-tight text-white"
+                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}
+              >
                 {petal.label}
               </span>
-              <span className={`text-[11px] mt-0.5 tracking-wider font-medium ${petal.id === 'battu' || petal.id === 'numerology' ? 'text-white/80' : 'text-[#8B5E3C]/80'}`}>
-                {isCompleted ? '✓ Hoàn thành' : petal.desc}
+              <span
+                className="text-[11px] mt-0.5 font-medium text-white/90"
+                style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}
+              >
+                {isCompleted ? '✓ Xong' : petal.desc}
               </span>
             </button>
           );
         })}
 
-        {/* Center - Nedu */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[86px] h-[86px] bg-white rounded-full flex flex-col items-center justify-center z-30 shadow-md border-[4px] border-white/50 bg-clip-padding backdrop-blur-sm">
-          <span className="text-[#8B5E3C] text-base font-bold tracking-wide">Nedu</span>
-          <span className="text-[#A39A92] text-xs mt-0.5 font-bold tracking-widest">{completedTests.length}/5</span>
+        {/* Center Nedu label */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90px] h-[90px] rounded-full flex flex-col items-center justify-center z-30">
+          <span className="text-[#8B5E3C] text-[16px] font-bold tracking-wide">Nedu</span>
+          <span className="text-[#A39A92] text-[11px] mt-0.5 font-bold tracking-widest">{completedTests.length}/5</span>
         </div>
       </div>
 

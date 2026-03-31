@@ -1,98 +1,33 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { WelcomeScreen } from '@/components/quiz/WelcomeScreen';
 import { StageSelectionScreen } from '@/components/quiz/StageSelectionScreen';
 import { MaxDiffSetScreen } from '@/components/quiz/MaxDiffSetScreen';
 import { AnalyzingScreen } from '@/components/quiz/AnalyzingScreen';
 import { ResultScreen } from '@/components/quiz/ResultScreen';
-import { ProgressBar } from '@/components/ui/ProgressBar';
-import { PERSONAS } from '@/data/maxdiff-data';
-import { calculateMaxDiffScores } from '@/lib/scoring';
-import type { SetAnswer, AssessmentResult, Persona } from '@/types/assessment';
-
 import { AdvancedTestScreen } from '@/components/quiz/AdvancedTestScreen';
-
-type StepType = 'welcome' | 'personaSelect' | 'maxdiff' | 'analyzing' | 'result' | 'flowerTest';
+import { ProgressBar } from '@/components/ui/ProgressBar';
+import { useQuizFlow } from '@/hooks/useQuizFlow';
 
 export default function Home() {
-  const [step, setStep] = useState<StepType>('welcome');
-  const [personaId, setPersonaId] = useState<string>('');
-  const [currentSetIndex, setCurrentSetIndex] = useState(0);
-  const [setAnswers, setSetAnswers] = useState<SetAnswer[]>([]);
-  const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
-
-  const persona: Persona | undefined = personaId ? PERSONAS[personaId] : undefined;
-  const totalSets = persona?.sets.length ?? 0;
-
-  // Handle persona selection
-  const handlePersonaSelect = useCallback((id: string) => {
-    setPersonaId(id);
-    setCurrentSetIndex(0);
-    setSetAnswers([]);
-    setStep('maxdiff');
-  }, []);
-
-  // Handle MaxDiff set answer
-  const handleSetAnswer = useCallback((answer: SetAnswer) => {
-    const newAnswers = [...setAnswers, answer];
-    setSetAnswers(newAnswers);
-
-    if (currentSetIndex >= totalSets - 1) {
-      // All sets answered → calculate & show result
-      setStep('analyzing');
-      const result = calculateMaxDiffScores(persona!, newAnswers);
-      setAssessmentResult(result);
-      setTimeout(() => setStep('result'), 2500);
-    } else {
-      setCurrentSetIndex(prev => prev + 1);
-    }
-  }, [setAnswers, currentSetIndex, totalSets, persona]);
-
-
-  // Handle restart
-  const handleRestart = useCallback(() => {
-    setStep('welcome');
-    setPersonaId('');
-    setCurrentSetIndex(0);
-    setSetAnswers([]);
-    setAssessmentResult(null);
-  }, []);
-
-  // Handle back navigation from MaxDiff
-  const handleMaxDiffBack = useCallback(() => {
-    if (currentSetIndex > 0) {
-      // Go back to previous set, remove last answer
-      setCurrentSetIndex(prev => prev - 1);
-      setSetAnswers(prev => prev.slice(0, -1));
-    } else {
-      setStep('personaSelect');
-    }
-  }, [currentSetIndex]);
-
-  // Handle advanced test start
-  const handleAdvancedTestStart = () => {
-    setStep('flowerTest');
-  };
-
-  // Handle back to result
-  const handleBackToResult = () => {
-    setStep('result');
-  };
-
-  // Calculate progress
-  const getProgress = () => {
-    switch (step) {
-      case 'welcome': return 0;
-      case 'personaSelect': return 10;
-      case 'maxdiff': return 10 + ((currentSetIndex / totalSets) * 80);
-      case 'analyzing': return 95;
-      case 'result': return 100;
-      case 'flowerTest': return 100;
-      default: return 0;
-    }
-  };
+  const {
+    step,
+    persona,
+    currentSetIndex,
+    totalSets,
+    assessmentResult,
+    userBirthData,
+    handlePersonaSelect,
+    handleSetAnswer,
+    handleRestart,
+    handleMaxDiffBack,
+    handleAdvancedTestStart,
+    handleBackToResult,
+    getProgress,
+    setStep
+  } = useQuizFlow();
 
   const renderCurrentStep = () => {
     switch (step) {
@@ -129,13 +64,17 @@ export default function Home() {
         );
         
       case 'flowerTest':
-        if (!persona) return null;
+        if (!persona || !userBirthData) return null;
         return (
           <AdvancedTestScreen 
             onBackToResult={handleBackToResult}
             persona={persona}
+            userBirthData={userBirthData}
           />
         );
+      
+      default:
+        return null;
     }
   };
 

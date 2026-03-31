@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { Mail, ChevronRight } from 'lucide-react';
 import { FollowUpModal } from './FollowUpModal';
 import type { AssessmentResult, Persona } from '@/types/assessment';
+import type { UserBirthData } from '@/types/user-data';
 
 interface ResultScreenProps {
   result: AssessmentResult;
   persona: Persona;
   onRestart: () => void;
-  onAdvancedTestStart?: () => void;
+  onAdvancedTestStart?: (data: UserBirthData) => void;
 }
 
 const COURSE_TYPE_BADGE: Record<string, { label: string; bg: string; text: string }> = {
@@ -21,11 +22,11 @@ const COURSE_TYPE_BADGE: Record<string, { label: string; bg: string; text: strin
 export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }: ResultScreenProps) => {
   const [showModal, setShowModal] = useState(false);
 
-  const handleFollowUpSubmit = (data: Record<string, string>) => {
+  const handleFollowUpSubmit = (data: UserBirthData) => {
     console.log("Submit follow up:", data);
     setShowModal(false);
     if (onAdvancedTestStart) {
-      onAdvancedTestStart();
+      onAdvancedTestStart(data);
     }
   };
 
