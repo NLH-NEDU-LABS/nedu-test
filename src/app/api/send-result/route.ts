@@ -5,24 +5,25 @@ const SYSTEM_PROMPT = `
 Bạn là Nhi Lê — founder Nedu Education, đang viết email cá nhân cho người vừa làm bài test.
 
 GIỌNG VĂN BẮT BUỘC:
-- Ấm, chân thật, như người bạn lâu năm viết thư — không phải email marketing
+- Ấm, chân thật, mang tính chữa lành, như một người bạn tri kỷ viết thư.
 - Dùng: "Nhi muốn nói...", "Bạn biết không...", "Điều mà Nhi nhận ra ở bạn..."
 - Tránh tuyệt đối: "Chúc mừng", "Thân chào", "Trân trọng", "Đây là cơ hội"
 - Không emoji trong subject line
-- Tối đa 200 chữ trong body — ngắn hơn thì tốt hơn
+- Tối đa 200 chữ trong body — ngắn hơn thì tốt hơn.
+- Phải ngắt đoạn nhỏ (1-2 câu mỗi đoạn) và dùng "\\n\\n" để ngắt dòng cho thoáng đãng.
 
 CẤU TRÚC EMAIL — giữ đúng thứ tự này:
 1. Mở đầu: 1 câu nhận ra giai đoạn họ đang ở, không phán xét, không sáo rỗng
 2. Insight sâu về vấn đề #1: 2 câu, đi sâu hơn những gì họ đã biết về mình
 3. Câu kết nối nhân văn: "Nhi đã gặp nhiều người ở giai đoạn này..."
 4. Teaser kết quả: 1 câu gợi mở về kết quả đầy đủ — chưa reveal, chỉ tạo tò mò
-5. 1 CTA duy nhất: link xem kết quả đầy đủ (KHÔNG phải link mua khoá học)
-6. Ký tên: "Nhi" — chỉ vậy thôi
+5. Ký tên: "Nhi" — chỉ vậy thôi (không tự tạo link CTA, hệ thống sẽ tự thêm nút!)
 
 TUYỆT ĐỐI KHÔNG:
-- Không đề cập giá khoá học trong email này
-- Không dùng chữ "mua", "đăng ký", "ưu đãi", "giảm giá"
-- Không bullet points, không bold quá nhiều
+- KHÔNG tự chèn URL hay viết "Click vào link sau" (Hệ thống sẽ gắn nút riêng).
+- KHÔNG đề cập giá khoá học trong email này
+- KHÔNG dùng chữ "mua", "đăng ký", "ưu đãi", "giảm giá"
+- KHÔNG bullet points, không in đậm quá nhiều
 - Subject line không được quá 50 ký tự
 
 Trả về JSON thuần túy, không thêm text ngoài JSON theo format:
@@ -31,7 +32,7 @@ Trả về JSON thuần túy, không thêm text ngoài JSON theo format:
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const ai = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash',
+  model: 'gemini-1.5-flash',
   systemInstruction: SYSTEM_PROMPT,
   generationConfig: { responseMimeType: "application/json" }
 });
@@ -54,7 +55,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing email' }, { status: 400 });
     }
 
-    // 1. Dùng Gemini để generate nội dung Email
     const prompt = `
 --- THÔNG TIN NGƯỜI NHẬN ---
 Tên                  : ${name || "bạn"}
@@ -66,18 +66,14 @@ Khoá được gợi ý     : ${primary_course_name}
 Why it fits (từ P01) : ${why_fits}
 Nguồn traffic        : ${source}
 
---- URL CẦN NHÚNG ---
-Link xem kết quả đầy đủ: https://nedu.nhi.sg/ket-qua-ca-nhan
-(URL này dẫn đến trang kết quả cá nhân, không phải trang khoá học)
-
 --- GHI CHÚ ---
 Email này là email đầu tiên trong chuỗi 14 ngày.
-Mục tiêu duy nhất: khiến họ mở link xem kết quả đầy đủ.
-Chưa bán gì cả.
+Mục tiêu duy nhất: Khiến họ đồng cảm và tò mò về kết quả.
+Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
     `;
 
     let emailSubject = "Kết quả bài phân tích của bạn";
-    let emailBody = `Chào ${name || "bạn"},\n\nNhi thấy bạn đang trong giai đoạn ${persona_label}. Nhi đã gửi kết quả phân tích chi tiết của bạn qua hệ thống. Bạn có thể xem kết quả đầy đủ tại đây: https://nedu.nhi.sg/ket-qua-ca-nhan\n\nNhi`;
+    let emailBody = `Chào ${name || "bạn"},\n\nNhi thấy bạn đang trong giai đoạn ${persona_label}...\n\nNhi`;
 
     try {
       const response = await ai.generateContent(prompt);
@@ -89,6 +85,51 @@ Chưa bán gì cả.
       console.error("Gemini Email Gen error:", err);
     }
 
+    // Format body into HTML paragraphs
+    const formattedParagraphs = emailBody
+      .split('\n')
+      .map(p => p.trim())
+      .filter(p => p.length > 0)
+      .map(p => `<p style="margin: 0 0 16px 0;">${p}</p>`)
+      .join('');
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 40px 16px; background-color: #FDFBF7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #4A4238; line-height: 1.6;">
+  <div style="max-width: 500px; margin: 0 auto; background-color: #FFFFFF; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 32px rgba(139, 94, 60, 0.06);">
+    <!-- Decorative Header -->
+    <div style="height: 6px; background: linear-gradient(90deg, #F0EBE5, #8B5E3C, #F0EBE5);"></div>
+    
+    <div style="padding: 48px 32px 40px;">
+      <!-- Main Content -->
+      <div style="font-size: 15px; color: #5C544D; letter-spacing: 0.2px;">
+        ${formattedParagraphs}
+      </div>
+      
+      <!-- Call to Action -->
+      <div style="margin-top: 40px; text-align: center;">
+        <a href="https://nedu.nhi.sg/ket-qua-ca-nhan" style="display: inline-block; background-color: #8B5E3C; color: #FFFFFF; text-decoration: none; padding: 14px 32px; border-radius: 14px; font-weight: 500; font-size: 15px; letter-spacing: 0.3px; box-shadow: 0 4px 12px rgba(139, 94, 60, 0.2);">
+          Xem kết quả đầy đủ
+        </a>
+      </div>
+      
+      <!-- Footer Note -->
+      <div style="margin-top: 48px; border-top: 1px solid #F5F2F0; padding-top: 24px; text-align: center;">
+        <p style="font-size: 12px; color: #A39A92; margin: 0;">
+          Gửi từ <span style="font-weight: 500; color: #8B5E3C;">Nedu Education</span> bằng tất cả sự chân thành.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
     // 2. Gửi Email qua Resend
     if (process.env.RESEND_API_KEY) {
       const resendResponse = await fetch('https://api.resend.com/emails', {
@@ -98,10 +139,10 @@ Chưa bán gì cả.
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          from: 'Nhi Le <onboarding@resend.dev>',
+          from: 'Nhi Le <hi@test.nhi.sg>',
           to: [email],
           subject: emailSubject,
-          html: emailBody.replace(/\n/g, '<br/>')
+          html: htmlContent
         })
       });
 
@@ -109,10 +150,7 @@ Chưa bán gì cả.
         console.error("Resend error:", await resendResponse.text());
       }
     } else {
-      console.warn("RESEND_API_KEY is not set. Mocking email output:");
-      console.log('To:', email);
-      console.log('Subject:', emailSubject);
-      console.log('Body:', emailBody);
+      console.warn("RESEND_API_KEY is not set.");
     }
 
     return NextResponse.json({ success: true });
