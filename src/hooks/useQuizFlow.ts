@@ -87,7 +87,24 @@ export const useQuizFlow = () => {
   const handleAdvancedTestStart = useCallback((data: UserBirthData) => {
     setUserBirthData(data);
     setStep('flowerTest');
-  }, []);
+
+    if (assessmentResult && persona) {
+      fetch('/api/send-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.fullName,
+          email: data.email,
+          persona_label: assessmentResult.persona_label,
+          top_problem_1: assessmentResult.top_problems[0]?.label || "",
+          top_problem_2: assessmentResult.top_problems[1]?.label || "",
+          primary_course_name: assessmentResult.ai_recommendation?.primary_course_name || "",
+          why_fits: assessmentResult.ai_recommendation?.why_fits || "",
+          source: typeof window !== 'undefined' ? window.location.hostname : "web"
+        })
+      }).catch(console.error);
+    }
+  }, [assessmentResult, persona]);
 
   const handleBackToResult = useCallback(() => {
     setStep('result');

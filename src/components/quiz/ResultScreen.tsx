@@ -124,7 +124,7 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
                 onClick={() => setShowModal(true)}
                 className="w-full bg-[#8B5E3C] text-white p-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[#704B30] transition-colors font-medium border border-transparent shadow-sm"
               >
-                <span>🌸</span> Làm test kỹ hơn — nhận kết quả về email
+                <span>📩</span> Nhận kết quả phân tích chi tiết qua Email
               </button>
               
               <a 
