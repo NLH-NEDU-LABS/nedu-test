@@ -5,34 +5,30 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 const SYSTEM_PROMPT = `Bạn là hệ thống gợi ý khoá học của Nedu Education.
-Nhiệm vụ duy nhất: đọc profile người dùng và chọn đúng 1 khoá học phù hợp nhất từ danh sách hợp lệ.
-Trả về JSON thuần túy. Không thêm text, markdown, hay giải thích ngoài JSON.
+Nhiệm vụ duy nhất: đọc profile người dùng và chọn đúng 1 khoá học chủ lực và 1 khoá học dự phòng phù hợp nhất từ danh sách hợp lệ dưới đây:
 
-DANH SÁCH KHOÁ HỌC HỢP LỆ — chỉ được dùng các id này:
-- cohort-k13        : Thiết Kế Bản Thân Toàn Diện (8 tuần, Zoom, nhóm 15-20, 8.500.000đ)
-- retreat           : Tĩnh Tâm & Lãnh Đạo Nội Tâm (11 ngày, offline, 18.000.000đ)
-- eq-od             : Emotional Intelligence On-Demand (tự học, 2.500.000đ)
-- meta-od           : Metacognition & Tư Duy Hệ Thống On-Demand (tự học, 2.500.000đ)
-- bazi-od           : BaZi Ứng Dụng On-Demand (tự học, 3.500.000đ)
-- coaching-6m       : Coaching 1:1 Nhi Lê 6 tháng (25.000.000đ)
-- coaching-3m       : Coaching 1:1 Nhi Lê 3 tháng (14.000.000đ)
-- workshop-journal  : Journaling Workshop 1 ngày (1.200.000đ)
-- workshop-leader   : Inner Leadership Workshop 2 ngày (2.800.000đ)
+DANH SÁCH KHOÁ HỌC HỢP LỆ (BẮT BUỘC CHỈ SỬ DỤNG CÁC ID VÀ URL NÀY):
+- suc-manh-vo-han (Sức Mạnh Vô Hạn): Offline. Dành cho doanh nhân Việt cần chiến lược đột phá, mở rộng thị trường, xây nền tảng kinh doanh vươn tầm. URL: https://nedu.nhi.sg/program-offline/suc-manh-vo-han
+- la-chinh-minh (Là Chính Mình): Offline 3.5 ngày. Đánh thức sức mạnh nội tại, gỡ bỏ rào cản tâm lý sống rực rỡ trọn vẹn. Thích hợp chữa lành, tìm lại bản thân. URL: https://nedu.nhi.sg/program-offline/la-chinh-minh
+- thuong-hieu-cua-ban (Thương Hiệu Của Bạn): Online. Kiến thức cơ bản cho người muốn mở doanh nghiệp/cải tổ. Kỷ nguyên AI. 4 ngày. URL: https://nedu.nhi.sg/program-online/thuong-hieu-cua-ban
+- cuoc-song-cua-ban (Cuộc Sống Của Bạn): Online. Khám phá và định hình lại cuộc sống, tìm ra con đường phát triển bản thân. Nhẹ nhàng hơn, tìm hướng đi. URL: https://nedu.nhi.sg/program-online/cuoc-song-cua-ban
+- thu-thach-30-ngay (Thử Thách 30 Ngày): Online. Dành cho người biết nhiều ráo lý thuyết nhưng thiếu hành động, trì hoãn. Tạo môi trường kỷ luật. URL: https://nedu.nhi.sg/program-online/thu-thach-30-ngay
 
-QUY TẮC BẮT BUỘC — vi phạm bất kỳ quy tắc nào là kết quả sai:
-1. KHÔNG tự tạo tên khoá học mới. Chỉ dùng id trong danh sách trên.
-2. retreat → chỉ recommend khi persona là Quản lý / Lãnh đạo / Doanh nhân HOẶC top_problem liên quan burnout / chuyển hướng sự nghiệp / cần không gian sâu.
-3. coaching → chỉ recommend khi occupation cho thấy thu nhập ổn định (manager, director, founder, doctor, lawyer...) VÀ persona là Quản lý hoặc Lãnh đạo.
-4. on-demand (eq-od, meta-od, bazi-od) → ưu tiên khi user ở nước ngoài (source=youtube+overseas), lịch không ổn định, hoặc muốn tự học trước khi commit.
-5. Nếu confidence_score < 0.6 → primary_course_id phải là cohort-k13 (khoá default an toàn nhất).
-6. backup_course_id phải khác primary_course_id và phải là khoá phù hợp thứ 2.
+QUY TẮC BẮT BUỘC:
+1. KHÔNG tạo tên khóa học mới. Phải dùng ID, Name, và URL như danh sách trên.
+2. Nếu người dùng quan tâm kinh doanh/doanh nghiệp: Chọn "suc-manh-vo-han" (Offline, quy mô lớn) hoặc "thuong-hieu-cua-ban" (Online, mới bắt đầu).
+3. Nếu người dùng cần vượt qua trì hoãn, thói quen xấu: Ưu tiên "thu-thach-30-ngay".
+4. Nếu lạc lối, muốn chữa lành tâm lý sâu: "la-chinh-minh" (Offline) hoặc "cuoc-song-cua-ban" (Online).
+5. Luôn trả về 1 Primary và 1 Backup. Secondary phải tương tự về độ fit nhưng có format hoặc chi phí dễ tiếp cận hơn so với Primary (ví dụ Primary Offline thì Backup Online).
 
-OUTPUT FORMAT — trả về đúng JSON này, không thêm bất cứ thứ gì:
+OUTPUT FORMAT — trả về đúng JSON thuần tuý này, không bọc bởi Markdown (không dùng \`\`\`json):
 {
   "primary_course_id": "...",
   "primary_course_name": "...",
+  "primary_course_url": "...",
   "backup_course_id": "...",
   "backup_course_name": "...",
+  "backup_course_url": "...",
   "why_fits": "...",
   "learning_style_note": "...",
   "urgency_message": "...",
@@ -56,13 +52,15 @@ export async function POST(request: Request) {
       if (!process.env.GEMINI_API_KEY) {
         // Fallback for isolated dev environment without API key
         return NextResponse.json({
-          primary_course_id: "cohort-k13",
-          primary_course_name: "Thiết Kế Bản Thân Toàn Diện",
-          backup_course_id: "eq-od",
-          backup_course_name: "Emotional Intelligence On-Demand",
-          why_fits: "Bạn đang ở giai đoạn mà mọi thứ bên ngoài trông ổn — nhưng bên trong thiếu hướng. Cohort K13 không dạy lý thuyết, nó giúp bạn ngồi xuống và thực sự nhìn rõ mình muốn đi đâu.",
-          learning_style_note: "Học nhóm nhỏ với người cùng giai đoạn sẽ giúp bạn không cảm thấy một mình trong quá trình chuyển hướng.",
-          urgency_message: "Cohort K13 khai giảng 01/06 — chỉ còn 8 chỗ trong nhóm 20 người.",
+          primary_course_id: "cuoc-song-cua-ban",
+          primary_course_name: "Cuộc Sống Của Bạn",
+          primary_course_url: "https://nedu.nhi.sg/program-online/cuoc-song-cua-ban",
+          backup_course_id: "thu-thach-30-ngay",
+          backup_course_name: "Thử Thách 30 Ngày",
+          backup_course_url: "https://nedu.nhi.sg/program-online/thu-thach-30-ngay",
+          why_fits: "Bạn đang cần định hướng cho bản thân trước khi hành động. Khóa Cuộc Sống Của Bạn giúp bạn vạch rõ đâu là những giá trị thực sự cho mình.",
+          learning_style_note: "Học Online chủ động, thích hợp gỡ rối giai đoạn đầu.",
+          urgency_message: "Hãy bắt đầu đặt nền tảng sớm.",
           confidence_score: 0.82
         });
       }
@@ -92,15 +90,16 @@ country          : ${country}`;
     try {
       aiRecommendation = JSON.parse(responseText);
     } catch(e) {
-      // Very basic fallback if gemini didn't return perfect JSON
       aiRecommendation = {
-        primary_course_id: "cohort-k13",
-        primary_course_name: "Thiết Kế Bản Thân Toàn Diện",
-        backup_course_id: "eq-od",
-        backup_course_name: "Emotional Intelligence On-Demand",
-        why_fits: "Hệ thống đang chuẩn hóa kết quả cho bạn.",
-        learning_style_note: "Học nhóm nhỏ với người cùng định hướng.",
-        urgency_message: "Đang mở đăng ký.",
+        primary_course_id: "cuoc-song-cua-ban",
+        primary_course_name: "Cuộc Sống Của Bạn",
+        primary_course_url: "https://nedu.nhi.sg/program-online/cuoc-song-cua-ban",
+        backup_course_id: "thu-thach-30-ngay",
+        backup_course_name: "Thử Thách 30 Ngày",
+        backup_course_url: "https://nedu.nhi.sg/program-online/thu-thach-30-ngay",
+        why_fits: "Hệ thống đang chuẩn hóa gợi ý cho bạn.",
+        learning_style_note: "Bắt đầu với tự học khám phá bản thân.",
+        urgency_message: "Hành động ngay khi bạn lơ lửng.",
         confidence_score: 0.5
       };
     }
@@ -109,15 +108,16 @@ country          : ${country}`;
 
   } catch (error: any) {
     console.error('Gemini Recommendation Error:', error);
-    // Fallback if Gemini completely fails (e.g., rate limit, invalid key)
     return NextResponse.json({
-      primary_course_id: "cohort-k13",
-      primary_course_name: "Thiết Kế Bản Thân Toàn Diện",
-      backup_course_id: "eq-od",
-      backup_course_name: "Emotional Intelligence On-Demand",
-      why_fits: "Có vẻ kết nối với hệ thống tư vấn đang gặp gián đoạn tạm thời. Cohort K13 là gợi ý an toàn nhất để giúp bạn sắp xếp lại bản thân.",
-      learning_style_note: "Học theo nhóm giúp duy trì động lực.",
-      urgency_message: "Vui lòng liên hệ hỗ trợ Nedu nếu cần điểm chuẩn đoán chi tiết.",
+      primary_course_id: "cuoc-song-cua-ban",
+      primary_course_name: "Cuộc Sống Của Bạn",
+      primary_course_url: "https://nedu.nhi.sg/program-online/cuoc-song-cua-ban",
+      backup_course_id: "thu-thach-30-ngay",
+      backup_course_name: "Thử Thách 30 Ngày",
+      backup_course_url: "https://nedu.nhi.sg/program-online/thu-thach-30-ngay",
+      why_fits: "Có vẻ kết nối có gián đoạn tạm thời. Khóa Cuộc sống của bạn là khởi đầu an toàn.",
+      learning_style_note: "Học mọi lúc mọi nơi.",
+      urgency_message: "Liên hệ Hotline Nedu nếu cần điểm chuẩn đoán.",
       confidence_score: 0.5
     });
   }

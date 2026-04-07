@@ -58,8 +58,10 @@ export interface ScoredItem {
 export interface CourseRecommendation {
   primary_course_id: string;
   primary_course_name: string;
+  primary_course_url: string;
   backup_course_id: string;
   backup_course_name: string;
+  backup_course_url: string;
   why_fits: string;
   learning_style_note: string;
   urgency_message: string;

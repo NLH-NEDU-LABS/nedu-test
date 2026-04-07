@@ -64,9 +64,14 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
               <div className="mb-2 inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-full border border-[#EACbb3] text-xs font-medium text-[#8B5E3C]">
                 <span>⭐</span> Recommended
               </div>
-              <h4 className="text-xl font-medium text-[#8B5E3C] mb-3">
-                {result.ai_recommendation.primary_course_name}
-              </h4>
+              <a 
+                href={result.ai_recommendation.primary_course_url || "https://nedu.nhi.sg/"}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xl font-medium text-[#8B5E3C] mb-3 hover:underline flex items-center gap-1.5"
+              >
+                {result.ai_recommendation.primary_course_name} ↗
+              </a>
               <p className="text-sm text-[#5C5550] leading-relaxed mb-4">
                 <span className="font-semibold block mb-1">Tại sao khóa này phù hợp với bạn?</span>
                 {result.ai_recommendation.why_fits}
@@ -85,9 +90,14 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
                 <h4 className="text-sm font-semibold text-[#8B7E74] mb-1">
                   Lựa chọn thay thế:
                 </h4>
-                <p className="text-[#2D2D2D] font-medium text-sm">
-                  {result.ai_recommendation.backup_course_name}
-                </p>
+                <a 
+                  href={result.ai_recommendation.backup_course_url || "https://nedu.nhi.sg/"} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="text-[#2D2D2D] font-medium text-sm hover:underline hover:text-[#8B5E3C]"
+                >
+                  {result.ai_recommendation.backup_course_name} ↗
+                </a>
               </div>
             )}
           </div>
@@ -118,15 +128,15 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
               </button>
               
               <a 
-                href="https://nedu.nhi.sg/"
+                href={result.ai_recommendation?.primary_course_url || "https://nedu.nhi.sg/"}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full border border-[#8B5E3C] text-[#8B5E3C] bg-white p-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[#FDF1E9] transition-colors font-medium shadow-sm block text-center"
               >
-                Đăng ký khóa học ngay →
+                Xem chi tiết khoá học chủ lực →
               </a>
             </div>
-            <p className="text-xs text-[#8B7E74]">Cả hai đều miễn phí</p>
+            <p className="text-xs text-[#8B7E74]">Lựa chọn nào cũng đáng giá cho hành trình của bạn</p>
           </div>
         </div>
       </div>
