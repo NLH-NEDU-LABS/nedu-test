@@ -27,6 +27,8 @@ export interface Persona {
   emoji: string;
   color: string;
   maxdiff_instruction: string;
+  most_label?: string;
+  least_label?: string;
   problem_pool: Problem[];
   sets: MaxDiffSet[];
   course_mapping: CourseMapping[];

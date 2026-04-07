@@ -110,7 +110,7 @@ function ItemRow({
         onClick={onPickMost}
         icon={isMost ? "✓" : "▲"}
         side="left"
-        tooltip="Quan trọng nhất"
+        tooltip="Lựa chọn Tích Cực (Positive)"
       />
 
       {/* CENTER — Content */}
@@ -137,7 +137,7 @@ function ItemRow({
         onClick={onPickLeast}
         icon={isLeast ? "✓" : "▼"}
         side="right"
-        tooltip="Ít quan trọng nhất"
+        tooltip="Lựa chọn Ít Ưu Tiên (Negative)"
       />
     </div>
   );
@@ -239,9 +239,9 @@ export const MaxDiffSetScreen = ({
         display: "grid", gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center", marginBottom: 16, gap: 8
       }}>
-        <LegendPill color={C.most} bg={C.mostBg} icon="▲" label="QUAN TRỌNG NHẤT VỚI TÔI" align="left" />
+        <LegendPill color={C.most} bg={C.mostBg} icon="▲" label={persona.most_label || "QUAN TRỌNG NHẤT VỚI TÔI"} align="left" />
         <div style={{ width: 1, height: 28, background: C.border }} />
-        <LegendPill color={C.least} bg={C.leastBg} icon="▼" label="ÍT QUAN TRỌNG NHẤT LÚC NÀY" align="right" />
+        <LegendPill color={C.least} bg={C.leastBg} icon="▼" label={persona.least_label || "ÍT QUAN TRỌNG NHẤT LÚC NÀY"} align="right" />
       </div>
 
       {/* Items */}
@@ -275,9 +275,9 @@ export const MaxDiffSetScreen = ({
           background: C.neutralBg, borderRadius: 8
         }}>
           {!selectedMost && !selectedLeast
-            ? "👆 Hãy chọn điều QUAN TRỌNG NHẤT và ÍT QUAN TRỌNG NHẤT với bạn"
-            : !selectedMost ? "✅ Tốt! Giờ hãy chọn thêm điều QUAN TRỌNG NHẤT"
-            : "✅ Tốt! Giờ hãy chọn thêm điều ÍT QUAN TRỌNG NHẤT"}
+            ? `👆 Hãy chọn điều ${persona.most_label || 'QUAN TRỌNG NHẤT'} và ${persona.least_label || 'ÍT QUAN TRỌNG NHẤT'} với bạn`
+            : !selectedMost ? `✅ Tốt! Giờ hãy chọn thêm điều ${persona.most_label || 'QUAN TRỌNG NHẤT'}`
+            : `✅ Tốt! Giờ hãy chọn thêm điều ${persona.least_label || 'ÍT QUAN TRỌNG NHẤT'}`}
         </div>
       )}
 

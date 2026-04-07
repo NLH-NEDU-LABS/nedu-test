@@ -21,6 +21,8 @@ export const PERSONAS: Record<string, Persona> = {
     emoji: "🎓",
     color: "#1D9E75",
     maxdiff_instruction: "Trong hành trình tìm lại sự cân bằng, điều gì bạn đang khao khát NHẤT, và điều gì ÍT quan trọng nhất?",
+    most_label: "KHAO KHÁT NHẤT",
+    least_label: "ÍT QUAN TRỌNG NHẤT",
     problem_pool: [
       { id: "mai_p1", label: "Tự tin hơn vào bản thân", description: "Vấn đề liên quan đến tự tin hơn vào bản thân" },
       { id: "mai_p2", label: "Biết mình thực sự muốn gì", description: "Vấn đề liên quan đến biết mình thực sự muốn gì" },
@@ -56,6 +58,8 @@ export const PERSONAS: Record<string, Persona> = {
     emoji: "🌱",
     color: "#639922",
     maxdiff_instruction: "Đối diện với áp lực hàng ngày, điều gì giúp bạn đứng vững NHẤT, và điều gì ít giúp ích NHẤT?",
+    most_label: "GIÚP ĐỨNG VỮNG NHẤT",
+    least_label: "ÍT GIÚP ÍCH NHẤT",
     problem_pool: [
       { id: "ngoc_p1", label: "Biết cách không mang việc về nhà", description: "Vấn đề liên quan đến biết cách không mang việc về nhà" },
       { id: "ngoc_p2", label: "Tự tin khi nói chuyện với sếp", description: "Vấn đề liên quan đến tự tin khi nói chuyện với sếp" },
@@ -91,6 +95,8 @@ export const PERSONAS: Record<string, Persona> = {
     emoji: "🧭",
     color: "#378ADD",
     maxdiff_instruction: "Khi cạn kiệt năng lượng, điều gì giúp bạn phục hồi NHẤT, và điều gì ít tác dụng NHẤT?",
+    most_label: "PHỤC HỒI NHẤT",
+    least_label: "ÍT TÁC DỤNG NHẤT",
     problem_pool: [
       { id: "minh_p1", label: "Có thời gian chỉ cho bản thân", description: "Vấn đề liên quan đến có thời gian chỉ cho bản thân" },
       { id: "minh_p2", label: "Cảm thấy công việc có ý nghĩa hơn", description: "Vấn đề liên quan đến cảm thấy công việc có ý nghĩa hơn" },
@@ -126,6 +132,8 @@ export const PERSONAS: Record<string, Persona> = {
     emoji: "🦋",
     color: "#D85A30",
     maxdiff_instruction: "Nếu chỉ được ưu tiên một thứ duy nhất, bạn chọn gì NHẤT, và bỏ gì CUỐI CÙNG?",
+    most_label: "ƯU TIÊN NHẤT",
+    least_label: "BỎ LẠI CUỐI CÙNG",
     problem_pool: [
       { id: "ha_p1", label: "Thu nhập ổn định hơn", description: "Vấn đề liên quan đến thu nhập ổn định hơn" },
       { id: "ha_p2", label: "Không còn làm việc một mình nữa", description: "Vấn đề liên quan đến không còn làm việc một mình nữa" },
@@ -161,6 +169,8 @@ export const PERSONAS: Record<string, Persona> = {
     emoji: "🧳",
     color: "#0F6E56",
     maxdiff_instruction: 'Để thực sự "Là Chính Mình", điều gì là nền móng NHẤT, và điều gì bạn có thể bỏ qua?',
+    most_label: "NỀN MÓNG NHẤT",
+    least_label: "CÓ THỂ BỎ QUA",
     problem_pool: [
       { id: "khanh_p1", label: "Biết rõ mình là ai — không cần ai xác nhận", description: "Vấn đề liên quan đến biết rõ mình là ai — không cần ai xác nhận" },
       { id: "khanh_p2", label: "Tạo ra nội dung thật sự ý nghĩa", description: "Vấn đề liên quan đến tạo ra nội dung thật sự ý nghĩa" },
@@ -196,6 +206,8 @@ export const PERSONAS: Record<string, Persona> = {
     emoji: "💼",
     color: "#534AB7",
     maxdiff_instruction: "Ở vị trí hiện tại, mục tiêu nào CẤP THIẾT nhất, và cái nào chưa cần?",
+    most_label: "CẤP THIẾT NHẤT",
+    least_label: "CHƯA CẦN ĐẾN",
     problem_pool: [
       { id: "linh_p1", label: "Team tự chạy không cần sếp kè kè", description: "Vấn đề liên quan đến team tự chạy không cần sếp kè kè" },
       { id: "linh_p2", label: "Doanh thu tăng trưởng đều đặn", description: "Vấn đề liên quan đến doanh thu tăng trưởng đều đặn" },
@@ -230,6 +242,8 @@ export const PERSONAS: Record<string, Persona> = {
     emoji: "🌸",
     color: "#D4537E",
     maxdiff_instruction: 'Để có cuộc sống trọn vẹn cả vật chất lẫn tinh thần, đâu là "chìa khóa" NHẤT với bạn?',
+    most_label: "CHÌA KHÓA NHẤT",
+    least_label: "KÉM QUAN TRỌNG HƠN",
     problem_pool: [
       { id: "van_p1", label: "Không còn cảm giác tội lỗi khi chọn bản thân", description: "Vấn đề liên quan đến không còn cảm giác tội lỗi khi chọn bản thân" },
       { id: "van_p2", label: "Có thời gian riêng — dù chỉ 30 phút/ngày", description: "Vấn đề liên quan đến có thời gian riêng — dù chỉ 30 phút/ngày" },
@@ -264,6 +278,8 @@ export const PERSONAS: Record<string, Persona> = {
     emoji: "🌾",
     color: "#BA7517",
     maxdiff_instruction: "Lắng nghe trực giác ngay lúc này: điều gì đang kêu gọi bạn NHẤT, và điều gì mờ nhạt nhất?",
+    most_label: "KÊU GỌI NHẤT",
+    least_label: "MỜ NHẠT NHẤT",
     problem_pool: [
       { id: "thao_p1", label: "Tìm lại lý do mình chọn nghề này", description: "Vấn đề liên quan đến tìm lại lý do mình chọn nghề này" },
       { id: "thao_p2", label: "Không còn cảm giác bị mắc kẹt", description: "Vấn đề liên quan đến không còn cảm giác bị mắc kẹt" },
@@ -299,6 +315,8 @@ export const PERSONAS: Record<string, Persona> = {
     emoji: "🏔️",
     color: "#5F5E5A",
     maxdiff_instruction: "Nếu thiết kế lại lộ trình từ hôm nay, bạn chọn gì làm kim chỉ nam NHẤT, và bỏ gì CUỐI CÙNG?",
+    most_label: "KIM CHỈ NAM NHẤT",
+    least_label: "BỎ LẠI SAU CÙNG",
     problem_pool: [
       { id: "lan_p1", label: "Tìm lại ý nghĩa đằng sau tất cả những gì đang làm", description: "Vấn đề liên quan đến tìm lại ý nghĩa đằng sau tất cả những gì đang làm" },
       { id: "lan_p2", label: "Sức khỏe — nền tảng của mọi thứ còn lại", description: "Vấn đề liên quan đến sức khỏe — nền tảng của mọi thứ còn lại" },
