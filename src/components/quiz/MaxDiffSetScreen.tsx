@@ -126,9 +126,6 @@ function ItemRow({
         }}>
           {item.label}
         </div>
-        <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.5 }}>
-          {item.description}
-        </div>
       </div>
 
       {/* RIGHT — Least button */}
@@ -232,13 +229,7 @@ export const MaxDiffSetScreen = ({
 
       {/* Question */}
       <div style={{ marginBottom: 22 }}>
-        <h2 style={{
-          fontSize: 17, fontWeight: 600, color: C.dark,
-          margin: "0 0 4px", lineHeight: 1.45
-        }}>
-          Trong nhóm này, đâu là ưu tiên của bạn?
-        </h2>
-        <p style={{ fontSize: 13, color: C.muted, margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 14, fontWeight: 500, color: C.dark, margin: 0, lineHeight: 1.6 }}>
           {persona.maxdiff_instruction}
         </p>
       </div>

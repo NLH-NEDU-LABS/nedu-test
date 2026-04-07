@@ -30,9 +30,38 @@ export const useQuizFlow = () => {
 
     if (currentSetIndex >= totalSets - 1) {
       setStep('analyzing');
-      const result = calculateMaxDiffScores(persona!, newAnswers);
-      setAssessmentResult(result);
-      setTimeout(() => setStep('result'), 2500);
+      
+      // Call API for MaxDiff recommendation
+      const calculatedResult = calculateMaxDiffScores(persona!, newAnswers);
+      const topTwo = calculatedResult.top_problems;
+      
+      fetch('/api/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          persona_id: persona!.id, 
+          persona_label: persona!.label,
+          top_problem_1: topTwo[0]?.label || "",
+          top_problem_2: topTwo[1]?.label || ""
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const fullResult: AssessmentResult = {
+          persona_id: persona!.id,
+          persona_label: persona!.label,
+          scores: calculatedResult.scores,
+          top_problems: topTwo,
+          ai_recommendation: data
+        };
+        setAssessmentResult(fullResult);
+        setStep('result');
+      })
+      .catch(err => {
+        console.error('API Error:', err);
+        // Fallback or error state
+        setStep('result');
+      });
     } else {
       setCurrentSetIndex(prev => prev + 1);
     }

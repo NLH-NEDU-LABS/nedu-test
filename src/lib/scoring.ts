@@ -14,48 +14,58 @@ export function calculateMaxDiffScores(
   persona: Persona,
   answers: SetAnswer[]
 ): AssessmentResult {
-  // Step 1: Count most/least per item
-  const counts: Record<string, { most: number; least: number }> = {};
+  // Step 1: Count appearances, most, least per item
+  const stats: Record<string, { most: number; least: number; appearances: number }> = {};
 
   for (const problem of persona.problem_pool) {
-    counts[problem.id] = { most: 0, least: 0 };
+    stats[problem.id] = { most: 0, least: 0, appearances: 0 };
+  }
+
+  // Count appearances from sets
+  for (const set of persona.sets) {
+    for (const itemId of set.items) {
+      if (stats[itemId]) stats[itemId].appearances += 1;
+    }
   }
 
   for (const answer of answers) {
-    if (counts[answer.most]) counts[answer.most].most += 1;
-    if (counts[answer.least]) counts[answer.least].least += 1;
+    if (stats[answer.most]) stats[answer.most].most += 1;
+    if (stats[answer.least]) stats[answer.least].least += 1;
   }
 
-  // Step 2: Calculate raw scores
-  const rawScores: { item_id: string; raw: number; most_count: number; least_count: number }[] = [];
-  for (const [item_id, c] of Object.entries(counts)) {
+  // Step 2: Calculate BWS scores: (most - least) / appearances
+  const rawScores: { item_id: string; bws: number; most_count: number; least_count: number }[] = [];
+  for (const [item_id, s] of Object.entries(stats)) {
+    const apps = s.appearances || 1;
     rawScores.push({
       item_id,
-      raw: c.most - c.least,
-      most_count: c.most,
-      least_count: c.least,
+      bws: (s.most - s.least) / apps,
+      most_count: s.most,
+      least_count: s.least,
     });
   }
 
-  // Step 3: Normalize to 0-100
-  const minRaw = Math.min(...rawScores.map(s => s.raw));
-  const maxRaw = Math.max(...rawScores.map(s => s.raw));
-  const range = maxRaw - minRaw || 1; // avoid division by zero
+  // Step 3: Rescale to 0-100
+  const minBws = Math.min(...rawScores.map(s => s.bws));
+  const maxBws = Math.max(...rawScores.map(s => s.bws));
+  const range = maxBws - minBws; 
 
   const scoredItems: ScoredItem[] = rawScores.map(s => {
     const problem = persona.problem_pool.find(p => p.id === s.item_id)!;
+    const rescaled = range > 0 ? ((s.bws - minBws) / range) * 100 : 0;
+    
     return {
       item_id: s.item_id,
       label: problem.label,
       description: problem.description,
       most_count: s.most_count,
       least_count: s.least_count,
-      raw_score: s.raw,
-      normalized: Math.round(((s.raw - minRaw) / range) * 100),
+      raw_score: s.bws,
+      normalized: rescaled,
     };
   });
 
-  // Step 4: Sort DESC with tie-breaking (higher most_count wins)
+  // Step 4: Sort DESC by rescaled score
   scoredItems.sort((a, b) => {
     if (b.normalized !== a.normalized) return b.normalized - a.normalized;
     return b.most_count - a.most_count;

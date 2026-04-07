@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, ChevronRight } from 'lucide-react';
 import { FollowUpModal } from './FollowUpModal';
+// import { MaxDiffResultChart } from './MaxDiffResultChart';
 import type { AssessmentResult, Persona } from '@/types/assessment';
 import type { UserBirthData } from '@/types/user-data';
 
@@ -51,33 +52,50 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
           </p>
         </div>
 
-        {/* Top problems */}
-        <div className="mt-6 space-y-2">
-          <h3 className="text-xs font-semibold text-[#8B7E74] uppercase tracking-wider ml-1">
-            Điều bạn quan tâm nhất
-          </h3>
-          <div className="space-y-3">
-            {result.top_problems.map((problem, i) => (
-              <div
-                key={problem.item_id}
-                className="p-4 bg-[#F9F8F6] rounded-2xl border border-[#F0EBE5]"
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className="w-full text-[#2D2D2D] text-sm flex gap-3"
-                  >
-                    <span className="text-xl shrink-0">{problem.emoji || '✨'}</span>
-                    <span className="font-medium">{problem.label}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Course recommendations - Hiding as per screenshots we don't necessarily show them, wait, the design just has "Điều bạn quan tâm nhất" and the CTAs. Let me just keep the original list but style the options. No, let's keep it mostly same and change CTA */}
-        
-        {/* Nút reset chìm */}
+
+        {/* Course recommendations from AI */}
+        {result.ai_recommendation ? (
+          <div className="mt-8 space-y-4">
+            <h3 className="text-xs font-semibold text-[#8B7E74] uppercase tracking-wider ml-1">
+              Gợi ý hành trình phù hợp nhất
+            </h3>
+            <div className="p-5 bg-[#FDF1E9]/50 rounded-2xl border border-[#FDF1E9]">
+              <div className="mb-2 inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-full border border-[#EACbb3] text-xs font-medium text-[#8B5E3C]">
+                <span>⭐</span> Recommended
+              </div>
+              <h4 className="text-xl font-medium text-[#8B5E3C] mb-3">
+                {result.ai_recommendation.primary_course_name}
+              </h4>
+              <p className="text-sm text-[#5C5550] leading-relaxed mb-4">
+                <span className="font-semibold block mb-1">Tại sao khóa này phù hợp với bạn?</span>
+                {result.ai_recommendation.why_fits}
+              </p>
+              <div className="text-xs text-[#8B7E74] bg-white p-3 rounded-xl border border-[#F0EBE5]">
+                <span className="font-semibold text-[#8B5E3C]">Lưu ý về phương pháp: </span>
+                {result.ai_recommendation.learning_style_note}
+              </div>
+              <p className="text-xs text-rose-600 mt-4 font-medium italic">
+                {result.ai_recommendation.urgency_message}
+              </p>
+            </div>
+            
+            {(result.ai_recommendation.backup_course_id && result.ai_recommendation.backup_course_name) && (
+              <div className="p-4 bg-white rounded-2xl border border-[#F0EBE5]">
+                <h4 className="text-sm font-semibold text-[#8B7E74] mb-1">
+                  Lựa chọn thay thế:
+                </h4>
+                <p className="text-[#2D2D2D] font-medium text-sm">
+                  {result.ai_recommendation.backup_course_name}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="mt-8 p-6 text-center text-sm text-[#8B7E74] bg-[#F9F8F6] rounded-2xl border border-[#F0EBE5]">
+             Hệ thống gợi ý AI hiện không khả dụng. Xin vui lòng liên hệ Nedu để được tư vấn trực tiếp.
+          </div>
+        )}
         <div className="text-center pt-6 mb-2 md:mb-0">
            <button
             onClick={onRestart}
