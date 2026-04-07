@@ -32,7 +32,7 @@ Trả về JSON thuần túy, không thêm text ngoài JSON theo format:
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const ai = genAI.getGenerativeModel({
-  model: 'gemini-1.5-flash',
+  model: 'gemini-2.5-flash',
   systemInstruction: SYSTEM_PROMPT,
   generationConfig: { responseMimeType: "application/json" }
 });
@@ -77,10 +77,20 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
 
     try {
       const response = await ai.generateContent(prompt);
-      const dataStr = response.response.text() || "{}";
+      let dataStr = response.response.text() || "{}";
+      // Xoá markdown json block nếu AI lỡ sinh ra
+      dataStr = dataStr.replace(/```json/gi, '').replace(/```/g, '').trim();
+      
       const parsed = JSON.parse(dataStr);
       if (parsed.subject) emailSubject = parsed.subject;
-      if (parsed.body) emailBody = parsed.body;
+      if (parsed.body) {
+         // Chèn lời chào vào đầu nếu AI chưa có
+         if (!parsed.body.toLowerCase().startsWith("chào") && !parsed.body.toLowerCase().startsWith("gửi")) {
+             emailBody = `Chào ${name || "bạn"},\n\n` + parsed.body;
+         } else {
+             emailBody = parsed.body;
+         }
+      }
     } catch (err) {
       console.error("Gemini Email Gen error:", err);
     }
@@ -113,7 +123,7 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
       
       <!-- Call to Action -->
       <div style="margin-top: 40px; text-align: center;">
-        <a href="https://nedu.nhi.sg/ket-qua-ca-nhan" style="display: inline-block; background-color: #8B5E3C; color: #FFFFFF; text-decoration: none; padding: 14px 32px; border-radius: 14px; font-weight: 500; font-size: 15px; letter-spacing: 0.3px; box-shadow: 0 4px 12px rgba(139, 94, 60, 0.2);">
+        <a href="https://landing-lane-connect.vercel.app/" style="display: inline-block; background-color: #8B5E3C; color: #FFFFFF; text-decoration: none; padding: 14px 32px; border-radius: 14px; font-weight: 500; font-size: 15px; letter-spacing: 0.3px; box-shadow: 0 4px 12px rgba(139, 94, 60, 0.2);">
           Xem kết quả đầy đủ
         </a>
       </div>
