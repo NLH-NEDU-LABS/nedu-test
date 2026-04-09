@@ -96,11 +96,18 @@ export const useQuizFlow = () => {
           name: data.fullName,
           email: data.email,
           persona_label: assessmentResult.persona_label,
+          persona_id: assessmentResult.persona_id,
           top_problem_1: assessmentResult.top_problems[0]?.label || "",
           top_problem_2: assessmentResult.top_problems[1]?.label || "",
           primary_course_name: assessmentResult.ai_recommendation?.primary_course_name || "",
+          primary_course_id: assessmentResult.ai_recommendation?.primary_course_id || "",
+          primary_course_url: assessmentResult.ai_recommendation?.primary_course_url || "",
           why_fits: assessmentResult.ai_recommendation?.why_fits || "",
-          source: typeof window !== 'undefined' ? window.location.hostname : "web"
+          source: typeof window !== 'undefined' ? window.location.hostname : "web",
+          occupation: data.occupation,
+          feeling: data.feeling,
+          dob: data.dob,
+          birthTime: data.birthTime
         })
       }).catch(console.error);
     }

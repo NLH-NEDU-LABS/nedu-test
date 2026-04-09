@@ -43,12 +43,19 @@ export async function POST(req: Request) {
     const { 
       name, 
       email, 
-      persona_label, 
+      persona_label,
+      persona_id,
       top_problem_1, 
       top_problem_2, 
-      primary_course_name, 
+      primary_course_name,
+      primary_course_id,
+      primary_course_url,
       why_fits, 
-      source 
+      source,
+      occupation,
+      feeling,
+      dob,
+      birthTime
     } = body;
 
     if (!email) {
@@ -161,6 +168,63 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
       }
     } else {
       console.warn("RESEND_API_KEY is not set.");
+    }
+
+    // 3. Thực hiện lưu vào DB 
+    try {
+      const { supabase } = await import('@/lib/supabase');
+      const crypto = await import('crypto');
+
+      // Bước 1: INSERT quiz_submissions
+      const { data: quiz, error: quizError } = await supabase.from('quiz_submissions').insert({
+        visitor_email: email, 
+        visitor_name: name,
+        persona_id, 
+        result_json: { 
+          primary_course_name, 
+          why_fits,
+          top_problem_1, 
+          top_problem_2 
+        },
+        answers: { occupation, feeling },
+        utm_source: source, 
+        identity_status: 'anonymous'
+      }).select('id').single();
+
+      if (quizError) throw quizError;
+
+      // Bước 2: INSERT leads
+      const report_token = crypto.randomUUID();
+      const { data: lead, error: leadError } = await supabase.from('leads').insert({
+        quiz_persona: persona_id, 
+        job: occupation, 
+        goal: feeling,
+        dob, 
+        birth_time: birthTime,
+        courses: primary_course_id ? [primary_course_id] : [],
+        source_type: 'inbound',
+        sla_started_at: new Date().toISOString(),
+        metadata: { 
+          report_token, 
+          primary_course_name,
+          primary_course_url, 
+          why_fits,
+          has_advanced: false, 
+          persona_label 
+        }
+      }).select('id').single();
+
+      if (leadError) throw leadError;
+
+      // Bước 3: UPDATE quiz_submissions.lead_id
+      const { error: updateError } = await supabase.from('quiz_submissions')
+        .update({ lead_id: lead.id }).eq('id', quiz.id);
+
+      if (updateError) throw updateError;
+        
+    } catch (dbError) {
+      // Bỏ qua lỗi DB, không throw vì email đã gửi thành công
+      console.error("Supabase Error after sending email:", dbError);
     }
 
     return NextResponse.json({ success: true });

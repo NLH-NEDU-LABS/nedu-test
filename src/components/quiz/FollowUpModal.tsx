@@ -23,6 +23,10 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.birthTimeUnknown && !formData.birthTime) {
+      alert('Vui lòng nhập Giờ sinh hoặc chọn "Không nhớ".');
+      return;
+    }
     onSubmit(formData);
   };
 
@@ -74,6 +78,79 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
 
 
             
+            <div className="space-y-1.5 border-t border-[#F0EBE5] pt-4 mt-2">
+              <label className="text-sm font-medium text-[#8B7E74]">Giới tính *</label>
+              <div className="relative">
+                <select
+                  required
+                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
+                  value={formData.gender}
+                  onChange={(e) => setFormData({...formData, gender: parseInt(e.target.value) as 0 | 1})}
+                >
+                  <option value={0}>Nữ</option>
+                  <option value={1}>Nam</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-[#8B7E74]">Ngày sinh dương lịch *</label>
+              <div className="relative">
+                <input 
+                  required
+                  type="date"
+                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
+                  value={formData.dob}
+                  onChange={(e) => setFormData({...formData, dob: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-[#8B7E74]">Giờ sinh *</label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input 
+                    type="checkbox"
+                    className="accent-[#8B5E3C] w-4 h-4 rounded border-gray-300 cursor-pointer"
+                    checked={formData.birthTimeUnknown}
+                    onChange={(e) => {
+                      const isUnknown = e.target.checked;
+                      setFormData({...formData, birthTimeUnknown: isUnknown, birthTime: isUnknown ? '' : formData.birthTime});
+                    }}
+                  />
+                  <span className="text-xs text-[#8B7E74]">Không nhớ</span>
+                </label>
+              </div>
+              <div className="relative">
+                <input 
+                  type="time" 
+                  disabled={formData.birthTimeUnknown}
+                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm disabled:bg-gray-50 disabled:text-gray-400"
+                  value={formData.birthTime}
+                  onChange={(e) => setFormData({...formData, birthTime: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-[#8B7E74]">Nơi sinh (Múi giờ) *</label>
+              <div className="relative">
+                <select
+                  required
+                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
+                  value={formData.birthPlace}
+                  onChange={(e) => setFormData({...formData, birthPlace: e.target.value})}
+                >
+                  {BIRTHPLACE_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label} (GMT{opt.tz})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="space-y-1.5 border-t border-[#F0EBE5] pt-4 mt-2">
               <label className="text-sm font-medium text-[#8B7E74]">Công việc hiện tại *</label>
               <div className="relative">
