@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-function setCORSHeaders(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', 'https://test.nedu.vn');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  return response;
-}
-
-export async function OPTIONS() {
-  return setCORSHeaders(NextResponse.json({}));
-}
-
 export async function GET(request: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const resolvedParams = await params;
   const { data: lead } = await supabase
@@ -21,7 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .single();
 
   if (!lead) {
-    return setCORSHeaders(NextResponse.json({ error: 'Not found' }, { status: 404 }));
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
   const profileData = Array.isArray(lead.personal_profiles) 
@@ -55,5 +44,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     has_bazi: !!bazi_data
   };
 
-  return setCORSHeaders(NextResponse.json(payload));
+  return NextResponse.json(payload);
 }
