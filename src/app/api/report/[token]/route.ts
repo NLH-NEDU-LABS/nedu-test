@@ -34,6 +34,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const bazi_data = profileRecord.bazi || null;
   const numerology_data = profileRecord.numerology || null;
+  const bazi_interp = profileRecord.bazi_interp || null;
+  const numerology_interp = profileRecord.numerology_interp || null;
 
   const payload = {
     persona_label: metadata.persona_label || null,
@@ -48,6 +50,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     enneagram_desc: metadata.enneagram_desc || null,
     bazi_data,
     numerology_data,
+    bazi_interp,
+    numerology_interp,
     has_bazi: !!bazi_data
   };
 
