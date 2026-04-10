@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
 
 const ENNEAGRAM_NAMES: Record<string, string> = {
   "1": "Người Cầu Toàn (The Reformer)",
@@ -56,22 +56,16 @@ Dùng "bạn". Không bullet points.
 Trả về JSON: { "description": "..." }
     `;
 
-    const ai = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      generationConfig: { responseMimeType: "application/json" }
-    });
+    const ai = getGeminiModel({ responseJson: true });
 
     let enneagram_desc = "";
     try {
-      const response = await ai.generateContent(aiPrompt);
-      let dataStr = response.response.text() || "{}";
-      dataStr = dataStr.replace(/```json/gi, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(dataStr);
+      const parsed = await geminiGenerateJSON<{ description: string }>(ai, aiPrompt);
       if (parsed.description) {
         enneagram_desc = parsed.description;
       }
     } catch (err) {
-      console.error("Gemini Error:", err);
+      console.error("Gemini Error (after retries):", err);
       // Fallback description in case of AI failure
       enneagram_desc = `Enneagram Type ${typeStr} (${enneagram_name}) phản ánh nhiều sâu thẳm bên trong bạn. Hiện tại AI đang bận xử lý hệ thống nên chưa thể cung cấp diễn giải chi tiết ngay lúc này.`;
     }

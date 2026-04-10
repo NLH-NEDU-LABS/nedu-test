@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
 
 const MBTI_NAMES: Record<string, string> = {
   "ISTJ": "Người Kiên Định",
@@ -60,22 +60,16 @@ Dùng "bạn" khi xưng hô. Không bullet points.
 Trả về JSON: { "description": "..." }
     `;
 
-    const ai = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      generationConfig: { responseMimeType: "application/json" }
-    });
+    const ai = getGeminiModel({ responseJson: true });
 
     let mbti_desc = "";
     try {
-      const response = await ai.generateContent(aiPrompt);
-      let dataStr = response.response.text() || "{}";
-      dataStr = dataStr.replace(/```json/gi, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(dataStr);
+      const parsed = await geminiGenerateJSON<{ description: string }>(ai, aiPrompt);
       if (parsed.description) {
         mbti_desc = parsed.description;
       }
     } catch (err) {
-      console.error("Gemini Error:", err);
+      console.error("Gemini Error (after retries):", err);
       // Fallback description in case of AI failure
       mbti_desc = `Kiểu tính cách ${mbti_type} (${mbti_name}) là những người rất đặc biệt. Hệ thống hiện tại đang xử lý tác vụ nên chưa thể cung cấp diễn giải sâu hơn lúc này.`;
     }

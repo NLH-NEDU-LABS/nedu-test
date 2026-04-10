@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini';
 
 const SYSTEM_PROMPT = `
 Bạn là Nhi Lê — founder Nedu Education, đang viết email cá nhân cho người vừa làm bài test.
@@ -30,12 +30,7 @@ Trả về JSON thuần túy, không thêm text ngoài JSON theo format:
 {"subject": "...", "body": "..."}
 `;
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const ai = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash',
-  systemInstruction: SYSTEM_PROMPT,
-  generationConfig: { responseMimeType: "application/json" }
-});
+const ai = getGeminiModel({ responseJson: true, systemInstruction: SYSTEM_PROMPT });
 
 export async function POST(req: Request) {
   try {
@@ -87,12 +82,7 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
     let emailBody = `Chào ${name || "bạn"},\n\nNhi thấy bạn đang trong giai đoạn ${persona_label}...\n\nNhi`;
 
     try {
-      const response = await ai.generateContent(prompt);
-      let dataStr = response.response.text() || "{}";
-      // Xoá markdown json block nếu AI lỡ sinh ra
-      dataStr = dataStr.replace(/```json/gi, '').replace(/```/g, '').trim();
-      
-      const parsed = JSON.parse(dataStr);
+      const parsed = await geminiGenerateJSON<{ subject?: string; body?: string }>(ai, prompt);
       if (parsed.subject) emailSubject = parsed.subject;
       if (parsed.body) {
          // Chèn lời chào vào đầu nếu AI chưa có
@@ -103,8 +93,14 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
          }
       }
     } catch (err) {
-      console.error("Gemini Email Gen error:", err);
+      console.error("Gemini Email Gen error (after retries):", err);
     }
+
+    // Generate report_token early so it's available for the email CTA
+    const crypto = await import('crypto');
+    const report_token = crypto.randomUUID();
+    const baseUrl = process.env.NEXT_PUBLIC_REPORT_BASE_URL || 'https://test.nhi.sg';
+    const maxdiffReportUrl = `${baseUrl}/maxdiff/${report_token}`;
 
     // Format body into HTML paragraphs
     const formattedParagraphs = emailBody
@@ -134,8 +130,8 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
       
       <!-- Call to Action -->
       <div style="margin-top: 40px; text-align: center;">
-        <a href="https://landing-lane-connect.vercel.app/" style="display: inline-block; background-color: #8B5E3C; color: #FFFFFF; text-decoration: none; padding: 14px 32px; border-radius: 14px; font-weight: 500; font-size: 15px; letter-spacing: 0.3px; box-shadow: 0 4px 12px rgba(139, 94, 60, 0.2);">
-          Xem kết quả đầy đủ
+        <a href="${maxdiffReportUrl}" style="display: inline-block; background-color: #8B5E3C; color: #FFFFFF; text-decoration: none; padding: 14px 32px; border-radius: 14px; font-weight: 500; font-size: 15px; letter-spacing: 0.3px; box-shadow: 0 4px 12px rgba(139, 94, 60, 0.2);">
+          Xem kết quả phân tích của bạn
         </a>
       </div>
       
@@ -177,7 +173,6 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
     // 3. Thực hiện lưu vào DB 
     try {
       const { supabase } = await import('@/lib/supabase');
-      const crypto = await import('crypto');
 
       // Bước 1: INSERT quiz_submissions
       const { data: quiz, error: quizError } = await supabase.from('quiz_submissions').insert({
@@ -197,8 +192,7 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
 
       if (quizError) throw quizError;
 
-      // Bước 2: INSERT leads
-      const report_token = crypto.randomUUID();
+      // Bước 2: INSERT leads (report_token đã được tạo ở trên cho email CTA)
       const { data: lead, error: leadError } = await supabase.from('leads').insert({
         quiz_persona: persona_id, 
         job: occupation, 

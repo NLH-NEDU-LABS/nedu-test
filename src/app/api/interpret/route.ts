@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiModel, geminiGenerate } from '@/lib/gemini';
 
 export async function POST(req: Request) {
   try {
@@ -9,15 +9,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Initialize the API inside the request to ensure latest env var is picked up
-    const apiKey = process.env.GEMINI_API_KEY || '';
-    if (!apiKey) {
+    if (!process.env.GEMINI_API_KEY) {
       console.error("NO API KEY CONFIGURED!");
       return NextResponse.json({ error: 'System missing API key' }, { status: 500 });
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = getGeminiModel();
 
     let prompt = "";
 
@@ -47,8 +44,7 @@ ${JSON.stringify(payload)}`;
       return NextResponse.json({ error: 'Unsupported type' }, { status: 400 });
     }
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const text = await geminiGenerate(model, prompt);
 
     return NextResponse.json({
       success: true,

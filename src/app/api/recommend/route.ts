@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini';
 
-// Initialize Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
 
 const SYSTEM_PROMPT = `Bạn là hệ thống gợi ý khoá học của Nedu Education.
 Nhiệm vụ duy nhất: đọc profile người dùng và chọn đúng 1 khoá học chủ lực và 1 khoá học dự phòng phù hợp nhất từ danh sách hợp lệ dưới đây:
@@ -77,19 +76,16 @@ occupation       : ${occupation}
 source           : ${source}
 country          : ${country}`;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: "application/json" } });
+    const model = getGeminiModel({ responseJson: true });
     
     // Combining system prompt and user input
     const fullPrompt = SYSTEM_PROMPT + "\n\n" + userInput;
 
-    const result = await model.generateContent(fullPrompt);
-    const responseText = result.response.text();
-    
-    // Attempt to parse JSON strictly
     let aiRecommendation;
     try {
-      aiRecommendation = JSON.parse(responseText);
+      aiRecommendation = await geminiGenerateJSON(model, fullPrompt);
     } catch(e) {
+      console.warn('Gemini recommendation failed after retries, using fallback');
       aiRecommendation = {
         primary_course_id: "cuoc-song-cua-ban",
         primary_course_name: "Cuộc Sống Của Bạn",
