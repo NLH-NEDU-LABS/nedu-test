@@ -5,7 +5,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const resolvedParams = await params;
   const { data: lead } = await supabase
     .from('leads')
-    .select('metadata, personal_profiles ( profile_data )')
+    .select('id, metadata, personal_profiles ( profile_data )')
     .eq("metadata->>report_token", resolvedParams.token)
     .single();
 
@@ -13,8 +13,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const profileData = Array.isArray(lead.personal_profiles) 
-    ? (lead.personal_profiles as { profile_data?: unknown }[])[0]?.profile_data 
+  const profileData = Array.isArray(lead.personal_profiles)
+    ? (lead.personal_profiles as { profile_data?: unknown }[])[0]?.profile_data
     : (lead.personal_profiles as { profile_data?: unknown })?.profile_data;
 
   // Assuming metadata is an object containing these properties
@@ -26,13 +26,31 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const bazi_interp = profileRecord.bazi_interp || null;
   const numerology_interp = profileRecord.numerology_interp || null;
 
+  // Query quiz_submissions to get maxdiff scores and ai_recommendation
+  const { data: quizSub } = await supabase
+    .from('quiz_submissions')
+    .select('result_json, visitor_name')
+    .eq('lead_id', lead.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const resultJson = (quizSub?.result_json || {}) as Record<string, any>;
+  const name = quizSub?.visitor_name || metadata.name || null;
+
   const payload = {
+    name,
     persona_label: metadata.persona_label || null,
     top_problem_1: metadata.top_problem_1 || null,
     top_problem_2: metadata.top_problem_2 || null,
     primary_course_name: metadata.primary_course_name || null,
     primary_course_url: metadata.primary_course_url || null,
     why_fits: metadata.why_fits || null,
+    
+    // New rich MaxDiff and AI data
+    maxdiff_scores: resultJson.scores || [],
+    ai_recommendation: resultJson.ai_recommendation || metadata.ai_recommendation || null,
+
     mbti_type: metadata.mbti_type || null,
     mbti_desc: metadata.mbti_desc || null,
     enneagram_type: metadata.enneagram_type || null,

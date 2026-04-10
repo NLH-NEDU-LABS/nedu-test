@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 interface ReportClientProps {
   baziData: unknown;
   numerologyData: unknown;
+  baziInterp?: string;
+  numerologyInterp?: string;
   recommendation?: {
     primary_course_name?: string;
     why_fits?: string;
@@ -14,14 +16,14 @@ interface ReportClientProps {
   } | null;
 }
 
-export default function ReportClient({ baziData, numerologyData, recommendation }: ReportClientProps) {
+export default function ReportClient({ baziData, numerologyData, baziInterp, numerologyInterp, recommendation }: ReportClientProps) {
   const router = useRouter();
   
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto py-8">
-      <BaziResultView baziData={baziData} onBack={() => router.push('/')} />
+      <BaziResultView baziData={baziData} baziInterp={baziInterp} onBack={() => router.push('/')} />
       <hr className="w-full my-8 border-[#F0EBE5]" />
-      <NumerologyResultView numerologyData={numerologyData} onBack={() => router.push('/')} />
+      <NumerologyResultView numerologyData={numerologyData} numerologyInterp={numerologyInterp} onBack={() => router.push('/')} />
       
       {recommendation?.primary_course_name && (
         <div className="w-full max-w-xl mx-auto px-6 mt-8">

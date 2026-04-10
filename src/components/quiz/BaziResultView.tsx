@@ -5,12 +5,13 @@ import { tCan, tChi, tGod, tStar, tZodiac, tGender, tCanChi } from '@/lib/bazi-t
 
 interface BaziResultViewProps {
   baziData: any;
+  baziInterp?: string;
   onBack: () => void;
 }
 
-export const BaziResultView = ({ baziData, onBack }: BaziResultViewProps) => {
-  const [interpretation, setInterpretation] = useState<string>('');
-  const [isAiLoading, setIsAiLoading] = useState(true);
+export const BaziResultView = ({ baziData, baziInterp, onBack }: BaziResultViewProps) => {
+  const [interpretation, setInterpretation] = useState<string>(baziInterp || '');
+  const [isAiLoading, setIsAiLoading] = useState(!baziInterp);
 
   useEffect(() => {
     let mounted = true;

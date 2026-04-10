@@ -71,12 +71,18 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
   }
 
   const profileRecord = (profileData || {}) as Record<string, any>;
-  const { bazi: baziData, numerology: numerologyData } = profileRecord;
+  const { bazi: baziData, numerology: numerologyData, bazi_interp, numerology_interp } = profileRecord;
   const recommendation = lead.metadata ? {
     primary_course_name: lead.metadata.primary_course_name,
     primary_course_url: lead.metadata.primary_course_url,
     why_fits: lead.metadata.why_fits
   } : null;
 
-  return <ReportClient baziData={baziData} numerologyData={numerologyData} recommendation={recommendation} />;
+  return <ReportClient 
+    baziData={baziData} 
+    numerologyData={numerologyData} 
+    baziInterp={bazi_interp}
+    numerologyInterp={numerology_interp}
+    recommendation={recommendation} 
+  />;
 }
