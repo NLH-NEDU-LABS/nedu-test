@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
 import { tCan, tChi, tGod, tStar, tZodiac, tGender, tCanChi } from '@/lib/bazi-translation';
