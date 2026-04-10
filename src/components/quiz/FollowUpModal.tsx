@@ -67,7 +67,7 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
                   type="text"
                   placeholder="Thảo Lê"
                   className={`w-full px-4 py-3.5 bg-white border rounded-xl text-sm focus:outline-none transition-all text-[#2D2D2D] shadow-sm ${
-                    looksLikeVietnameseWithoutAccents(formData.fullName)
+                    looksLikeVietnameseWithoutAccents(formData.fullName || '')
                       ? 'border-amber-400 focus:border-amber-500'
                       : 'border-[#F0EBE5] focus:border-[#8B5E3C]'
                   }`}
@@ -75,7 +75,7 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
                   onChange={(e) => setFormData({...formData, fullName: e.target.value})}
                 />
               </div>
-              {looksLikeVietnameseWithoutAccents(formData.fullName) && (
+              {looksLikeVietnameseWithoutAccents(formData.fullName || '') && (
                 <p className="text-xs text-amber-600 mt-1">
                   Tên tiếng Việt cần nhập đầy đủ dấu (VD: <span className="font-medium">Thảo Lê</span>) để tính Thần Số Học chính xác.
                 </p>
