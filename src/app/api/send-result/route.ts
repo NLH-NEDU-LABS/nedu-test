@@ -47,16 +47,20 @@ export async function POST(req: Request) {
       persona_id,
       top_problem_1, 
       top_problem_2, 
-      primary_course_name,
-      primary_course_id,
-      primary_course_url,
-      why_fits, 
+      scores,
+      ai_recommendation,
       source,
       occupation,
       feeling,
       dob,
       birthTime
     } = body;
+
+    // Extract AI recommendation fields for backward compatibility
+    const primary_course_name = ai_recommendation?.primary_course_name || "";
+    const primary_course_id = ai_recommendation?.primary_course_id || "";
+    const primary_course_url = ai_recommendation?.primary_course_url || "";
+    const why_fits = ai_recommendation?.why_fits || "";
 
     if (!email) {
       return NextResponse.json({ error: 'Missing email' }, { status: 400 });
@@ -181,8 +185,8 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
         visitor_name: name,
         persona_id, 
         result_json: { 
-          primary_course_name, 
-          why_fits,
+          scores,
+          ai_recommendation,
           top_problem_1, 
           top_problem_2 
         },
@@ -206,11 +210,9 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
         sla_started_at: new Date().toISOString(),
         metadata: { 
           report_token, 
-          primary_course_name,
-          primary_course_url, 
-          why_fits,
-          has_advanced: false, 
-          persona_label 
+          persona_label,
+          ai_recommendation,
+          has_advanced: false
         }
       }).select('id').single();
 
