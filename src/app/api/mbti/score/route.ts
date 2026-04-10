@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     // 1. Query leads lấy persona_label + goal để personalize description
     const { data: lead, error: leadError } = await supabase.from("leads")
-      .select("id, metadata, job, goal")
+      .select("id, dob, metadata, job, goal")
       .eq("metadata->>report_token", token)
       .single();
 
@@ -95,6 +95,32 @@ Trả về JSON: { "description": "..." }
     if (updateError) {
       console.error("Update DB error:", updateError);
       return NextResponse.json({ error: 'Failed to update lead' }, { status: 500 });
+    }
+
+    // 4. UPSERT personal_profiles
+    const { data: existingProfile } = await supabase
+      .from('personal_profiles')
+      .select('id, profile_data')
+      .eq('lead_id', lead.id)
+      .maybeSingle();
+
+    const currentProfileData = (existingProfile?.profile_data as Record<string, any>) || {};
+    const newProfileData = {
+      ...currentProfileData,
+      mbti: { type: mbti_type, desc: mbti_desc }
+    };
+
+    if (existingProfile) {
+      await supabase.from('personal_profiles')
+        .update({ profile_data: newProfileData })
+        .eq('id', existingProfile.id);
+    } else {
+      await supabase.from('personal_profiles')
+        .insert({
+          lead_id: lead.id,
+          profile_data: newProfileData,
+          source_dob: lead.dob || null
+        });
     }
 
     // 4. Return { mbti_type, mbti_desc }
