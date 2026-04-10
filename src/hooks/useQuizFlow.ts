@@ -105,7 +105,9 @@ export const useQuizFlow = () => {
           occupation: data.occupation,
           feeling: data.feeling,
           dob: data.dob,
-          birthTime: data.birthTime
+          birthTime: data.birthTime,
+          gender: data.gender,
+          birthPlace: data.birthPlace
         })
       }).catch(console.error);
     }
