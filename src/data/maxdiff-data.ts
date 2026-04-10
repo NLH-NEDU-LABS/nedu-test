@@ -20,8 +20,8 @@ export const PERSONAS: Record<string, Persona> = {
     label: "Sinh viên / Học sinh",
     emoji: "🎓",
     color: "#1D9E75",
-    maxdiff_instruction: "Trong hành trình tìm lại sự cân bằng, điều gì bạn đang khao khát NHẤT, và điều gì ÍT quan trọng nhất?",
-    most_label: "KHAO KHÁT NHẤT",
+    maxdiff_instruction: "Trong hành trình tìm lại sự cân bằng, điều gì QUAN TRỌNG NHẤT với bạn, và điều gì ÍT quan trọng nhất?",
+    most_label: "QUAN TRỌNG NHẤT",
     least_label: "ÍT QUAN TRỌNG NHẤT",
     problem_pool: [
       { id: "mai_p1", label: "Tự tin hơn vào bản thân", description: "Vấn đề liên quan đến tự tin hơn vào bản thân" },
