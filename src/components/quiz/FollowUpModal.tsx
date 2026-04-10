@@ -8,6 +8,17 @@ interface FollowUpModalProps {
   onSubmit: (data: UserBirthData) => void;
 }
 
+// Detect Vietnamese name entered without diacritics.
+// Heuristic: contains common Vietnamese-only consonant combos (nh, ng, ph, th, tr, ch, kh, gi)
+// but has no Unicode diacritical characters (àáâãèéêìíòóôõùúýăđơư and their variants).
+function looksLikeVietnameseWithoutAccents(name: string): boolean {
+  if (!name.trim()) return false;
+  const hasVietnameseDiacritics = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/.test(name);
+  if (hasVietnameseDiacritics) return false;
+  const hasVietnameseCombos = /\b(nguyen|nguyn|pham|hoang|tran|le|ngo|vu|vo|dang|bui|do|ho|huynh|duong|ly|dinh|truong|dao|thai|phan|luu|trinh|nguyen|thao|linh|anh|minh|hung|tuan|hoa|lan|thu|mai|hieu|lam|khoa|phong|quang|dung|thanh|thi|trang|van|son|nam|long|quyen|ngoc|yen|huyen|nhi|khanh|bao|duc|hai|tan|cuong|phuc|thuy|xuan|an)\b/i.test(name);
+  return hasVietnameseCombos;
+}
+
 export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
   const [formData, setFormData] = useState<UserBirthData>({
     email: '',
@@ -52,14 +63,23 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-[#8B7E74]">Họ và tên (Zalo)</label>
               <div className="relative">
-                <input 
-                  type="text" 
-                  placeholder="Thảo Lê" 
-                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
+                <input
+                  type="text"
+                  placeholder="Thảo Lê"
+                  className={`w-full px-4 py-3.5 bg-white border rounded-xl text-sm focus:outline-none transition-all text-[#2D2D2D] shadow-sm ${
+                    looksLikeVietnameseWithoutAccents(formData.fullName)
+                      ? 'border-amber-400 focus:border-amber-500'
+                      : 'border-[#F0EBE5] focus:border-[#8B5E3C]'
+                  }`}
                   value={formData.fullName}
                   onChange={(e) => setFormData({...formData, fullName: e.target.value})}
                 />
               </div>
+              {looksLikeVietnameseWithoutAccents(formData.fullName) && (
+                <p className="text-xs text-amber-600 mt-1">
+                  Tên tiếng Việt cần nhập đầy đủ dấu (VD: <span className="font-medium">Thảo Lê</span>) để tính Thần Số Học chính xác.
+                </p>
+              )}
             </div>
 
             <div className="space-y-1.5">

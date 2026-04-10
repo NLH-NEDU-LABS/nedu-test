@@ -35,20 +35,22 @@ const ai = getGeminiModel({ responseJson: true, systemInstruction: SYSTEM_PROMPT
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { 
-      name, 
-      email, 
+    const {
+      name,
+      email,
       persona_label,
       persona_id,
-      top_problem_1, 
-      top_problem_2, 
+      top_problem_1,
+      top_problem_2,
       scores,
       ai_recommendation,
       source,
       occupation,
       feeling,
       dob,
-      birthTime
+      birthTime,
+      gender,
+      birthPlace
     } = body;
 
     // Extract AI recommendation fields for backward compatibility
@@ -202,10 +204,13 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
         courses: primary_course_id ? [primary_course_id] : [],
         source_type: 'inbound',
         sla_started_at: new Date().toISOString(),
-        metadata: { 
-          report_token, 
+        metadata: {
+          report_token,
           persona_label,
           ai_recommendation,
+          full_name: name || '',
+          gender: body.gender ?? null,
+          birth_place: body.birthPlace || 'vietnam',
           has_advanced: false
         }
       }).select('id').single();

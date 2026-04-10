@@ -24,7 +24,7 @@ interface GeminiModelOptions {
  */
 export function getGeminiModel(options: GeminiModelOptions = {}): GenerativeModel {
   const {
-    model = 'gemini-2.5-flash',
+    model = 'gemini-3.1-flash-lite-preview',
     responseJson = false,
     systemInstruction,
   } = options;
@@ -39,39 +39,54 @@ export function getGeminiModel(options: GeminiModelOptions = {}): GenerativeMode
 }
 
 interface RetryOptions {
-  /** Max number of attempts (default: 3) */
+  /** Max number of attempts (default: 5) */
   maxRetries?: number;
-  /** Base delay in ms before first retry (default: 1000) */
+  /** Base delay in ms before first retry (default: 1500) */
   baseDelayMs?: number;
-  /** Max delay cap in ms (default: 8000) */
+  /** Max delay cap in ms (default: 30000) */
   maxDelayMs?: number;
 }
+
+const FALLBACK_MODEL = 'gemini-2.0-flash';
 
 /**
  * Call Gemini generateContent with automatic retry + exponential backoff.
  * Returns the raw text response.
- * 
+ *
  * Retries on:
  * - Network errors
  * - 429 (rate limit)
- * - 500/503 (server errors)
- * 
+ * - 500/503 (server overload)
+ *
  * Does NOT retry on:
  * - 400 (bad request / invalid prompt)
  * - 403 (auth errors)
+ *
+ * Falls back to gemini-2.0-flash if primary model (gemini-2.5-flash) 503s
+ * more than half the allowed attempts.
  */
 export async function geminiGenerate(
   model: GenerativeModel,
   prompt: string,
   options: RetryOptions = {}
 ): Promise<string> {
-  const { maxRetries = 3, baseDelayMs = 1000, maxDelayMs = 8000 } = options;
+  const { maxRetries = 5, baseDelayMs = 1500, maxDelayMs = 30000 } = options;
 
   let lastError: Error | null = null;
+  let overloadCount = 0;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const result = await model.generateContent(prompt);
+      // After half the retries are 503, switch to fallback model
+      const activeModel = overloadCount >= Math.floor(maxRetries / 2)
+        ? genAI.getGenerativeModel({
+          model: FALLBACK_MODEL,
+          generationConfig: (model as any)?.generationConfig,
+          systemInstruction: (model as any)?.systemInstruction,
+        })
+        : model;
+
+      const result = await activeModel.generateContent(prompt);
       return result.response.text();
     } catch (error: any) {
       lastError = error;
@@ -82,18 +97,23 @@ export async function geminiGenerate(
         throw error;
       }
 
+      if (status === 503 || status === 500) {
+        overloadCount++;
+      }
+
       // Last attempt — don't sleep, just throw
       if (attempt === maxRetries - 1) {
         break;
       }
 
-      // Exponential backoff with jitter
-      const delay = Math.min(baseDelayMs * Math.pow(2, attempt), maxDelayMs);
-      const jitter = delay * 0.2 * Math.random(); // ±20% jitter
+      // Exponential backoff — longer delay for 503 overload
+      const base = (status === 503 || status === 500) ? baseDelayMs * 2 : baseDelayMs;
+      const delay = Math.min(base * Math.pow(2, attempt), maxDelayMs);
+      const jitter = delay * 0.2 * Math.random();
       const waitMs = Math.round(delay + jitter);
 
       console.warn(
-        `[Gemini] Attempt ${attempt + 1}/${maxRetries} failed (${error?.message || 'unknown'}). Retrying in ${waitMs}ms...`
+        `[Gemini] Attempt ${attempt + 1}/${maxRetries} failed status=${status} (${error?.message || 'unknown'}). Retry in ${waitMs}ms... (overloads: ${overloadCount})`
       );
 
       await new Promise(resolve => setTimeout(resolve, waitMs));

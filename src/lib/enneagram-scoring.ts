@@ -1,349 +1,264 @@
-export const ENNEAGRAM_QUESTIONS = [
+/**
+ * Enneagram Scoring — Option D: Hybrid Triads + Likert
+ *
+ * Phase 1 (6 câu): Xác định trung tâm (Gut / Heart / Head)
+ *   - 2 câu/trung tâm, rated 1–5
+ *   - Tổng điểm cao nhất → trung tâm thắng
+ *
+ * Phase 2 (9 câu): Phân biệt 3 type trong trung tâm thắng
+ *   - 3 câu/type, rated 1–5
+ *   - Type có tổng điểm cao nhất = kết quả
+ *
+ * Tổng: 15 câu
+ */
+
+export type Center = 'gut' | 'heart' | 'head';
+
+export interface EnneagramQuestion {
+  id: string;
+  statement: string;
+}
+
+export interface Phase1Question extends EnneagramQuestion {
+  center: Center;
+}
+
+export interface Phase2Question extends EnneagramQuestion {
+  type: number; // 1–9
+}
+
+// ─── Phase 1: Xác định trung tâm ──────────────────────────────────────────────
+// Gut  (8, 9, 1) — bản năng, tức giận, kiểm soát
+// Heart(2, 3, 4) — cảm xúc, hình ảnh, danh tính
+// Head (5, 6, 7) — suy nghĩ, lo âu, an toàn
+// Câu hỏi interleaved: gut → heart → head → gut → heart → head
+
+export const ENNEAGRAM_PHASE1: Phase1Question[] = [
   {
-    id: "q1",
-    question: "Khi gặp phải một vấn đề khó khăn, bạn thường:",
-    options: {
-      a: "Tìm cách cải thiện và hoàn thiện tình huống.",
-      b: "Tập trung vào việc giúp đỡ người khác vượt qua khó khăn.",
-      c: "Làm việc chăm chỉ để đạt được mục tiêu cá nhân.",
-      d: "Tìm kiếm các giải pháp sáng tạo và đổi mới."
-    }
+    id: "p1_g1",
+    center: "gut",
+    statement: "Khi thấy điều gì đó không công bằng hoặc không đúng, tôi cảm thấy bức xúc và muốn hành động ngay."
   },
   {
-    id: "q2",
-    question: "Bạn cảm thấy hạnh phúc nhất khi:",
-    options: {
-      a: "Đạt được sự hoàn hảo trong công việc.",
-      b: "Giúp đỡ người khác và thấy họ thành công.",
-      c: "Được công nhận và khen thưởng về thành tích.",
-      d: "Thể hiện sự sáng tạo và độc đáo của bản thân."
-    }
+    id: "p1_h1",
+    center: "heart",
+    statement: "Cách người khác nhìn nhận và cảm nhận về tôi ảnh hưởng đến tâm trạng của tôi khá nhiều."
   },
   {
-    id: "q3",
-    question: "Trong các mối quan hệ, bạn thường:",
-    options: {
-      a: "Đặt ra các tiêu chuẩn cao và mong muốn mọi thứ diễn ra suôn sẻ.",
-      b: "Luôn sẵn sàng lắng nghe và hỗ trợ người khác.",
-      c: "Tìm kiếm sự công nhận và khen ngợi từ người khác.",
-      d: "Khuyến khích sự tự do và sáng tạo trong mối quan hệ."
-    }
+    id: "p1_e1",
+    center: "head",
+    statement: "Trước khi làm điều gì mới, tôi thường cần tìm hiểu kỹ hoặc chuẩn bị để cảm thấy an tâm."
   },
   {
-    id: "q4",
-    question: "Khi làm việc nhóm, bạn thường:",
-    options: {
-      a: "Đảm nhận vai trò lãnh đạo và tổ chức công việc.",
-      b: "Hỗ trợ và khích lệ các thành viên khác trong nhóm.",
-      c: "Tập trung vào việc hoàn thành nhiệm vụ và đạt được thành tích.",
-      d: "Đề xuất các ý tưởng mới để cải thiện hiệu suất nhóm."
-    }
+    id: "p1_g2",
+    center: "gut",
+    statement: "Tôi thường có phản ứng bản năng mạnh mẽ ngay lập tức — cảm giác trong người trước khi suy nghĩ kịp."
   },
   {
-    id: "q5",
-    question: "Bạn ưu tiên điều gì nhất trong cuộc sống:",
-    options: {
-      a: "Sự hoàn hảo và đúng đắn.",
-      b: "Mối quan hệ và sự gắn kết với người khác.",
-      c: "Thành công và danh tiếng cá nhân.",
-      d: "Sự tự do và khả năng thể hiện bản thân."
-    }
+    id: "p1_h2",
+    center: "heart",
+    statement: "Tôi thường tự hỏi mình thực sự là ai và muốn được nhìn nhận đúng với con người thật của mình."
   },
   {
-    id: "q6",
-    question: "Khi gặp stress, bạn thường:",
-    options: {
-      a: "Cố gắng kiểm soát tình hình và tìm giải pháp.",
-      b: "Tìm kiếm sự hỗ trợ từ người khác.",
-      c: "Đặt mục tiêu mới để tập trung vào công việc.",
-      d: "Tìm cách giải trí và làm mới bản thân."
-    }
+    id: "p1_e2",
+    center: "head",
+    statement: "Tôi hay lo xa — thường nghĩ đến những rủi ro hoặc kịch bản xấu có thể xảy ra."
   },
-  {
-    id: "q7",
-    question: "Bạn cảm thấy ý nghĩa cuộc sống khi:",
-    options: {
-      a: "Đóng góp vào việc xây dựng một môi trường tốt đẹp hơn.",
-      b: "Giúp đỡ và chăm sóc người khác.",
-      c: "Đạt được những mục tiêu lớn lao trong sự nghiệp.",
-      d: "Thể hiện sự sáng tạo và độc đáo của mình."
-    }
-  },
-  {
-    id: "q8",
-    question: "Bạn thích nhất khi:",
-    options: {
-      a: "Lập kế hoạch và thực hiện chúng một cách hoàn hảo.",
-      b: "Tạo dựng và duy trì các mối quan hệ sâu sắc.",
-      c: "Được công nhận và đánh giá cao về thành tích.",
-      d: "Thử nghiệm và khám phá những điều mới mẻ."
-    }
-  },
-  {
-    id: "q9",
-    question: "Khi đưa ra quyết định, bạn thường dựa vào:",
-    options: {
-      a: "Lý trí và sự công bằng.",
-      b: "Cảm xúc và nhu cầu của người khác.",
-      c: "Mục tiêu cá nhân và lợi ích riêng.",
-      d: "Sự sáng tạo và các khả năng mới."
-    }
-  },
-  {
-    id: "q10",
-    question: "Bạn cảm thấy động lực cao nhất khi:",
-    options: {
-      a: "Hoàn thành nhiệm vụ một cách xuất sắc.",
-      b: "Giúp đỡ người khác đạt được mục tiêu của họ.",
-      c: "Đạt được thành tích và được công nhận.",
-      d: "Thực hiện các ý tưởng sáng tạo và đổi mới."
-    }
-  },
-  {
-    id: "q11",
-    question: "Trong công việc, bạn thường:",
-    options: {
-      a: "Tập trung vào việc hoàn thiện công việc và đạt được tiêu chuẩn cao.",
-      b: "Hỗ trợ đồng nghiệp và tạo môi trường làm việc tích cực.",
-      c: "Đặt mục tiêu cao và làm việc chăm chỉ để đạt được chúng.",
-      d: "Đề xuất các phương pháp mới để cải thiện hiệu suất."
-    }
-  },
-  {
-    id: "q12",
-    question: "Bạn cảm thấy thỏa mãn khi:",
-    options: {
-      a: "Đạt được sự hoàn hảo trong những gì bạn làm.",
-      b: "Giúp đỡ người khác vượt qua khó khăn.",
-      c: "Được khen ngợi và công nhận về thành tích.",
-      d: "Thể hiện sự sáng tạo và đổi mới trong công việc."
-    }
-  },
-  {
-    id: "q13",
-    question: "Bạn thường cảm thấy bị thúc đẩy bởi:",
-    options: {
-      a: "Sự chính xác và đúng đắn.",
-      b: "Mối quan hệ và sự gắn kết với người khác.",
-      c: "Thành công và danh tiếng cá nhân.",
-      d: "Sự tự do và khả năng thể hiện bản thân."
-    }
-  },
-  {
-    id: "q14",
-    question: "Khi đối mặt với thách thức, bạn thường:",
-    options: {
-      a: "Cố gắng tìm giải pháp để hoàn thiện tình hình.",
-      b: "Tìm kiếm sự hỗ trợ từ người khác để vượt qua khó khăn.",
-      c: "Làm việc chăm chỉ để đạt được mục tiêu cá nhân.",
-      d: "Đưa ra các ý tưởng sáng tạo để giải quyết vấn đề."
-    }
-  },
-  {
-    id: "q15",
-    question: "Bạn cảm thấy ý nghĩa cuộc sống khi:",
-    options: {
-      a: "Đóng góp vào sự hoàn thiện của bản thân và môi trường xung quanh.",
-      b: "Giúp đỡ và hỗ trợ người khác trong cuộc sống.",
-      c: "Đạt được những thành tựu cá nhân trong sự nghiệp.",
-      d: "Thể hiện sự sáng tạo và độc đáo của mình."
-    }
-  },
-  {
-    id: "q16",
-    question: "Bạn thích làm việc trong môi trường:",
-    options: {
-      a: "Có quy định rõ ràng và yêu cầu cao về hiệu suất.",
-      b: "Hỗ trợ và hợp tác với đồng nghiệp.",
-      c: "Động lực cao và cạnh tranh.",
-      d: "Linh hoạt và khuyến khích sự sáng tạo."
-    }
-  },
-  {
-    id: "q17",
-    question: "Khi đối mặt với xung đột, bạn thường:",
-    options: {
-      a: "Cố gắng tìm giải pháp công bằng và đúng đắn.",
-      b: "Tìm cách hòa giải và duy trì mối quan hệ tốt.",
-      c: "Đứng vững và bảo vệ quyền lợi của bản thân.",
-      d: "Tìm cách đổi mới và giải quyết vấn đề một cách sáng tạo."
-    }
-  },
-  {
-    id: "q18",
-    question: "Bạn cảm thấy động lực khi:",
-    options: {
-      a: "Được giao nhiệm vụ cần sự chính xác và hoàn thiện.",
-      b: "Giúp đỡ người khác và thấy họ phát triển.",
-      c: "Đạt được thành tích cá nhân và được công nhận.",
-      d: "Thực hiện các dự án sáng tạo và đổi mới."
-    }
-  },
-  {
-    id: "q19",
-    question: "Trong các hoạt động xã hội, bạn thường:",
-    options: {
-      a: "Đảm nhận vai trò lãnh đạo và tổ chức.",
-      b: "Hỗ trợ và chăm sóc người khác.",
-      c: "Tập trung vào việc đạt được thành tích và được công nhận.",
-      d: "Thể hiện sự sáng tạo và đưa ra các ý tưởng mới."
-    }
-  },
-  {
-    id: "q20",
-    question: "Bạn ưu tiên điều gì trong công việc:",
-    options: {
-      a: "Sự hoàn thiện và đúng đắn.",
-      b: "Mối quan hệ và hỗ trợ đồng nghiệp.",
-      c: "Thành công và danh tiếng cá nhân.",
-      d: "Sự sáng tạo và đổi mới."
-    }
-  },
-  {
-    id: "q21",
-    question: "Khi làm việc, bạn cảm thấy hài lòng nhất khi:",
-    options: {
-      a: "Đạt được sự hoàn hảo trong nhiệm vụ.",
-      b: "Giúp đỡ người khác vượt qua khó khăn.",
-      c: "Được công nhận và khen thưởng về thành tích.",
-      d: "Thể hiện sự sáng tạo và độc đáo của bản thân."
-    }
-  },
-  {
-    id: "q22",
-    question: "Bạn cảm thấy động lực cao nhất khi:",
-    options: {
-      a: "Hoàn thành nhiệm vụ một cách xuất sắc.",
-      b: "Giúp đỡ người khác đạt được mục tiêu của họ.",
-      c: "Đạt được thành tích và được công nhận.",
-      d: "Thực hiện các ý tưởng sáng tạo và đổi mới."
-    }
-  },
-  {
-    id: "q23",
-    question: "Trong mối quan hệ, bạn thường:",
-    options: {
-      a: "Đặt ra các tiêu chuẩn cao và mong muốn mọi thứ diễn ra suôn sẻ.",
-      b: "Luôn sẵn sàng lắng nghe và hỗ trợ người khác.",
-      c: "Tìm kiếm sự công nhận và khen ngợi từ người khác.",
-      d: "Khuyến khích sự tự do và sáng tạo trong mối quan hệ."
-    }
-  },
-  {
-    id: "q24",
-    question: "Bạn thích nhất khi:",
-    options: {
-      a: "Lập kế hoạch và thực hiện chúng một cách hoàn hảo.",
-      b: "Tạo dựng và duy trì các mối quan hệ sâu sắc.",
-      c: "Được công nhận và khen thưởng về thành tích.",
-      d: "Thử nghiệm và khám phá những điều mới mẻ."
-    }
-  },
-  {
-    id: "q25",
-    question: "Khi đưa ra quyết định, bạn thường dựa vào:",
-    options: {
-      a: "Lý trí và sự công bằng.",
-      b: "Cảm xúc và nhu cầu của người khác.",
-      c: "Mục tiêu cá nhân và lợi ích riêng.",
-      d: "Sự sáng tạo và các khả năng mới."
-    }
-  },
-  {
-    id: "q26",
-    question: "Bạn cảm thấy ý nghĩa cuộc sống khi:",
-    options: {
-      a: "Đóng góp vào việc xây dựng một môi trường tốt đẹp hơn.",
-      b: "Giúp đỡ và chăm sóc người khác.",
-      c: "Đạt được những mục tiêu lớn lao trong sự nghiệp.",
-      d: "Thể hiện sự sáng tạo và độc đáo của bản thân."
-    }
-  },
-  {
-    id: "q27",
-    question: "Trong công việc, bạn thường:",
-    options: {
-      a: "Tập trung vào việc hoàn thiện công việc và đạt được tiêu chuẩn cao.",
-      b: "Hỗ trợ đồng nghiệp và tạo môi trường làm việc tích cực.",
-      c: "Đặt mục tiêu cao và làm việc chăm chỉ để đạt được chúng.",
-      d: "Đề xuất các phương pháp mới để cải thiện hiệu suất."
-    }
-  },
-  {
-    id: "q28",
-    question: "Bạn cảm thấy thỏa mãn khi:",
-    options: {
-      a: "Đạt được sự hoàn hảo trong những gì bạn làm.",
-      b: "Giúp đỡ người khác vượt qua khó khăn.",
-      c: "Được khen ngợi và công nhận về thành tích.",
-      d: "Thể hiện sự sáng tạo và đổi mới trong công việc."
-    }
-  },
-  {
-    id: "q29",
-    question: "Bạn thường cảm thấy bị thúc đẩy bởi:",
-    options: {
-      a: "Sự chính xác và đúng đắn.",
-      b: "Mối quan hệ và sự gắn kết với người khác.",
-      c: "Thành công và danh tiếng cá nhân.",
-      d: "Sự tự do và khả năng thể hiện bản thân."
-    }
-  },
-  {
-    id: "q30",
-    question: "Khi đối mặt với thách thức, bạn thường:",
-    options: {
-      a: "Cố gắng tìm giải pháp để hoàn thiện tình hình.",
-      b: "Tìm kiếm sự hỗ trợ từ người khác để vượt qua khó khăn.",
-      c: "Làm việc chăm chỉ để đạt được mục tiêu cá nhân.",
-      d: "Đưa ra các ý tưởng sáng tạo để giải quyết vấn đề."
-    }
-  }
 ];
 
-export const ENNEAGRAM_ANSWER_MAP: Record<string, Record<string, number>> = {
-  // Assumption MVP: a=1, b=2, c=3, d=4 cho tất cả câu
-  // Type 5-9 sẽ có điểm thấp hơn - acceptable cho MVP
-  // Update map này khi có answer key chính xác
-  q1: { a: 1, b: 2, c: 3, d: 4 },
-  q2: { a: 1, b: 2, c: 3, d: 4 },
-  q3: { a: 1, b: 2, c: 3, d: 4 },
-  q4: { a: 1, b: 2, c: 3, d: 4 },
-  q5: { a: 1, b: 2, c: 3, d: 4 },
-  q6: { a: 1, b: 2, c: 3, d: 4 },
-  q7: { a: 1, b: 2, c: 3, d: 4 },
-  q8: { a: 1, b: 2, c: 3, d: 4 },
-  q9: { a: 1, b: 2, c: 3, d: 4 },
-  q10: { a: 1, b: 2, c: 3, d: 4 },
-  q11: { a: 1, b: 2, c: 3, d: 4 },
-  q12: { a: 1, b: 2, c: 3, d: 4 },
-  q13: { a: 1, b: 2, c: 3, d: 4 },
-  q14: { a: 1, b: 2, c: 3, d: 4 },
-  q15: { a: 1, b: 2, c: 3, d: 4 },
-  q16: { a: 1, b: 2, c: 3, d: 4 },
-  q17: { a: 1, b: 2, c: 3, d: 4 },
-  q18: { a: 1, b: 2, c: 3, d: 4 },
-  q19: { a: 1, b: 2, c: 3, d: 4 },
-  q20: { a: 1, b: 2, c: 3, d: 4 },
-  q21: { a: 1, b: 2, c: 3, d: 4 },
-  q22: { a: 1, b: 2, c: 3, d: 4 },
-  q23: { a: 1, b: 2, c: 3, d: 4 },
-  q24: { a: 1, b: 2, c: 3, d: 4 },
-  q25: { a: 1, b: 2, c: 3, d: 4 },
-  q26: { a: 1, b: 2, c: 3, d: 4 },
-  q27: { a: 1, b: 2, c: 3, d: 4 },
-  q28: { a: 1, b: 2, c: 3, d: 4 },
-  q29: { a: 1, b: 2, c: 3, d: 4 },
-  q30: { a: 1, b: 2, c: 3, d: 4 },
+// ─── Phase 2: Phân biệt type trong từng trung tâm ─────────────────────────────
+
+export const ENNEAGRAM_PHASE2: Record<Center, Phase2Question[]> = {
+  // Gut: Type 8 (Challenger), 9 (Peacemaker), 1 (Perfectionist)
+  gut: [
+    // Type 8
+    {
+      id: "p2_8a",
+      type: 8,
+      statement: "Tôi không ngại đối đầu trực tiếp khi cần bảo vệ bản thân hoặc người mình quan tâm."
+    },
+    {
+      id: "p2_8b",
+      type: 8,
+      statement: "Tôi cảm thấy mạnh mẽ và tự tin nhất khi nắm quyền kiểm soát tình huống."
+    },
+    {
+      id: "p2_8c",
+      type: 8,
+      statement: "Tôi dễ mất kiên nhẫn với những người do dự, không quyết đoán hoặc không thành thật."
+    },
+    // Type 9
+    {
+      id: "p2_9a",
+      type: 9,
+      statement: "Tôi thường nhường nhịn hoặc thỏa hiệp để tránh xung đột, dù đôi khi không thực sự muốn."
+    },
+    {
+      id: "p2_9b",
+      type: 9,
+      statement: "Tôi dễ bị cuốn vào việc của người khác và đôi khi quên đi những gì mình thực sự muốn."
+    },
+    {
+      id: "p2_9c",
+      type: 9,
+      statement: "Tôi cảm thấy thoải mái nhất khi mọi người xung quanh đều ổn và không có căng thẳng."
+    },
+    // Type 1
+    {
+      id: "p2_1a",
+      type: 1,
+      statement: "Tôi thường cảm thấy khó chịu khi thấy điều gì đó được làm không đúng hoặc không đủ chuẩn."
+    },
+    {
+      id: "p2_1b",
+      type: 1,
+      statement: "Tôi tự phê bình bản thân khá nhiều khi mắc sai lầm — dù người khác không để ý."
+    },
+    {
+      id: "p2_1c",
+      type: 1,
+      statement: "Tôi tin rằng có một cách đúng để làm mọi thứ và tôi cố gắng tìm ra cách đó."
+    },
+  ],
+
+  // Heart: Type 2 (Helper), 3 (Achiever), 4 (Individualist)
+  heart: [
+    // Type 2
+    {
+      id: "p2_2a",
+      type: 2,
+      statement: "Tôi cảm thấy có giá trị nhất khi được cần đến và giúp ích được cho người khác."
+    },
+    {
+      id: "p2_2b",
+      type: 2,
+      statement: "Tôi thường nhận ra nhu cầu của người khác trước khi họ tự nói ra."
+    },
+    {
+      id: "p2_2c",
+      type: 2,
+      statement: "Đôi khi tôi giúp đỡ quá nhiều đến mức bỏ quên nhu cầu và cảm xúc của chính mình."
+    },
+    // Type 3
+    {
+      id: "p2_3a",
+      type: 3,
+      statement: "Tôi được thúc đẩy mạnh bởi mong muốn thành công và được công nhận bởi những người quan trọng."
+    },
+    {
+      id: "p2_3b",
+      type: 3,
+      statement: "Tôi biết cách thể hiện bản thân tốt nhất tùy theo từng tình huống và đối tượng."
+    },
+    {
+      id: "p2_3c",
+      type: 3,
+      statement: "Tôi cảm thấy lo lắng và mất phương hướng khi không đạt được mục tiêu đề ra."
+    },
+    // Type 4
+    {
+      id: "p2_4a",
+      type: 4,
+      statement: "Tôi thường cảm thấy mình khác biệt với những người xung quanh theo một cách khó giải thích."
+    },
+    {
+      id: "p2_4b",
+      type: 4,
+      statement: "Tôi bị thu hút bởi những gì sâu sắc, chân thật và có ý nghĩa riêng — không thích sự hời hợt."
+    },
+    {
+      id: "p2_4c",
+      type: 4,
+      statement: "Tôi hay nhớ lại và suy nghĩ nhiều về những trải nghiệm cảm xúc quan trọng trong quá khứ."
+    },
+  ],
+
+  // Head: Type 5 (Investigator), 6 (Loyalist), 7 (Enthusiast)
+  head: [
+    // Type 5
+    {
+      id: "p2_5a",
+      type: 5,
+      statement: "Tôi cần hiểu rõ mọi thứ trước khi hành động — kiến thức và năng lực là nền tảng của sự tự tin."
+    },
+    {
+      id: "p2_5b",
+      type: 5,
+      statement: "Tôi thường thích quan sát và phân tích từ xa hơn là trực tiếp tham gia vào tình huống."
+    },
+    {
+      id: "p2_5c",
+      type: 5,
+      statement: "Tôi cần nhiều thời gian và không gian riêng để nạp lại năng lượng sau khi tương tác nhiều."
+    },
+    // Type 6
+    {
+      id: "p2_6a",
+      type: 6,
+      statement: "Tôi thường nghĩ đến những rủi ro và điều có thể xảy ra sai trước khi bắt đầu."
+    },
+    {
+      id: "p2_6b",
+      type: 6,
+      statement: "Tôi rất coi trọng sự trung thành — một khi đã tin ai, tôi gắn bó sâu sắc và lâu dài."
+    },
+    {
+      id: "p2_6c",
+      type: 6,
+      statement: "Khi không chắc chắn, tôi tìm kiếm sự đảm bảo hoặc ý kiến từ người tôi tin tưởng trước khi quyết định."
+    },
+    // Type 7
+    {
+      id: "p2_7a",
+      type: 7,
+      statement: "Tôi bị thu hút bởi những trải nghiệm và ý tưởng mới — cảm thấy ngột ngạt khi bị giới hạn."
+    },
+    {
+      id: "p2_7b",
+      type: 7,
+      statement: "Tôi thường có nhiều ý tưởng và kế hoạch hơn thời gian để thực hiện tất cả."
+    },
+    {
+      id: "p2_7c",
+      type: 7,
+      statement: "Tôi có xu hướng nhìn về tương lai tích cực và tìm cách thoát khỏi những cảm xúc hoặc tình huống tiêu cực."
+    },
+  ],
 };
 
-export function calculateEnneagram(answers: Record<string, string>): number {
-  const score: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0 };
-  Object.entries(answers).forEach(([q, ans]) => {
-    const type = ENNEAGRAM_ANSWER_MAP[q]?.[ans];
-    if (type) score[type]++;
-  });
-  
-  // Sort scores descending and return the type number with highest score
+// ─── Likert scale options (dùng chung cho tất cả câu) ─────────────────────────
+export const LIKERT_OPTIONS: Record<string, string> = {
+  "1": "Hoàn toàn không đúng",
+  "2": "Ít đúng với tôi",
+  "3": "Đôi khi đúng",
+  "4": "Khá đúng với tôi",
+  "5": "Rất đúng với tôi",
+};
+
+// ─── Scoring functions ─────────────────────────────────────────────────────────
+
+export function determineCenter(answers: Record<string, string>): Center {
+  const score: Record<Center, number> = { gut: 0, heart: 0, head: 0 };
+
+  for (const q of ENNEAGRAM_PHASE1) {
+    const val = parseInt(answers[q.id] ?? "0");
+    score[q.center] += val;
+  }
+
+  // Highest total wins; tie → gut > heart > head (arbitrary but consistent)
+  return (Object.entries(score).sort((a, b) => b[1] - a[1])[0][0]) as Center;
+}
+
+export function calculateEnneagramType(
+  center: Center,
+  phase2Answers: Record<string, string>
+): number {
+  const score: Record<number, number> = {};
+
+  for (const q of ENNEAGRAM_PHASE2[center]) {
+    if (!score[q.type]) score[q.type] = 0;
+    score[q.type] += parseInt(phase2Answers[q.id] ?? "0");
+  }
+
   return Number(Object.entries(score).sort((a, b) => b[1] - a[1])[0][0]);
 }
