@@ -4,6 +4,7 @@ import { ChevronLeft, Sparkles, Loader2, Hash, Heart, Star, User, TrendingUp, Gr
 
 interface NumerologyResultViewProps {
   numerologyData: any;
+  numerologyInterp?: string;
   onBack: () => void;
 }
 
@@ -25,9 +26,9 @@ const NUMBER_MEANINGS: Record<number, string> = {
 
 const getNumberMeaning = (num: number) => NUMBER_MEANINGS[num] || NUMBER_MEANINGS[num % 10] || '';
 
-export const NumerologyResultView = ({ numerologyData, onBack }: NumerologyResultViewProps) => {
-  const [interpretation, setInterpretation] = useState<string>('');
-  const [isAiLoading, setIsAiLoading] = useState(true);
+export const NumerologyResultView = ({ numerologyData, numerologyInterp, onBack }: NumerologyResultViewProps) => {
+  const [interpretation, setInterpretation] = useState<string>(numerologyInterp || '');
+  const [isAiLoading, setIsAiLoading] = useState(!numerologyInterp);
 
   useEffect(() => {
     let mounted = true;
