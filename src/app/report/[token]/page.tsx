@@ -21,20 +21,47 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
     ? (lead.personal_profiles as { profile_data?: unknown }[])[0]?.profile_data 
     : (lead.personal_profiles as { profile_data?: unknown })?.profile_data;
 
-  if (!profileData) {
-    const tz = getTimezoneForLocation((lead.metadata as any)?.birth_place ?? 'vietnam');
-    const timeToUse = lead.birth_time || '12:00';
-    const isoString = `${lead.dob}T${timeToUse}:00${tz}`;
-    const solarTime = getSolarTime(isoString, tz);
-    
-    const baziData = buildBazi({ 
-      solarTime, 
-      gender: ((lead.metadata as any)?.gender ?? 1) as 0 | 1,
-      eightCharProviderSect: 2
-    });
-    const numerologyData = calculateFullNumerology(lead.dob, (lead.metadata as any)?.full_name ?? '');
+  const cachedRecord = (profileData || {}) as Record<string, any>;
+  const needsGeneration = !profileData || !cachedRecord.bazi_interp || !cachedRecord.numerology_interp;
 
-    profileData = { bazi: baziData, numerology: numerologyData };
+  if (needsGeneration) {
+    let baziData = cachedRecord.bazi;
+    let numerologyData = cachedRecord.numerology;
+
+    if (!baziData || !numerologyData) {
+      const tz = getTimezoneForLocation((lead.metadata as any)?.birth_place ?? 'vietnam');
+      const timeToUse = lead.birth_time || '12:00';
+      const isoString = `${lead.dob}T${timeToUse}:00${tz}`;
+      const solarTime = getSolarTime(isoString, tz);
+      
+      baziData = buildBazi({ 
+        solarTime, 
+        gender: ((lead.metadata as any)?.gender ?? 1) as 0 | 1,
+        eightCharProviderSect: 2
+      });
+      numerologyData = calculateFullNumerology(lead.dob, (lead.metadata as any)?.full_name ?? '');
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_REPORT_BASE_URL || 'http://localhost:3000';
+    const [baziInterp, numerologyInterp] = await Promise.all([
+      fetch(`${baseUrl}/api/interpret`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payload: baziData, type: 'bazi' })
+      }).then(r => r.ok ? r.json() : null).then(d => d?.interpretation).catch(e => null),
+      fetch(`${baseUrl}/api/interpret`, {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payload: numerologyData, type: 'numerology' })
+      }).then(r => r.ok ? r.json() : null).then(d => d?.interpretation).catch(e => null)
+    ]);
+
+    profileData = { 
+      bazi: baziData, 
+      numerology: numerologyData,
+      bazi_interp: baziInterp,
+      numerology_interp: numerologyInterp
+    };
 
     await supabase.from('personal_profiles').upsert({
       lead_id: lead.id,
