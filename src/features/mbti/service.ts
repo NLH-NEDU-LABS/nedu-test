@@ -6,7 +6,7 @@
  */
 import { calculateMBTI } from './scoring';
 import { MBTI_NAMES } from './data';
-import { findByReportToken, mergeMetadata } from '@/features/lead/repository';
+import { findByReportToken } from '@/features/lead/repository';
 import { upsertProfileData } from '@/features/shared/profile-repository';
 import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini/client';
 import { buildMbtiPrompt } from '@/lib/gemini/prompts';
@@ -48,11 +48,10 @@ export async function scoreAndDescribe(input: MbtiScoreInput): Promise<MbtiScore
     console.error('[MBTI] Gemini error (after retries):', err);
   }
 
-  // 3. Persist to DB
-  await mergeMetadata(lead.id, { mbti_type, mbti_desc });
+  // 3. Persist to DB (Single Source of Truth)
   await upsertProfileData(lead.id, lead.dob, {
-    key: 'mbti',
-    value: { type: mbti_type, desc: mbti_desc },
+    mbti_type,
+    mbti_desc,
   });
 
   return { mbti_type, mbti_desc };

@@ -114,17 +114,22 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
       courses: primary_course_id ? [primary_course_id] : [],
       metadata: {
         report_token,
-        ai_recommendation,
-        scores,
-        primary_course_name,
-        primary_course_url,
-        why_fits,
         has_advanced: false,
-        persona_label,
       },
     });
 
     await updateLeadId(submissionId, leadId);
+
+    // 4. Initialize the personal_profiles Single Source of Truth
+    const { upsertProfileData } = await import('@/features/shared/profile-repository');
+    await upsertProfileData(leadId, dob, {
+      persona_label,
+      ai_recommendation,
+      maxdiff_scores: scores,
+      primary_course_name,
+      primary_course_url,
+      why_fits,
+    });
   } catch (dbError) {
     // DB failure doesn't fail the request — email was already sent
     console.error('[SendResult] DB error (email already sent):', dbError);

@@ -12,10 +12,10 @@ export default async function MaxDiffReportPage({ params }: { params: Promise<{ 
   const resolvedParams = await params;
   const token = resolvedParams.token;
 
-  // 1. Tìm lead theo report_token
+  // 1. Tìm lead theo report_token (kèm theo profile data)
   const { data: lead, error: leadError } = await supabase
     .from('leads')
-    .select('id, quiz_persona, metadata')
+    .select('id, quiz_persona, personal_profiles ( profile_data )')
     .eq('metadata->>report_token', token)
     .single();
 
@@ -27,9 +27,11 @@ export default async function MaxDiffReportPage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const leadMetadata = (lead.metadata || {}) as Record<string, any>;
+  const profileDataArray = lead.personal_profiles as { profile_data?: any }[] | undefined;
+  const pData = Array.isArray(profileDataArray) ? profileDataArray[0]?.profile_data : (lead.personal_profiles as any)?.profile_data;
+  const profileData = (pData || {}) as Record<string, any>;
 
-  // 2. Tìm quiz_submission theo lead_id
+  // 2. Tìm quiz_submission theo lead_id (dùng cho analytics raw hoặc top_problems)
   const { data: quizSub, error: quizError } = await supabase
     .from('quiz_submissions')
     .select('result_json, persona_id')
@@ -46,9 +48,9 @@ export default async function MaxDiffReportPage({ params }: { params: Promise<{ 
 
   return (
     <MaxDiffReportClient
-      scores={resultJson.scores || leadMetadata.scores || []}
-      aiRecommendation={resultJson.ai_recommendation || leadMetadata.ai_recommendation || null}
-      personaLabel={leadMetadata.persona_label || ''}
+      scores={profileData.maxdiff_scores || resultJson.scores || []}
+      aiRecommendation={profileData.ai_recommendation || resultJson.ai_recommendation || null}
+      personaLabel={profileData.persona_label || ''}
       topProblem1={resultJson.top_problem_1 || ''}
       topProblem2={resultJson.top_problem_2 || ''}
     />

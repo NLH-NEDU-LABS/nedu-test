@@ -3,7 +3,7 @@
  * Mirror of features/mbti/service.ts.
  */
 import { ENNEAGRAM_NAMES } from './data';
-import { findByReportToken, mergeMetadata } from '@/features/lead/repository';
+import { findByReportToken } from '@/features/lead/repository';
 import { upsertProfileData } from '@/features/shared/profile-repository';
 import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini/client';
 import { buildEnneagramPrompt } from '@/lib/gemini/prompts';
@@ -51,11 +51,10 @@ export async function scoreAndDescribe(input: EnneagramScoreInput): Promise<Enne
     console.error('[Enneagram] Gemini error (after retries):', err);
   }
 
-  // 3. Persist to DB
-  await mergeMetadata(lead.id, { enneagram_type: typeStr, enneagram_desc });
+  // 3. Persist to DB (Single Source of Truth)
   await upsertProfileData(lead.id, lead.dob, {
-    key: 'enneagram',
-    value: { type: typeStr, desc: enneagram_desc },
+    enneagram_type: typeStr,
+    enneagram_desc,
   });
 
   return { enneagram_type: typeStr, enneagram_desc };
