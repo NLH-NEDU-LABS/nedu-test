@@ -13,7 +13,7 @@ export const ExpressSuccessScreen: React.FC<Props> = ({ reportToken }) => {
       </div>
       
       <h2 className="text-2xl md:text-3xl font-serif text-[#2C2825] mb-4">
-        Hoàn tất ghi nhận!
+        Hoàn thành!
       </h2>
       
       <p className="text-[#5C5652] mb-8 leading-relaxed max-w-sm">

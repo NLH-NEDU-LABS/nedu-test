@@ -75,6 +75,9 @@ export default function Home() {
           />
         );
 
+      case 'expressLoading':
+        return <AnalyzingScreen message="Đang khởi tạo hồ sơ của bạn..." />;
+
       case 'expressSuccess':
         if (!reportToken) return null;
         return <ExpressSuccessScreen reportToken={reportToken} />;
