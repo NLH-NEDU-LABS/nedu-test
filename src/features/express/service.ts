@@ -9,11 +9,9 @@ export async function completeExpressFlow(token: string, consent: boolean): Prom
   const { data: lead, error } = await supabase
     .from('leads')
     .select(`
-      id, full_name, email, job, goal, metadata,
-      personal_profiles ( 
-        persona_label, primary_course_name, primary_course_url, why_fits, 
-        mbti_type, enneagram_type
-      )
+      id, job, goal, metadata,
+      personal_profiles ( profile_data ),
+      quiz_submissions ( visitor_email, visitor_name )
     `)
     .eq('metadata->>report_token', token)
     .single();
@@ -23,23 +21,28 @@ export async function completeExpressFlow(token: string, consent: boolean): Prom
     throw new Error('Lead not found');
   }
 
-  // Update metadata with consent
-  const currentMetadata = (lead.metadata as Record<string, any>) || {};
-  const newMetadata = { ...currentMetadata, consent };
+  const metadata = (lead.metadata as Record<string, any>) || {};
 
+  // Update metadata with consent
   await supabase
     .from('leads')
-    .update({ metadata: newMetadata })
+    .update({ metadata: { ...metadata, consent } })
     .eq('id', lead.id);
 
   const profilesArray = lead.personal_profiles as any[];
-  const profile = Array.isArray(profilesArray) ? profilesArray[0] : (lead.personal_profiles as any) || {};
-  
+  const profileRow = Array.isArray(profilesArray) ? profilesArray[0] : (lead.personal_profiles as any);
+  const profile = (profileRow?.profile_data as Record<string, any>) || {};
+
+  const subArray = lead.quiz_submissions as any[];
+  const sub = Array.isArray(subArray) ? subArray[0] : (lead.quiz_submissions as any) || {};
+  const email: string = sub?.visitor_email || metadata.email || '';
+  const fullName: string = sub?.visitor_name || (metadata.name as string) || 'bạn';
+
   const reportUrl = `${BASE_URLS.landing}report/${token}`;
 
   // 2. Send email
   const emailSubject = 'Báo cáo tính cách chuyên sâu - N-Education';
-  const emailBody = `Chào ${lead.full_name || 'bạn'},
+  const emailBody = `Chào ${fullName},
 
 Bạn vừa hoàn thành quy trình phân tích tính cách chuyên sâu (Express Mode) của hệ sinh thái N-Education. 
 Hồ sơ hoàn chỉnh của bạn, kết hợp 4 hệ thống phân tích (MaxDiff, MBTI, Enneagram, Bazi/Numerology) đã sẵn sàng!
@@ -55,17 +58,17 @@ Trân trọng,
 Đội ngũ N-Education.`;
 
   const html = buildHtml(emailBody, 'Xem Báo Cáo Ngay', reportUrl);
-  await sendEmail({ to: lead.email, subject: emailSubject, html });
+  await sendEmail({ to: email, subject: emailSubject, html });
 
   // 3. Notify Telegram if consented
   if (consent) {
     const pLabel = profile.persona_label || 'Chưa xác định';
     const cName = profile.primary_course_name || 'Chưa xác định';
-    
+
     const tgLead: Lead = {
       id: lead.id,
-      email: lead.email,
-      full_name: lead.full_name || 'Ẩn danh',
+      email,
+      full_name: fullName,
       day_number: 16, // using 16 as an arbitrary end-of-flow number
       report_token: token,
       persona_label: pLabel,
