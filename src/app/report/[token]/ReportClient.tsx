@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from 'react';
 import MbtiResultView from '@/app/mbti/[token]/MbtiResultView';
 import EnneagramResultView from '@/app/enneagram/[token]/EnneagramResultView';
 import { BaziResultView } from '@/components/quiz/BaziResultView';
@@ -13,6 +14,12 @@ interface ReportClientProps {
 }
 
 export default function ReportClient({ data, token }: ReportClientProps) {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('print') === '1') {
+      setTimeout(() => window.print(), 1500);
+    }
+  }, []);
   const {
     persona_label,
     top_problem_1,
