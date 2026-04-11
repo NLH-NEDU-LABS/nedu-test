@@ -1,5 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+
+const ses = new SESClient({
+  region: process.env.AWS_SES_REGION!,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
 
 const SYSTEM_PROMPT = `
 Bạn là Nhi Lê — founder Nedu Education, đang viết email cá nhân cho người vừa làm bài test.
@@ -149,27 +158,22 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
 </html>
     `;
 
-    // 2. Gửi Email qua Resend
-    if (process.env.RESEND_API_KEY) {
-      const resendResponse = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: 'Nhi Le <hi@test.nhi.sg>',
-          to: [email],
-          subject: emailSubject,
-          html: htmlContent
-        })
-      });
-
-      if (!resendResponse.ok) {
-        console.error("Resend error:", await resendResponse.text());
+    // 2. Gửi Email qua AWS SES
+    try {
+      if (!process.env.AWS_ACCESS_KEY_ID) {
+        console.warn("AWS credentials are not set.");
+      } else {
+        await ses.send(new SendEmailCommand({
+          Source: 'Nhi Le <noreply@nhi.sg>',
+          Destination: { ToAddresses: [email] },
+          Message: {
+            Subject: { Data: emailSubject, Charset: 'UTF-8' },
+            Body: { Html: { Data: htmlContent, Charset: 'UTF-8' } },
+          },
+        }));
       }
-    } else {
-      console.warn("RESEND_API_KEY is not set.");
+    } catch (sesError) {
+      console.error("AWS SES error:", sesError);
     }
 
     // 3. Thực hiện lưu vào DB 

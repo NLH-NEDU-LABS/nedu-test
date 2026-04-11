@@ -1,7 +1,13 @@
-import { Resend } from 'resend'
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 import type { Lead } from './types'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const ses = new SESClient({
+  region: process.env.AWS_SES_REGION!,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+})
 
 // --- HTML wrapper (matches existing send-result email style) ---
 
@@ -121,14 +127,16 @@ export async function sendEmail(lead: Lead, day: number): Promise<void> {
 
   const html = buildHtml(template.content, template.ctaLabel, template.ctaUrl)
 
-  const { error } = await resend.emails.send({
-    from: 'Nhi Le <hi@test.nhi.sg>',
-    to: [lead.email],
-    subject: template.subject,
-    html,
-  })
-
-  if (error) {
+  try {
+    await ses.send(new SendEmailCommand({
+      Source: 'Nhi Le <noreply@nhi.sg>',
+      Destination: { ToAddresses: [lead.email] },
+      Message: {
+        Subject: { Data: template.subject, Charset: 'UTF-8' },
+        Body: { Html: { Data: html, Charset: 'UTF-8' } },
+      },
+    }))
+  } catch (error) {
     console.error(`Failed to send day ${day} email to ${lead.email}:`, error)
     throw error
   }
