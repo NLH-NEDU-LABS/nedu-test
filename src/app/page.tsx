@@ -8,6 +8,7 @@ import { MaxDiffSetScreen } from '@/components/quiz/MaxDiffSetScreen';
 import { AnalyzingScreen } from '@/components/quiz/AnalyzingScreen';
 import { ResultScreen } from '@/components/quiz/ResultScreen';
 import { AdvancedTestScreen } from '@/components/quiz/AdvancedTestScreen';
+import { ExpressSuccessScreen } from '@/components/quiz/ExpressSuccessScreen';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useQuizFlow } from '@/hooks/useQuizFlow';
 
@@ -26,7 +27,8 @@ export default function Home() {
     handleAdvancedTestStart,
     handleBackToResult,
     getProgress,
-    setStep
+    setStep,
+    reportToken
   } = useQuizFlow();
 
   const renderCurrentStep = () => {
@@ -72,6 +74,10 @@ export default function Home() {
             userBirthData={userBirthData}
           />
         );
+
+      case 'expressSuccess':
+        if (!reportToken) return null;
+        return <ExpressSuccessScreen reportToken={reportToken} />;
       
       default:
         return null;

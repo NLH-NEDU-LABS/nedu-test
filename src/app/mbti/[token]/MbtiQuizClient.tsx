@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { MBTI_QUESTIONS } from '@/features/mbti/data';
 import { calculateMBTI } from '@/features/mbti/scoring';
 import AssessmentResultView from '@/components/quiz/shared/AssessmentResultView';
+import MbtiResultView from './MbtiResultView';
 
-export default function MbtiQuizClient({ token }: { token: string }) {
+export default function MbtiQuizClient({ token, nextStep }: { token: string, nextStep?: string }) {
   const [state, setState] = useState<'quiz' | 'analyzing' | 'result'>('quiz');
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -20,7 +21,7 @@ export default function MbtiQuizClient({ token }: { token: string }) {
       setState('analyzing');
       const type = calculateMBTI(answers);
       setMbtiType(type);
-      
+
       // Gọi API cập nhật type (sẽ implement route này sau)
       fetch('/api/mbti/score', {
         method: 'POST',
@@ -54,11 +55,12 @@ export default function MbtiQuizClient({ token }: { token: string }) {
   }
 
   if (state === 'result' && mbtiType) {
-    return <AssessmentResultView 
-             title="Kết quả MBTI của bạn"
-             typeLabel={mbtiType}
-             description={mbtiDesc} 
-           />;
+    return <MbtiResultView
+      mbtiType={mbtiType}
+      mbtiDesc={mbtiDesc}
+      token={token}
+      nextStep={nextStep}
+    />;
   }
 
   const q = MBTI_QUESTIONS[currentIdx];
@@ -72,29 +74,28 @@ export default function MbtiQuizClient({ token }: { token: string }) {
           <span>Câu {currentIdx + 1} / {MBTI_QUESTIONS.length}</span>
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-[#8B5E3C] rounded-full transition-all duration-300 ease-in-out" 
+          <div
+            className="h-full bg-[#8B5E3C] rounded-full transition-all duration-300 ease-in-out"
             style={{ width: `${((currentIdx + 1) / MBTI_QUESTIONS.length) * 100}%` }}
           ></div>
         </div>
       </div>
-      
+
       <h2 className="text-2xl font-semibold mb-8 text-gray-800 leading-relaxed">
         {q.question}
       </h2>
-      
+
       <div className="space-y-3">
         {Object.entries(q.options).map(([optKey, optText]) => {
           const isSelected = answered === optKey;
           return (
-            <button 
+            <button
               key={optKey}
               onClick={() => handleOptionSelect(optKey)}
-              className={`block w-full text-left p-5 rounded-xl border-2 transition-all duration-200 ${
-                isSelected 
-                  ? 'border-[#8B5E3C] bg-[#FAF8F5]' 
+              className={`block w-full text-left p-5 rounded-xl border-2 transition-all duration-200 ${isSelected
+                  ? 'border-[#8B5E3C] bg-[#FAF8F5]'
                   : 'border-gray-100 hover:border-[#D5CDC4] hover:bg-gray-50/50'
-              }`}
+                }`}
             >
               <span className="text-gray-700">{optText}</span>
             </button>
@@ -103,14 +104,14 @@ export default function MbtiQuizClient({ token }: { token: string }) {
       </div>
 
       <div className="mt-10 flex justify-between">
-        <button 
-          onClick={handleBack} 
+        <button
+          onClick={handleBack}
           disabled={currentIdx === 0}
           className="px-6 py-3 rounded-xl font-medium transition-colors text-gray-600 bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-gray-100"
         >
           Quay lại
         </button>
-        <button 
+        <button
           onClick={handleNext}
           disabled={!answered}
           className="px-8 py-3 rounded-xl font-medium transition-colors bg-[#8B5E3C] text-white hover:bg-[#6e492d] disabled:opacity-50 disabled:hover:bg-[#8B5E3C]"

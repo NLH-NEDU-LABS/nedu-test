@@ -10,12 +10,13 @@ import {
 } from '@/features/enneagram/data';
 import { determineCenter, calculateEnneagramType } from '@/features/enneagram/scoring';
 import AssessmentResultView from '@/components/quiz/shared/AssessmentResultView';
+import EnneagramResultView from './EnneagramResultView';
 
 type AppState = 'quiz' | 'analyzing' | 'result';
 
 const LIKERT_KEYS = ["1", "2", "3", "4", "5"] as const;
 
-export default function EnneagramQuizClient({ token }: { token: string }) {
+export default function EnneagramQuizClient({ token, nextStep, mode }: { token: string, nextStep?: string, mode?: string }) {
   const [appState, setAppState] = useState<AppState>('quiz');
   const [phase, setPhase] = useState<1 | 2>(1);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -103,10 +104,12 @@ export default function EnneagramQuizClient({ token }: { token: string }) {
   }
 
   if (appState === 'result' && enneagramType !== null) {
-    return <AssessmentResultView 
-             title="Kết quả Enneagram của bạn"
-             typeLabel={`Type ${enneagramType}`}
-             description={enneagramDesc} 
+    return <EnneagramResultView 
+             enneagramType={enneagramType} 
+             enneagramDesc={enneagramDesc} 
+             token={token}
+             nextStep={nextStep}
+             mode={mode}
            />;
   }
 

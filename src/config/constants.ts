@@ -95,3 +95,9 @@ export const BASE_URLS = {
   neduSite: 'https://nedu.nhi.sg',
   reportBase: process.env.NEXT_PUBLIC_REPORT_BASE_URL ?? 'https://test.nhi.sg',
 } as const;
+
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+
+export const isExpressMode = process.env.NEXT_PUBLIC_ASSESSMENT_MODE === 'express';

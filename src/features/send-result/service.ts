@@ -27,20 +27,22 @@ export interface SendResultInput {
   feeling: string | null;
   dob: string | null;
   birthTime: string | null;
+  mode?: 'drip' | 'express';
 }
 
 /**
  * Process the send-result flow:
- *  - Generate + send Day 0 AI email
+ *  - Generate + send Day 0 AI email (skipped in express mode)
  *  - Persist quiz_submission + lead to DB
- * Returns { success: true } — email already sent even if DB fails.
+ * Returns { report_token } — email already sent even if DB fails.
  */
-export async function processSendResult(input: SendResultInput): Promise<void> {
+export async function processSendResult(input: SendResultInput): Promise<{ report_token: string }> {
   const {
     name, email, persona_label, persona_id,
     top_problem_1, top_problem_2,
     scores, ai_recommendation,
     source, occupation, feeling, dob, birthTime,
+    mode = 'drip',
   } = input;
 
   const primary_course_name = ai_recommendation?.primary_course_name || '';
@@ -52,7 +54,11 @@ export async function processSendResult(input: SendResultInput): Promise<void> {
   const report_token = crypto.randomUUID();
 
   // 1. Generate AI email content
-  const prompt = `
+  let emailSubject = 'Kết quả bài phân tích của bạn';
+  let emailBody = `Chào ${name || 'bạn'},\n\nNhi thấy bạn đang trong giai đoạn ${persona_label}...\n\nNhi`;
+
+  if (mode !== 'express') {
+    const prompt = `
 --- THÔNG TIN NGƯỜI NHẬN ---
 Tên                  : ${name || 'bạn'}
 Email                : ${email}
@@ -67,32 +73,30 @@ Nguồn traffic        : ${source}
 Email này là email đầu tiên trong chuỗi 14 ngày.
 Mục tiêu duy nhất: Khiến họ đồng cảm và tò mò về kết quả.
 Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
-  `;
+    `;
 
-  let emailSubject = 'Kết quả bài phân tích của bạn';
-  let emailBody = `Chào ${name || 'bạn'},\n\nNhi thấy bạn đang trong giai đoạn ${persona_label}...\n\nNhi`;
-
-  try {
-    const ai = getGeminiModel({
-      responseJson: true,
-      systemInstruction: SEND_RESULT_EMAIL_PROMPT,
-    });
-    const parsed = await geminiGenerateJSON<{ subject: string; body: string }>(ai, prompt);
-    if (parsed.subject) emailSubject = parsed.subject;
-    if (parsed.body) {
-      const bodyLower = parsed.body.toLowerCase();
-      emailBody =
-        bodyLower.startsWith('chào') || bodyLower.startsWith('gửi')
-          ? parsed.body
-          : `Chào ${name || 'bạn'},\n\n` + parsed.body;
+    try {
+      const ai = getGeminiModel({
+        responseJson: true,
+        systemInstruction: SEND_RESULT_EMAIL_PROMPT,
+      });
+      const parsed = await geminiGenerateJSON<{ subject: string; body: string }>(ai, prompt);
+      if (parsed.subject) emailSubject = parsed.subject;
+      if (parsed.body) {
+        const bodyLower = parsed.body.toLowerCase();
+        emailBody =
+          bodyLower.startsWith('chào') || bodyLower.startsWith('gửi')
+            ? parsed.body
+            : `Chào ${name || 'bạn'},\n\n` + parsed.body;
+      }
+    } catch (err) {
+      console.error('[SendResult] Gemini email gen error:', err);
     }
-  } catch (err) {
-    console.error('[SendResult] Gemini email gen error:', err);
-  }
 
-  // 2. Send email via SES
-  const html = buildHtml(emailBody, 'Xem kết quả đầy đủ', `${BASE_URLS.reportBase}/maxdiff/${report_token}`);
-  await sendEmail({ to: email, subject: emailSubject, html });
+    // 2. Send email via SES
+    const html = buildHtml(emailBody, 'Xem kết quả đầy đủ', `${BASE_URLS.reportBase}/maxdiff/${report_token}`);
+    await sendEmail({ to: email, subject: emailSubject, html });
+  }
 
   // 3. Persist to DB (best-effort — email already sent)
   try {
@@ -115,6 +119,7 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
       metadata: {
         report_token,
         has_advanced: false,
+        assessment_mode: mode,
       },
     });
 
@@ -134,4 +139,6 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
     // DB failure doesn't fail the request — email was already sent
     console.error('[SendResult] DB error (email already sent):', dbError);
   }
+
+  return { report_token };
 }
