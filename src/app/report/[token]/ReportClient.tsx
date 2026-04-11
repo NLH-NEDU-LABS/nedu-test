@@ -112,7 +112,7 @@ export default function ReportClient({ data, token }: ReportClientProps) {
         )}
 
         {/* AI Course Recommendation */}
-        {rec && (
+        {rec ? (
           <div className="mb-8 space-y-4">
             <h2 className="text-xs font-semibold text-[#8B7E74] uppercase tracking-wider ml-1">
               Gợi ý hành trình phù hợp nhất
@@ -157,19 +157,18 @@ export default function ReportClient({ data, token }: ReportClientProps) {
               </div>
             )}
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* ── 02 MBTI ────────────────────────────────────────────── */}
-      {mbti_type && (
+      {mbti_type ? (
         <>
           <hr className="border-[#F0EBE5]" />
           <MbtiResultView mbtiType={mbti_type} mbtiDesc={mbti_desc ?? undefined} token={token} />
         </>
-      )}
+      ) : null}
 
-      {/* ── 03 Enneagram ───────────────────────────────────────── */}
-      {enneagram_type && (
+      {enneagram_type ? (
         <>
           <hr className="border-[#F0EBE5]" />
           <EnneagramResultView
@@ -178,20 +177,20 @@ export default function ReportClient({ data, token }: ReportClientProps) {
             token={token}
           />
         </>
-      )}
+      ) : null}
 
       {/* ── 04 Bazi ────────────────────────────────────────────── */}
-      {bazi_data && (
+      {bazi_data ? (
         <>
           <hr className="border-[#F0EBE5]" />
           <div className="max-w-4xl mx-auto py-8 px-4">
             <BaziResultView baziData={bazi_data} baziInterp={bazi_interp ?? undefined} />
           </div>
         </>
-      )}
+      ) : null}
 
       {/* ── 05 Numerology ──────────────────────────────────────── */}
-      {numerology_data && (
+      {numerology_data ? (
         <>
           <hr className="border-[#F0EBE5]" />
           <div className="max-w-4xl mx-auto py-8 px-4">
@@ -201,7 +200,7 @@ export default function ReportClient({ data, token }: ReportClientProps) {
             />
           </div>
         </>
-      )}
+      ) : null}
 
     </main>
   );
