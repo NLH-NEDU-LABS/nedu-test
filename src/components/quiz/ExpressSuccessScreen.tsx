@@ -24,7 +24,7 @@ export const ExpressSuccessScreen: React.FC<Props> = ({ reportToken }) => {
         onClick={() => {
           window.location.href = `/mbti/${reportToken}?next=enneagram`;
         }}
-        className="w-full flex items-center justify-center gap-2 group p-4 bg-[#B99A7B] text-white hover:bg-[#A38A6E] rounded-xl text-lg font-medium transition-colors"
+        className="w-full flex items-center justify-center gap-2 group p-4 bg-[#8B5E3C] text-white hover:bg-[#704B30] rounded-xl text-lg font-medium transition-colors"
       >
         Làm bài MBTI
         <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
