@@ -6,22 +6,36 @@ import type { Lead } from '@/features/email-sequence/types';
 
 export async function completeExpressFlow(token: string, consent: boolean): Promise<{ success: boolean }> {
   // 1. Fetch lead info and personal profiles
+  // 1a. Fetch lead
   const { data: lead, error } = await supabase
     .from('leads')
-    .select(`
-      id, job, goal, metadata,
-      personal_profiles ( profile_data ),
-      quiz_submissions ( visitor_email, visitor_name )
-    `)
+    .select('id, job, goal, metadata, personal_profiles ( profile_data )')
     .eq('metadata->>report_token', token)
     .single();
 
   if (error || !lead) {
-    console.error('[ExpressComplete] Failed to find lead for token:', token, error);
+    console.error('[ExpressComplete] Lead not found for token:', token, error);
     throw new Error('Lead not found');
   }
 
   const metadata = (lead.metadata as Record<string, any>) || {};
+
+  // 1b. Fetch quiz_submission separately (same pattern as report/repository.ts)
+  const { data: quizSub } = await supabase
+    .from('quiz_submissions')
+    .select('visitor_email, visitor_name')
+    .eq('lead_id', lead.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const email: string = quizSub?.visitor_email || (metadata.email as string) || '';
+  const fullName: string = quizSub?.visitor_name || (metadata.name as string) || 'bạn';
+
+  if (!email) {
+    console.error('[ExpressComplete] No email found for lead:', lead.id);
+    throw new Error('No email found for lead');
+  }
 
   // Update metadata with consent
   await supabase
@@ -32,11 +46,6 @@ export async function completeExpressFlow(token: string, consent: boolean): Prom
   const profilesArray = lead.personal_profiles as any[];
   const profileRow = Array.isArray(profilesArray) ? profilesArray[0] : (lead.personal_profiles as any);
   const profile = (profileRow?.profile_data as Record<string, any>) || {};
-
-  const subArray = lead.quiz_submissions as any[];
-  const sub = Array.isArray(subArray) ? subArray[0] : (lead.quiz_submissions as any) || {};
-  const email: string = sub?.visitor_email || metadata.email || '';
-  const fullName: string = sub?.visitor_name || (metadata.name as string) || 'bạn';
 
   const reportUrl = `${BASE_URLS.landing}report/${token}`;
 
