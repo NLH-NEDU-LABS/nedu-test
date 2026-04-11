@@ -83,6 +83,11 @@ OUTPUT FORMAT — trả về đúng JSON thuần tuý này, không bọc bởi M
 export function buildBaziPrompt(payload: unknown): string {
   return `Bạn là một chuyên gia luận giải Bát Tự (Tứ Trụ) uyên bác, thấu hiểu tâm lý hiện đại. 
 Hãy đọc dữ liệu Bát Tự sau đây và đưa ra một bản luận giải ngắn gọn (khoảng 3-4 đoạn, tổng tối đa 250 chữ), sử dụng văn phong nhẹ nhàng, sâu sắc, chữa lành và dễ hiểu đối với người không rành thuật số. 
+
+QUY TẮC BẮT BUỘC:
+- **CHỈ SỬ DỤNG TIẾNG VIỆT 100%**. Dữ liệu JSON đầu vào có thể chứa chữ Hán, nhưng kết quả trả về bắt buộc phải là Tiếng Việt. 
+- KHÔNG sử dụng tiếng Trung Quốc. Bạn có thể dùng từ Hán Việt nếu cần thiết (ví dụ: Nhật Chủ, Thiên Can, Địa Chi).
+
 Tập trung vào:
 1. Tổng quan về Nhật Chủ (bản thể cốt lõi) và ngũ hành.
 2. Tố chất, điểm mạnh bẩm sinh và những góc khuất cần chú ý.
