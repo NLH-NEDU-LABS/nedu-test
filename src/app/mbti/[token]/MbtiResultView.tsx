@@ -29,7 +29,7 @@ export default function MbtiResultView({
         <div className="mt-8">
           <Link 
             href={`/enneagram/${token}?next=report&mode=express`}
-            className="inline-flex items-center justify-center gap-2 group px-8 py-4 bg-[#B99A7B] text-white hover:bg-[#A38A6E] rounded-xl text-lg font-medium transition-all"
+            className="inline-flex items-center justify-center gap-2 group px-8 py-4 bg-[#8B5E3C] text-white hover:bg-[#704B30] rounded-xl text-lg font-medium transition-all"
           >
             Làm tiếp Enneagram
             <span className="group-hover:translate-x-1 transition-transform">→</span>

@@ -46,7 +46,7 @@ export default function EnneagramResultView({
           <button
             disabled={isSaving}
             onClick={() => handleConsent(true)}
-            className="px-6 py-3 bg-[#B99A7B] text-white rounded-xl font-medium hover:bg-[#A38A6E] disabled:opacity-50"
+            className="px-6 py-3 bg-[#8B5E3C] text-white rounded-xl font-medium hover:bg-[#704B30] disabled:opacity-50"
           >
             Có, tôi muốn chia sẻ
           </button>
@@ -83,7 +83,7 @@ export default function EnneagramResultView({
         <div className="mt-8">
           <button
             onClick={() => setShowConsent(true)}
-            className="inline-flex items-center justify-center gap-2 group px-8 py-4 bg-[#B99A7B] text-white hover:bg-[#A38A6E] rounded-xl text-lg font-medium transition-all"
+            className="inline-flex items-center justify-center gap-2 group px-8 py-4 bg-[#8B5E3C] text-white hover:bg-[#704B30] rounded-xl text-lg font-medium transition-all"
           >
             Tiếp tục
             <span className="group-hover:translate-x-1 transition-transform">→</span>

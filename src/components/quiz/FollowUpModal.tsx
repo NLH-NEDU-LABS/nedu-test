@@ -20,6 +20,7 @@ function looksLikeVietnameseWithoutAccents(name: string): boolean {
 }
 
 export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<UserBirthData>({
     email: '',
     fullName: '',
@@ -38,6 +39,7 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
       alert('Vui lòng nhập Giờ sinh hoặc chọn "Không nhớ".');
       return;
     }
+    setIsLoading(true);
     onSubmit(formData);
   };
 
@@ -199,11 +201,17 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
               </div>
             </div>
 
-            <button 
+            <button
               type="submit"
-              className="w-full py-4 bg-[#8B5E3C] text-white rounded-xl font-medium hover:bg-[#704B30] transition-colors mt-4 shadow-md shadow-[#8B5E3C]/20 border border-[#704B30]/50 cursor-pointer"
+              disabled={isLoading}
+              className="w-full py-4 bg-[#8B5E3C] text-white rounded-xl font-medium hover:bg-[#704B30] transition-colors mt-4 shadow-md shadow-[#8B5E3C]/20 border border-[#704B30]/50 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Gửi Kết Quả Cho Tôi
+              {isLoading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Đang gửi...
+                </>
+              ) : 'Gửi Kết Quả Cho Tôi'}
             </button>
             <p className="text-xs text-center text-[#8B7E74]">
               Thông tin của bạn được bảo mật tuyệt đối.
