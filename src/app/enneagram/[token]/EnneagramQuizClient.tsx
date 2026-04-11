@@ -5,12 +5,11 @@ import {
   ENNEAGRAM_PHASE1,
   ENNEAGRAM_PHASE2,
   LIKERT_OPTIONS,
-  determineCenter,
-  calculateEnneagramType,
   type Center,
   type EnneagramQuestion,
-} from '@/lib/enneagram-scoring';
-import EnneagramResultView from './EnneagramResultView';
+} from '@/features/enneagram/data';
+import { determineCenter, calculateEnneagramType } from '@/features/enneagram/scoring';
+import AssessmentResultView from '@/components/quiz/shared/AssessmentResultView';
 
 type AppState = 'quiz' | 'analyzing' | 'result';
 
@@ -104,7 +103,11 @@ export default function EnneagramQuizClient({ token }: { token: string }) {
   }
 
   if (appState === 'result' && enneagramType !== null) {
-    return <EnneagramResultView enneagramType={enneagramType} enneagramDesc={enneagramDesc} />;
+    return <AssessmentResultView 
+             title="Kết quả Enneagram của bạn"
+             typeLabel={`Type ${enneagramType}`}
+             description={enneagramDesc} 
+           />;
   }
 
   if (!q) return null;

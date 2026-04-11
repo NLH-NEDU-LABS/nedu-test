@@ -87,7 +87,7 @@ function getTemplate(lead: Lead, day: number): EmailTemplate | null {
         subject: 'Hồ sơ chuyên sâu của bạn đã sẵn sàng ✨',
         content: `Chào ${name},\n\nHệ thống Nedu đã phân tích hồ sơ Bát Tự và Thần Số Học của bạn.\n\nĐây không phải chiêm tinh học thông thường. Bát Tự là bản đồ năng lượng bẩm sinh — nó giải thích tại sao một số giai đoạn trong cuộc đời bạn cảm thấy thuận, và một số giai đoạn cảm thấy như đang bơi ngược dòng.`,
         ctaLabel: 'Xem hồ sơ chuyên sâu của tôi →',
-        ctaUrl: `https://test.nhi.sg/report/${token}`,
+        ctaUrl: `https://test.nhi.sg/bazi-numerology/${token}`,
       }
 
     case 14:
@@ -95,7 +95,7 @@ function getTemplate(lead: Lead, day: number): EmailTemplate | null {
         subject: 'Full report tổng hợp 5 điểm số của bạn',
         content: `Chào ${name},\n\nHành trình 2 tuần qua — MaxDiff, MBTI, Enneagram, Bát Tự, Thần Số Học — tất cả giờ đã được tổng hợp thành một bức tranh đầy đủ về bạn.\n\nNhi đã đọc qua profile của bạn. Có một vài điểm giao thoa thú vị giữa các bài test mà Nhi muốn bạn tự khám phá.`,
         ctaLabel: 'Xem full report của tôi →',
-        ctaUrl: `https://test.nedu.vn/report/${token}`,
+        ctaUrl: `https://test.nhi.sg/report/${token}`,
       }
 
     case 16: {

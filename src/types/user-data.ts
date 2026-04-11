@@ -1,11 +1,6 @@
-export interface UserBirthData {
-  email: string;
-  fullName?: string;
-  dob: string;           // YYYY-MM-DD
-  birthTime: string;     // HH:MM
-  birthTimeUnknown: boolean;
-  birthPlace: string;    // key from BIRTHPLACE_OPTIONS
-  gender: 0 | 1;         // 0=female, 1=male
-  occupation: string;
-  feeling: string;
-}
+/**
+ * @deprecated Re-export stub — will be removed in Phase 8 cleanup.
+ * Import from '@/types/user-data' still works,
+ * but prefer '@/features/bazi-numerology/types' for new code.
+ */
+export type { UserBirthData } from '@/features/bazi-numerology/types';

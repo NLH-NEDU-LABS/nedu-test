@@ -1,15 +1,6 @@
-export type Lead = {
-  id: string
-  email: string
-  full_name: string
-  day_number: number
-  report_token: string
-  persona_label: string | null
-  primary_course_name: string | null
-  primary_course_url: string | null
-  why_fits: string | null
-  mbti_type: string | null
-  enneagram_type: string | null
-  job: string | null
-  goal: string | null
-}
+/**
+ * @deprecated Re-export stub — will be removed in Phase 8 cleanup.
+ * Import from '@/lib/email-sequence/types' still works,
+ * but prefer '@/features/email-sequence/types' for new code.
+ */
+export type { Lead } from '@/features/email-sequence/types';
