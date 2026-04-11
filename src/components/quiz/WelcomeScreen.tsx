@@ -1,5 +1,6 @@
 import React from 'react';
-import { Wind, ShieldCheck, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
+import { ShieldCheck, ChevronRight } from 'lucide-react';
 
 interface WelcomeScreenProps {
   onStart: () => void;
@@ -9,8 +10,15 @@ export const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex justify-center">
-        <div className="w-16 h-16 bg-[#F9F6F2] rounded-full flex items-center justify-center text-[#8B5E3C]">
-          <Wind size={32} />
+        <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center overflow-hidden shadow-sm border border-[#F0EBE5]">
+          <Image 
+            src="/nedu-logo.jpg" 
+            alt="Nedu Logo" 
+            width={80} 
+            height={80} 
+            className="w-full h-full object-cover"
+            priority 
+          />
         </div>
       </div>
       

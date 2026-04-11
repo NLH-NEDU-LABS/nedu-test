@@ -7,10 +7,10 @@ export default async function EnneagramPage({ params }: { params: Promise<{ toke
   const resolvedParams = await params;
   const token = resolvedParams.token;
   
-  // Query leads theo report_token để lấy metadata
+  // Query leads theo report_token để lấy profile_data
   const { data: lead } = await supabase
     .from('leads')
-    .select('id, metadata')
+    .select('id, personal_profiles ( profile_data )')
     .eq('metadata->>report_token', token)
     .single();
 
@@ -18,9 +18,12 @@ export default async function EnneagramPage({ params }: { params: Promise<{ toke
     notFound();
   }
 
-  const metadata = (lead.metadata || {}) as any;
-  const enneagramType = metadata.enneagram_type;
-  const enneagramDesc = metadata.enneagram_desc;
+  const profileDataArray = lead.personal_profiles as { profile_data?: any }[] | undefined;
+  const pData = Array.isArray(profileDataArray) ? profileDataArray[0]?.profile_data : (lead.personal_profiles as any)?.profile_data;
+  const profileData = (pData || {}) as Record<string, any>;
+
+  const enneagramType = profileData.enneagram_type;
+  const enneagramDesc = profileData.enneagram_desc;
 
   // Nếu đã có enneagram_type -> render EnneagramResultView (không cho làm lại)
   if (enneagramType) {
