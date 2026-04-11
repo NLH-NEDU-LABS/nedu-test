@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getGeminiModel, geminiGenerate } from '@/lib/gemini';
+import { interpret } from '@/features/bazi-numerology/service';
 
 export async function POST(req: Request) {
   try {
@@ -10,49 +10,21 @@ export async function POST(req: Request) {
     }
 
     if (!process.env.GEMINI_API_KEY) {
-      console.error("NO API KEY CONFIGURED!");
       return NextResponse.json({ error: 'System missing API key' }, { status: 500 });
     }
 
-    const model = getGeminiModel();
-
-    let prompt = "";
-
-    if (type === 'bazi') {
-      prompt = `Bạn là một chuyên gia luận giải Bát Tự (Tứ Trụ) uyên bác, thấu hiểu tâm lý hiện đại. 
-Hãy đọc dữ liệu Bát Tự sau đây và đưa ra một bản luận giải ngắn gọn (khoảng 3-4 đoạn, tổng tối đa 250 chữ), sử dụng văn phong nhẹ nhàng, sâu sắc, chữa lành và dễ hiểu đối với người không rành thuật số. 
-Tập trung vào:
-1. Tổng quan về Nhật Chủ (bản thể cốt lõi) và ngũ hành.
-2. Tố chất, điểm mạnh bẩm sinh và những góc khuất cần chú ý.
-3. Một lời khuyên ngắn gọn để cân bằng năng lượng trong cuộc sống hiện đại.
-KHÔNG giải thích lại các thuật ngữ phức tạp, chỉ đưa ra kết luận. KHÔNG gạch đầu dòng kiểu máy móc, hãy viết thành văn xuôi mạch lạc. Trình bày bằng Markdown thuần (dùng in đậm, in nghiêng cho ý chính).
-
-Dữ liệu Bát Tự (JSON):
-${JSON.stringify(payload)}`;
-    } else if (type === 'numerology') {
-      prompt = `Bạn là một chuyên gia Thần Số Học (Pythagorean Numerology), am hiểu tâm lý hiện đại.
-Hãy đọc dữ liệu Thần Số Học sau đây và đưa ra bản luận giải ngắn gọn (3-4 đoạn, tối đa 250 chữ), văn phong nhẹ nhàng, sâu sắc và dễ hiểu.
-Tập trung vào:
-1. Số Đường Đời (life_path_number): Đặc điểm tính cách cốt lõi, hướng đi lớn trong đời.
-2. Mối tương quan giữa Số Sứ Mệnh (destiny_number) và Số Linh Hồn (soul_urge_number): Khát khao bên trong vs sứ mệnh bên ngoài.
-3. Lời khuyên cá nhân hóa để sống hài hòa hơn dựa trên bộ số.
-KHÔNG giải thích thuật ngữ phức tạp. KHÔNG gạch đầu dòng. Viết văn xuôi mạch lạc. Trình bày bằng Markdown (in đậm, in nghiêng cho ý chính).
-
-Dữ liệu Thần Số Học (JSON):
-${JSON.stringify(payload)}`;
-    } else {
+    if (type !== 'bazi' && type !== 'numerology') {
       return NextResponse.json({ error: 'Unsupported type' }, { status: 400 });
     }
 
-    const text = await geminiGenerate(model, prompt);
+    const interpretation = await interpret(type, payload);
 
-    return NextResponse.json({
-      success: true,
-      interpretation: text
-    });
-
+    return NextResponse.json({ success: true, interpretation });
   } catch (error: any) {
-    console.error('Gemini API Error:', error);
-    return NextResponse.json({ error: 'Failed to generate interpretation', details: error.message }, { status: 500 });
+    console.error('Interpret API Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to generate interpretation', details: error.message },
+      { status: 500 }
+    );
   }
 }

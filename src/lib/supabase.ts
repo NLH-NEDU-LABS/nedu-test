@@ -1,14 +1,5 @@
-// src/lib/supabase.ts
-import { createClient } from '@supabase/supabase-js'
-
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  console.log("SERVER ENV KEYS MISSING:", {
-    url: process.env.SUPABASE_URL,
-    has_role_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY
-  });
-}
-
-export const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+/**
+ * @deprecated Re-export stub — will be removed in Phase 8 cleanup.
+ * Import from '@/lib/supabase/client' instead.
+ */
+export { supabase } from '@/lib/supabase/client';

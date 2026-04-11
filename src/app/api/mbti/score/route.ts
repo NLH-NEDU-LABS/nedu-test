@@ -1,27 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini';
-
-
-
-const MBTI_NAMES: Record<string, string> = {
-  "ISTJ": "Người Kiên Định",
-  "ISFJ": "Người Chăm Sóc",
-  "INFJ": "Người Tầm Nhìn",
-  "INTJ": "Người Chiến Lược",
-  "ISTP": "Người Giải Quyết Vấn Đề",
-  "ISFP": "Người Nghệ Sĩ",
-  "INFP": "Người Lý Tưởng Hóa",
-  "INTP": "Nhà Tư Tưởng",
-  "ESTP": "Người Mạo Hiểm",
-  "ESFP": "Người Vui Vẻ",
-  "ENFP": "Người Nhiệt Huyết",
-  "ENTP": "Người Sáng Tạo",
-  "ESTJ": "Người Quản Lý",
-  "ESFJ": "Người Tận Tâm",
-  "ENFJ": "Người Lãnh Đạo Truyền Cảm Hứng",
-  "ENTJ": "Người Chỉ Huy"
-};
+import { scoreAndDescribe } from '@/features/mbti/service';
 
 export async function POST(req: Request) {
   try {
@@ -31,96 +9,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing token or mbti_type' }, { status: 400 });
     }
 
-    // 1. Query leads lấy persona_label + goal để personalize description
-    const { data: lead, error: leadError } = await supabase.from("leads")
-      .select("id, dob, metadata, job, goal")
-      .eq("metadata->>report_token", token)
-      .single();
-
-    if (leadError || !lead) {
-      console.error("Error finding lead:", leadError);
+    const result = await scoreAndDescribe({ token, mbti_type });
+    return NextResponse.json(result);
+  } catch (err: any) {
+    if (err.status === 404) {
       return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
     }
-
-    const metadata = (lead.metadata || {}) as any;
-    const persona_label = metadata.persona_label || "Chưa xác định";
-    const goal = lead.goal || "Chưa làm rõ";
-    const mbti_name = MBTI_NAMES[mbti_type] || mbti_type;
-
-    // 2. Gọi Gemini generate description
-    const aiPrompt = `
-Bạn là chuyên gia tâm lý học ứng dụng.
-User có MBTI type: ${mbti_type} (${mbti_name})
-Persona Nedu: ${persona_label}
-Vấn đề ưu tiên: ${goal}
-
-Viết 2-3 đoạn ngắn (tối đa 150 chữ) giải thích type ${mbti_type} trong bối cảnh cuộc sống và thách thức của người này.
-Văn phong: ấm, chữa lành, không học thuật.
-Dùng "bạn" khi xưng hô. Không bullet points.
-Trả về JSON: { "description": "..." }
-    `;
-
-    const ai = getGeminiModel({ responseJson: true });
-
-    let mbti_desc = "";
-    try {
-      const parsed = await geminiGenerateJSON<{ description: string }>(ai, aiPrompt);
-      if (parsed.description) {
-        mbti_desc = parsed.description;
-      }
-    } catch (err) {
-      console.error("Gemini Error (after retries):", err);
-      // Fallback description in case of AI failure
-      mbti_desc = `Kiểu tính cách ${mbti_type} (${mbti_name}) là những người rất đặc biệt. Hệ thống hiện tại đang xử lý tác vụ nên chưa thể cung cấp diễn giải sâu hơn lúc này.`;
-    }
-
-    // 3. UPDATE leads.metadata { mbti_type, mbti_desc }
-    const newMetadata = {
-      ...metadata,
-      mbti_type,
-      mbti_desc
-    };
-
-    const { error: updateError } = await supabase
-      .from('leads')
-      .update({ metadata: newMetadata })
-      .eq('id', lead.id);
-
-    if (updateError) {
-      console.error("Update DB error:", updateError);
-      return NextResponse.json({ error: 'Failed to update lead' }, { status: 500 });
-    }
-
-    // 4. UPSERT personal_profiles
-    const { data: existingProfile } = await supabase
-      .from('personal_profiles')
-      .select('id, profile_data')
-      .eq('lead_id', lead.id)
-      .maybeSingle();
-
-    const currentProfileData = (existingProfile?.profile_data as Record<string, any>) || {};
-    const newProfileData = {
-      ...currentProfileData,
-      mbti: { type: mbti_type, desc: mbti_desc }
-    };
-
-    if (existingProfile) {
-      await supabase.from('personal_profiles')
-        .update({ profile_data: newProfileData })
-        .eq('id', existingProfile.id);
-    } else {
-      await supabase.from('personal_profiles')
-        .insert({
-          lead_id: lead.id,
-          profile_data: newProfileData,
-          source_dob: lead.dob || null
-        });
-    }
-
-    // 4. Return { mbti_type, mbti_desc }
-    return NextResponse.json({ mbti_type, mbti_desc });
-  } catch (err: any) {
-    console.error("MBTI Score API Error:", err);
+    console.error('MBTI Score API Error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

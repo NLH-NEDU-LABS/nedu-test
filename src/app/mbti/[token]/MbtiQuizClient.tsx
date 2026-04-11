@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from 'react';
-import { MBTI_QUESTIONS, calculateMBTI } from '@/lib/mbti-scoring';
-import MbtiResultView from './MbtiResultView';
+import { MBTI_QUESTIONS } from '@/features/mbti/data';
+import { calculateMBTI } from '@/features/mbti/scoring';
+import AssessmentResultView from '@/components/quiz/shared/AssessmentResultView';
 
 export default function MbtiQuizClient({ token }: { token: string }) {
   const [state, setState] = useState<'quiz' | 'analyzing' | 'result'>('quiz');
@@ -53,7 +54,11 @@ export default function MbtiQuizClient({ token }: { token: string }) {
   }
 
   if (state === 'result' && mbtiType) {
-    return <MbtiResultView mbtiType={mbtiType} mbtiDesc={mbtiDesc} />;
+    return <AssessmentResultView 
+             title="Kết quả MBTI của bạn"
+             typeLabel={mbtiType}
+             description={mbtiDesc} 
+           />;
   }
 
   const q = MBTI_QUESTIONS[currentIdx];

@@ -1,14 +1,10 @@
 import { NextResponse } from 'next/server';
-import { calculateFullNumerology } from '@/lib/numerology';
-import { buildBazi, getSolarTime } from '@/lib/bazi';
-import { getTimezoneForLocation } from '@/lib/timezone';
+import { calculate } from '@/features/bazi-numerology/service';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { dob, birthTime, birthPlace, gender, fullName } = body;
+    const { dob, birthTime, birthPlace, gender, fullName } = await request.json();
 
-    // Validate request
     if (!dob || typeof gender !== 'number' || !birthPlace) {
       return NextResponse.json(
         { error: 'Missing required fields: dob, gender, birthPlace' },
@@ -16,30 +12,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Determine timezone offset string from birthplace string
-    const tz = getTimezoneForLocation(birthPlace);
-    
-    // Fallback hour to noon if not provided
-    const timeToUse = birthTime || '12:00';
-    const isoString = `${dob}T${timeToUse}:00${tz}`;
+    const { bazi, numerology } = calculate({ dob, birthTime, birthPlace, gender: gender as 0 | 1, fullName });
 
-    // 1. Calculate Bazi (local)
-    const solarTime = getSolarTime(isoString, tz);
-    const baziData = buildBazi({
-      solarTime,
-      gender: gender as 0 | 1,
-      eightCharProviderSect: 2
-    });
-
-    // 2. Calculate Numerology (local - ported from Python backend)
-    const numerologyData = calculateFullNumerology(dob, fullName);
-
-    return NextResponse.json({
-      success: true,
-      bazi: baziData,
-      numerology: numerologyData
-    });
-    
+    return NextResponse.json({ success: true, bazi, numerology });
   } catch (error: any) {
     console.error('Calculation Error:', error);
     return NextResponse.json(

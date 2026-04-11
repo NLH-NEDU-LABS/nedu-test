@@ -6,7 +6,7 @@ import { tCan, tChi, tGod, tStar, tZodiac, tGender, tCanChi } from '@/lib/bazi-t
 interface BaziResultViewProps {
   baziData: any;
   baziInterp?: string;
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export const BaziResultView = ({ baziData, baziInterp, onBack }: BaziResultViewProps) => {
@@ -92,12 +92,14 @@ export const BaziResultView = ({ baziData, baziInterp, onBack }: BaziResultViewP
     <div className="flex-1 flex flex-col animate-in slide-in-from-right-8 fade-in pb-12 w-full">
       {/* Header */}
       <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-b from-[#FDF1E9]/50 to-transparent relative -mx-6 md:-mx-12 px-6 md:px-12 mb-6">
-         <button
-          onClick={onBack}
-          className="absolute left-6 md:left-12 top-6 text-[#A39A92] hover:text-[#2D2D2D] transition-colors"
-        >
-          <ChevronLeft size={24} />
-        </button>
+         {onBack && (
+           <button
+             onClick={onBack}
+             className="absolute left-6 md:left-12 top-6 text-[#A39A92] hover:text-[#2D2D2D] transition-colors"
+           >
+             <ChevronLeft size={24} />
+           </button>
+         )}
         <span className="text-4xl mb-2">✨</span>
         <h2 className="text-2xl font-light text-[#1A1A1A]">Hồ Sơ Bát Tự</h2>
         <div className="text-sm text-[#8B7E74] mt-1 space-x-2">

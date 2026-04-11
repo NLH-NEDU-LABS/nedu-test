@@ -5,7 +5,7 @@ import { ChevronLeft, Sparkles, Loader2, Hash, Heart, Star, User, TrendingUp, Gr
 interface NumerologyResultViewProps {
   numerologyData: any;
   numerologyInterp?: string;
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 // Mô tả ngắn gọn từng chỉ số
@@ -66,12 +66,14 @@ export const NumerologyResultView = ({ numerologyData, numerologyInterp, onBack 
     <div className="flex-1 flex flex-col animate-in slide-in-from-right-8 fade-in pb-12 w-full">
       {/* Header */}
       <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-b from-[#FDF8F0]/80 to-transparent relative -mx-6 md:-mx-12 px-6 md:px-12 mb-6">
-        <button
-          onClick={onBack}
-          className="absolute left-6 md:left-12 top-6 text-[#A39A92] hover:text-[#2D2D2D] transition-colors"
-        >
-          <ChevronLeft size={24} />
-        </button>
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="absolute left-6 md:left-12 top-6 text-[#A39A92] hover:text-[#2D2D2D] transition-colors"
+          >
+            <ChevronLeft size={24} />
+          </button>
+        )}
         <span className="text-4xl mb-2">⭐</span>
         <h2 className="text-2xl font-light text-[#1A1A1A]">Hồ Sơ Thần Số Học</h2>
         <p className="text-sm text-[#8B7E74] mt-1">Pythagorean Numerology</p>
