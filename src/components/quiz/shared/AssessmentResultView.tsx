@@ -1,11 +1,13 @@
 export default function AssessmentResultView({ 
   title, 
   typeLabel, 
-  description 
+  description,
+  children
 }: { 
   title: string; 
   typeLabel: string; 
   description?: string; 
+  children?: React.ReactNode;
 }) {
   return (
     <div className="max-w-2xl mx-auto p-4 py-16 text-center">
@@ -20,6 +22,7 @@ export default function AssessmentResultView({
       ) : (
         <p className="text-gray-600 text-lg">Đang hiển thị kết quả. Vui lòng check email để nhận báo cáo chi tiết.</p>
       )}
+      {children && <div className="mt-8">{children}</div>}
     </div>
   );
 }

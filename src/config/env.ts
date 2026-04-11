@@ -33,6 +33,9 @@ const envSchema = z.object({
     .string()
     .url('NEXT_PUBLIC_REPORT_BASE_URL must be a valid URL')
     .default('http://localhost:3000'),
+
+  // Assessment Mode
+  NEXT_PUBLIC_ASSESSMENT_MODE: z.enum(['drip', 'express']).default('drip'),
 });
 
 /**

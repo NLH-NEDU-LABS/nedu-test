@@ -3,9 +3,18 @@ import { supabase } from '@/lib/supabase';
 import EnneagramQuizClient from './EnneagramQuizClient';
 import EnneagramResultView from './EnneagramResultView';
 
-export default async function EnneagramPage({ params }: { params: Promise<{ token: string }> }) {
+interface EnneagramPageProps {
+  params: Promise<{ token: string }>;
+  searchParams: Promise<{ next?: string, mode?: string }>;
+}
+
+export default async function EnneagramPage({ params, searchParams }: EnneagramPageProps) {
   const resolvedParams = await params;
   const token = resolvedParams.token;
+  
+  const resolvedSearchParams = await searchParams;
+  const nextStep = resolvedSearchParams.next;
+  const mode = resolvedSearchParams.mode;
   
   // Query leads theo report_token để lấy profile_data
   const { data: lead } = await supabase
@@ -27,9 +36,9 @@ export default async function EnneagramPage({ params }: { params: Promise<{ toke
 
   // Nếu đã có enneagram_type -> render EnneagramResultView (không cho làm lại)
   if (enneagramType) {
-    return <EnneagramResultView enneagramType={enneagramType} enneagramDesc={enneagramDesc} />;
+    return <EnneagramResultView enneagramType={enneagramType} enneagramDesc={enneagramDesc} token={token} nextStep={nextStep} mode={mode} />;
   }
 
   // Nếu chưa có -> render bài test
-  return <EnneagramQuizClient token={token} />;
+  return <EnneagramQuizClient token={token} nextStep={nextStep} mode={mode} />;
 }

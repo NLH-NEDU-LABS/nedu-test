@@ -3,9 +3,17 @@ import { supabase } from '@/lib/supabase';
 import MbtiQuizClient from './MbtiQuizClient';
 import MbtiResultView from './MbtiResultView';
 
-export default async function MbtiPage({ params }: { params: Promise<{ token: string }> }) {
+interface MbtiPageProps {
+  params: Promise<{ token: string }>;
+  searchParams: Promise<{ next?: string }>;
+}
+
+export default async function MbtiPage({ params, searchParams }: MbtiPageProps) {
   const resolvedParams = await params;
   const token = resolvedParams.token;
+  
+  const resolvedSearchParams = await searchParams;
+  const nextStep = resolvedSearchParams.next;
   
   // Query leads theo report_token để lấy profile_data
   const { data: lead } = await supabase
@@ -27,9 +35,9 @@ export default async function MbtiPage({ params }: { params: Promise<{ token: st
 
   // Nếu đã có mbti_type -> render MbtiResultView (không cho làm lại)
   if (mbtiType) {
-    return <MbtiResultView mbtiType={mbtiType} mbtiDesc={mbtiDesc} />;
+    return <MbtiResultView mbtiType={mbtiType} mbtiDesc={mbtiDesc} token={token} nextStep={nextStep} />;
   }
 
   // Nếu chưa có -> render bài test
-  return <MbtiQuizClient token={token} />;
+  return <MbtiQuizClient token={token} nextStep={nextStep} />;
 }

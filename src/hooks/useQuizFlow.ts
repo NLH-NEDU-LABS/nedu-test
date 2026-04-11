@@ -3,8 +3,9 @@ import { PERSONAS } from '@/data/maxdiff-data';
 import { calculateMaxDiffScores } from '@/lib/scoring';
 import type { SetAnswer, AssessmentResult, Persona } from '@/types/assessment';
 import type { UserBirthData } from '@/types/user-data';
+import { isExpressMode } from '@/config/constants';
 
-export type StepType = 'welcome' | 'personaSelect' | 'maxdiff' | 'analyzing' | 'result' | 'flowerTest';
+export type StepType = 'welcome' | 'personaSelect' | 'maxdiff' | 'analyzing' | 'result' | 'flowerTest' | 'expressSuccess';
 
 export const useQuizFlow = () => {
   const [step, setStep] = useState<StepType>('welcome');
@@ -13,6 +14,7 @@ export const useQuizFlow = () => {
   const [setAnswers, setSetAnswers] = useState<SetAnswer[]>([]);
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
   const [userBirthData, setUserBirthData] = useState<UserBirthData | null>(null);
+  const [reportToken, setReportToken] = useState<string | null>(null);
 
   const persona: Persona | undefined = personaId ? PERSONAS[personaId] : undefined;
   const totalSets = persona?.sets.length ?? 0;
@@ -86,30 +88,44 @@ export const useQuizFlow = () => {
 
   const handleAdvancedTestStart = useCallback((data: UserBirthData) => {
     setUserBirthData(data);
-    setStep('flowerTest');
+    
+    if (!isExpressMode) {
+      setStep('flowerTest');
+    }
 
     if (assessmentResult && persona) {
+      const payload = {
+        name: data.fullName,
+        email: data.email,
+        persona_label: assessmentResult.persona_label,
+        persona_id: assessmentResult.persona_id,
+        top_problem_1: assessmentResult.top_problems[0]?.label || "",
+        top_problem_2: assessmentResult.top_problems[1]?.label || "",
+        scores: assessmentResult.scores,
+        ai_recommendation: assessmentResult.ai_recommendation,
+        source: typeof window !== 'undefined' ? window.location.hostname : "web",
+        occupation: data.occupation,
+        feeling: data.feeling,
+        dob: data.dob,
+        birthTime: data.birthTime,
+        gender: data.gender,
+        birthPlace: data.birthPlace,
+        mode: isExpressMode ? 'express' : 'drip'
+      };
+
       fetch('/api/send-result', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: data.fullName,
-          email: data.email,
-          persona_label: assessmentResult.persona_label,
-          persona_id: assessmentResult.persona_id,
-          top_problem_1: assessmentResult.top_problems[0]?.label || "",
-          top_problem_2: assessmentResult.top_problems[1]?.label || "",
-          scores: assessmentResult.scores,
-          ai_recommendation: assessmentResult.ai_recommendation,
-          source: typeof window !== 'undefined' ? window.location.hostname : "web",
-          occupation: data.occupation,
-          feeling: data.feeling,
-          dob: data.dob,
-          birthTime: data.birthTime,
-          gender: data.gender,
-          birthPlace: data.birthPlace
-        })
-      }).catch(console.error);
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(resData => {
+        if (isExpressMode && resData.report_token) {
+          setReportToken(resData.report_token);
+          setStep('expressSuccess');
+        }
+      })
+      .catch(console.error);
     }
   }, [assessmentResult, persona]);
 
@@ -136,6 +152,7 @@ export const useQuizFlow = () => {
     totalSets,
     assessmentResult,
     userBirthData,
+    reportToken,
     handlePersonaSelect,
     handleSetAnswer,
     handleRestart,

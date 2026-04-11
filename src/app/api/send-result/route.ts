@@ -10,8 +10,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing email' }, { status: 400 });
     }
 
-    await processSendResult(body);
-    return NextResponse.json({ success: true });
+    const result = await processSendResult(body);
+    return NextResponse.json({ success: true, report_token: result.report_token });
   } catch (err: any) {
     console.error('Send Result API failed:', err);
     return NextResponse.json({ error: 'Failed to process email' }, { status: 500 });
