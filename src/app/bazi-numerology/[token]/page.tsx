@@ -41,12 +41,10 @@ export default async function BaziNumerologyPage({
     // if the database cache insertion fails (e.g., due to RLS or constraints).
     try {
       await upsertProfileData(lead.id, lead.dob, {
-        key: 'bazi',
-        value: bazi as Record<string, unknown>,
-      });
-      await upsertProfileData(lead.id, lead.dob, {
-        key: 'numerology',
-        value: numerology as Record<string, unknown>,
+        bazi,
+        numerology,
+        bazi_interp,
+        numerology_interp,
       });
     } catch (upsertError: any) {
       console.error('Failed to cache bazi/numerology profile data:', upsertError?.message || upsertError);
