@@ -2,7 +2,7 @@
 @plugin "tailwindcss-animate";
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
   --color-primary: #8B5E3C;
   --color-primary-hover: #704B30;
   --color-border-subtle: #F0EBE5;
@@ -31,7 +31,18 @@
   animation: spin-slow 8s linear infinite;
 }
 
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 body {
   /* Prevent scroll bouncing overscroll effect on mobile for app-like feel */
   overscroll-behavior-y: none;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
+}
+
+h1, h2, h3, h4 {
+  letter-spacing: -0.022em;
 }

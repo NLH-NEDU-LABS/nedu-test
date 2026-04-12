@@ -38,9 +38,9 @@ export const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
         </p>
       </div>
 
-      <button 
+      <button
         onClick={onStart}
-        className="w-full py-4 bg-[#2D2D2D] text-white rounded-2xl hover:bg-[#1A1A1A] transition-all flex items-center justify-center gap-2 group shadow-lg"
+        className="w-full py-4 bg-[#2D2D2D] text-white rounded-2xl hover:bg-[#1A1A1A] transition-all flex items-center justify-center gap-2 group shadow-lg font-semibold text-[15px] tracking-tight"
       >
         Bắt đầu hành trình
         <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />

@@ -1,12 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin", "vietnamese"],
-  variable: "--font-inter",
-});
 
 export const metadata: Metadata = {
   title: "Nedu - Thấu hiểu chính mình",
@@ -29,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`${inter.variable} antialiased font-sans`}>
+    <html lang="vi" className="antialiased">
       <head>
         {/* Google tag (gtag.js) */}
         <Script

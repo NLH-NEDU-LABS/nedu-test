@@ -5,7 +5,7 @@ import type { SetAnswer, AssessmentResult, Persona } from '@/types/assessment';
 import type { UserBirthData } from '@/types/user-data';
 import { isExpressMode } from '@/config/constants';
 
-export type StepType = 'welcome' | 'personaSelect' | 'maxdiff' | 'analyzing' | 'result' | 'flowerTest' | 'expressSuccess';
+export type StepType = 'welcome' | 'personaSelect' | 'maxdiff' | 'analyzing' | 'result' | 'flowerTest' | 'expressLoading' | 'expressSuccess';
 
 export const useQuizFlow = () => {
   const [step, setStep] = useState<StepType>('welcome');
@@ -91,6 +91,8 @@ export const useQuizFlow = () => {
     
     if (!isExpressMode) {
       setStep('flowerTest');
+    } else {
+      setStep('expressLoading');
     }
 
     if (assessmentResult && persona) {
