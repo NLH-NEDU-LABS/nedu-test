@@ -105,7 +105,7 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
       visitor_name: name,
       persona_id,
       result_json: { primary_course_name, why_fits, top_problem_1, top_problem_2 },
-      answers: { occupation, feeling },
+      answers: { occupation, feeling, has_consented_policy: true },
       utm_source: source,
     });
 

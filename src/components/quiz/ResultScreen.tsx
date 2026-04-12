@@ -24,20 +24,8 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
   const [showModal, setShowModal] = useState(false);
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
 
-  const handleAcceptTerms = async () => {
+  const handleAcceptTerms = () => {
     setHasAcceptedTerms(true);
-    try {
-      await fetch('/api/track-consent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          persona_id: persona.id,
-          source: typeof window !== 'undefined' ? window.location.hostname : 'web'
-        }),
-      });
-    } catch (err) {
-      console.error('Failed to log consent:', err);
-    }
   };
 
   const handleFollowUpSubmit = (data: UserBirthData) => {
@@ -166,28 +154,74 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
       )}
 
       {!hasAcceptedTerms && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#1A1A1A]/50 backdrop-blur-md animate-in fade-in duration-500">
-          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 sm:p-8 space-y-5 relative animate-in zoom-in-95 duration-500">
-            <div className="w-12 h-12 bg-[#FDF1E9] text-[#8B5E3C] rounded-full flex items-center justify-center mb-2">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-            </div>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center sm:p-4 bg-[#1A1A1A]/60 backdrop-blur-md animate-in fade-in duration-500">
+          <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:rounded-xl sm:max-w-md shadow-2xl relative animate-in zoom-in-95 duration-500 overflow-hidden flex flex-col">
             
-            <h3 className="text-xl font-medium text-[#1A1A1A]">Bảo mật & Quyền riêng tư</h3>
-            
-            <p className="text-sm text-[#5C5550] leading-relaxed">
-              Bạn vui lòng cho phép Nedu lưu trữ và phân tích các lựa chọn vừa rồi để hệ thống có thể đối chiếu dữ liệu và tạo ra báo cáo chính xác nhất.
-            </p>
+            <div className="flex-1 overflow-y-auto px-6 pt-10 pb-6 custom-scrollbar">
+               {/* Logos at top */}
+               <div className="flex items-center justify-center gap-6 mb-8">
+                 <div className="w-14 h-14 bg-[#1A1A1A] rounded-xl flex items-center justify-center shadow-lg">
+                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                 </div>
+                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-70">
+                    <path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>
+                 </svg>
+                 <div className="w-14 h-14 bg-[#EE4D2D] rounded-xl flex items-center justify-center shadow-lg">
+                   <span className="text-white font-bold text-2xl">N</span>
+                 </div>
+               </div>
 
-            <div className="text-xs text-[#8B7E74] bg-[#F9F8F6] p-4 rounded-2xl border border-[#F0EBE5] leading-relaxed">
-              Dữ liệu của bạn được bảo mật tuyệt đối, chỉ phục vụ cho việc cá nhân hóa lộ trình và phân tích nội bộ. Nedu cam kết không chia sẻ cho bên thứ ba.
+               <p className="text-[15px] text-[#2D2D2D] leading-relaxed mb-1 font-medium">
+                 Bằng cách tiếp tục, bạn đồng ý cho N-Education (thuộc NhiLe Holding) thu thập và xử lý những thông tin sau:
+               </p>
+               <button className="text-[#378ADD] text-[15px] hover:underline mb-6 text-left w-full">
+                 Xem chi tiết quyền truy cập
+               </button>
+
+               <ul className="space-y-5 mb-8">
+                 {[
+                   <><span className="font-semibold text-[#2D2D2D]">Thông tin cơ bản</span> — họ tên, email, số điện thoại, độ tuổi</>,
+                   <><span className="font-semibold text-[#2D2D2D]">Kết quả bài test</span> — điểm số và phân tích năng lực học tập</>,
+                   <><span className="font-semibold text-[#2D2D2D]">Dữ liệu hành vi</span> — cookies và analytics trong phiên làm bài</>,
+                   <><span className="font-semibold text-[#2D2D2D]">Gợi ý cá nhân hoá</span> — đề xuất khoá học phù hợp với kết quả của bạn</>
+                 ].map((item, idx) => (
+                   <li key={idx} className="flex items-start gap-4 text-sm text-[#5C5550] leading-relaxed">
+                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 mt-0.5">
+                       <circle cx="12" cy="12" r="12" fill="#EE4D2D" />
+                       <path d="M7 12L10.5 15.5L18 8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                     </svg>
+                     <span>{item}</span>
+                   </li>
+                 ))}
+               </ul>
+
+               <div className="border-t border-[#F0EBE5] pt-6 space-y-3">
+                 <p className="text-[13px] text-[#8B7E74] leading-relaxed">
+                   Thông tin của bạn chỉ dùng để đánh giá năng lực và gợi ý khoá học. Chúng tôi không cung cấp dữ liệu cho bên thứ ba. Dữ liệu được lưu tối đa 24 tháng hoặc đến khi bạn yêu cầu xoá.
+                 </p>
+                 <p className="text-[13px] text-[#8B7E74] leading-relaxed">
+                   Bạn có quyền xem, sửa hoặc xoá dữ liệu bất cứ lúc nào tại <a href="mailto:privacy@n-education.com" className="text-[#378ADD] hover:underline">privacy@n-education.com</a>
+                 </p>
+               </div>
             </div>
 
-            <button
-              onClick={handleAcceptTerms}
-              className="w-full py-4 bg-[#8B5E3C] text-white rounded-2xl font-medium hover:bg-[#704B30] transition-colors mt-2 shadow-sm cursor-pointer"
-            >
-              Đồng ý & Xem kết quả
-            </button>
+            <div className="p-6 bg-white border-t border-[#F0EBE5] flex flex-col gap-3">
+              <button
+                onClick={handleAcceptTerms}
+                className="w-full py-3.5 bg-[#EE4D2D] text-white rounded font-medium hover:bg-[#D74225] transition-colors shadow-sm text-[15px]"
+              >
+                Đồng ý
+              </button>
+              <button
+                onClick={() => {
+                   alert('Xin lỗi, nhưng Nedu cần phải thu thập các thông tin trên mới có thể phân tích và kết xuất kết quả cho bạn.');
+                }}
+                className="w-full py-2 bg-transparent text-[#8B7E74] hover:text-[#2D2D2D] font-medium text-sm transition-colors"
+               >
+                Không đồng ý
+              </button>
+            </div>
+
           </div>
         </div>
       )}
