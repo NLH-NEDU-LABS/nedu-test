@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nedu — Design Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            overscroll-behavior-y: none;
+            background: #FDFCFB;
+        }
+
+        /* Screen switcher nav */
+        #nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background: #1A1A1A;
+            padding: 8px 12px;
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        #nav-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-btn {
+            flex-shrink: 0;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid #444;
+            color: #aaa;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            background: transparent;
+            transition: all 0.15s;
+        }
+
+        .nav-btn.active,
+        .nav-btn:hover {
+            background: #8B5E3C;
+            border-color: #8B5E3C;
+            color: #fff;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Quiz wrapper - mobile-first centered card */
+        .quiz-wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0 20px;
+        }
+
+        .quiz-card {
+            width: 100%;
+            max-width: 448px;
+            background: white;
+            min-height: 100vh;
+            padding: 32px 24px;
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .quiz-wrap {
+                background: #FDFCFB;
+                padding: 72px 16px 32px;
+            }
+
+            .quiz-card {
+                min-height: auto;
+                border-radius: 24px;
+                box-shadow: 0 4px 40px rgba(0, 0, 0, 0.08);
+                border: 1px solid #F0EBE5;
+                padding: 48px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spinSlow {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .anim-in {
+            animation: fadeSlideUp 0.6s ease forwards;
+        }
+
+        .spin-slow {
+            animation: spinSlow 8s linear infinite;
+        }
+
+        .pulsing {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* MaxDiff rows */
+        .md-row {
+            display: grid;
+            grid-template-columns: 56px 1fr 56px;
+            align-items: center;
+            background: white;
+            border: 1px solid #E5E5EA;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .md-row.selected-most {
+            border-color: #34C759 !important;
+            background: #F0FDF4 !important;
+            box-shadow: 0 2px 16px rgba(52, 199, 89, 0.12);
+        }
+
+        .md-row.selected-least {
+            border-color: #FF3B30 !important;
+            background: #FFF5F5 !important;
+            box-shadow: 0 2px 16px rgba(255, 59, 48, 0.12);
+        }
+
+        .md-btn {
+            width: 100%;
+            min-height: 72px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .md-btn:active {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .md-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 36px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #F0EBE5;
+            z-index: 9000;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #8B5E3C;
+            transition: width 0.5s ease;
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(26, 26, 26, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 448px;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Report page */
+        .report-wrap {
+            padding-top: 52px;
+        }
+
+        .section-divider {
+            border: none;
+            border-top: 1px solid #F0EBE5;
+            margin: 0;
+        }
+
+        /* Bar chart */
+        .bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #F5F2EF;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 1s ease;
+        }
+
+        /* Bazi table */
+        .bazi-pillar {
+            flex: 1;
+            min-width: 110px;
+            border: 1px solid #F0EBE5;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+
+        /* Numerology cards */
+        .num-card {
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Sticky CTA */
+        .sticky-cta {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 16px 24px;
+            background: linear-gradient(to top, white 60%, rgba(255, 255, 255, 0.95) 80%, transparent);
+            z-index: 400;
+        }
+
+        @media (min-width: 768px) {
+            .sticky-cta {
+                position: relative;
+                background: transparent;
+                padding: 32px 0 0;
+            }
+        }
+
+        input,
+        select,
+        textarea {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+        }
+
+        h1, h2, h3, h4 {
+            letter-spacing: -0.02em;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ══════════════════════════════════════════════════════
+     NAV BAR — Switch giữa các màn hình để review design
+══════════════════════════════════════════════════════ -->
+    <nav id="nav-bar">
+        <button class="nav-btn active" onclick="showPage('p-welcome')">1· Welcome</button>
+        <button class="nav-btn" onclick="showPage('p-stage')">2· Chọn giai đoạn</button>
+        <button class="nav-btn" onclick="showPage('p-maxdiff')">3· MaxDiff Quiz</button>
+        <button class="nav-btn" onclick="showPage('p-analyzing')">4· Analyzing</button>
+        <button class="nav-btn" onclick="showPage('p-result')">5· Kết quả</button>
+        <button class="nav-btn" onclick="showPage('p-modal')">6· Modal form</button>
+        <button class="nav-btn" onclick="showPage('p-success')">7· Success</button>
+        <button class="nav-btn" onclick="showPage('p-report')">8· Report đầy đủ</button>
+        <button class="nav-btn" onclick="showPage('p-mbti')">9· MBTI result</button>
+        <button class="nav-btn" onclick="showPage('p-enneagram')">10· Enneagram</button>
+    </nav>
+
+    <!-- Progress bar (visual only, for quiz pages) -->
+    <div class="progress-bar" id="progress-bar" style="display:none">
+        <div class="progress-fill" id="progress-fill" style="width:40%"></div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+     PAGE 1 · WELCOME SCREEN
+══════════════════════════════════════════════════════ -->
+    <div id="p-welcome" class="page active">
+        <div class="quiz-wrap">
+            <div class="quiz-card anim-in space-y-8">
+
+                <!-- Logo -->
+                <div class="flex justify-center">
+                    <div
+                        class="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center overflow-hidden shadow-sm border border-[#F0EBE5]">
+                        <span class="text-base font-bold text-[#8B5E3C] italic select-none">N</span>
+                    </div>
+                </div>
+
+                <!-- Heading -->
+                <div class="text-center space-y-4">
+                    <h1 class="text-3xl md:text-4xl font-light tracking-tight text-[#1A1A1A]">
+                        Chào bạn đến với <span class="font-semibold italic text-[#8B5E3C]">Nedu</span>
+                    </h1>
+                    <p class="text-[#6B6B6B] leading-relaxed text-lg font-light">
+                        Đã bao lâu rồi bạn chưa dành vài phút để thực sự lắng nghe chính mình?
+                    </p>
+                </div>
+
+                <!-- Security badge -->
+                <div class="bg-[#F9F8F6] p-4 rounded-2xl flex items-start gap-3 border border-[#F0EBE5]">
+                    <svg class="shrink-0 mt-0.5 text-[#8B5E3C]" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="#8B5E3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="m9 12 2 2 4-4" />
+                    </svg>
+                    <p class="text-sm text-[#8B7E74] leading-relaxed">
+                        Mọi chia sẻ của bạn được mã hóa an toàn 100% và chỉ dùng để cá nhân hóa hành trình của riêng
+                        bạn.
+                    </p>
+                </div>
+
+                <!-- CTA -->
+                <button onclick="showPage('p-stage')"
+                    class="w-full py-4 bg-[#2D2D2D] text-white rounded-2xl hover:bg-[#1A1A1A] transition-all flex items-center justify-center gap-2 group shadow-lg font-medium">
+                    Bắt đầu hành trình
+                    <svg class="group-hover:translate-x-1 transition-transform" width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m9 18 6-6-6-6" />
+                    </svg>
+                </button>
+
+                <footer class="hidden md:flex items-center justify-center gap-1.5 text-[#A39A92] opacity-60">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="m9 12 2 2 4-4" />
+                    </svg>
+                    <span class="text-[11px] tracking-widest uppercase font-medium">N-Education Ecosystem</span>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+     PAGE 2 · STAGE SELECTION
+══════════════════════════════════════════════════════ -->
+    <div id="p-stage" class="page">
+        <div class="quiz-wrap">
+            <div class="quiz-card anim-in space-y-6">
+                <div class="space-y-2">
+                    <span class="text-[#8B5E3C] font-semibold text-xs tracking-widest uppercase">TRƯỚC TIÊN</span>
+                    <h2 class="text-2xl md:text-3xl font-normal text-[#1A1A1A] leading-snug">
+                        Bạn đang ở giai đoạn nào trong cuộc sống?
+                    </h2>
+                </div>
+
+                <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                    <!-- 9 personas -->
+                    <button onclick="showPage('p-maxdiff')"
+                        class="w-full text-left p-4 rounded-2xl border border-[#F0EBE5] hover:border-[#8B5E3C] hover:bg-[#F9F8F6] bg-white transition-all flex items-center gap-3 group">
+                        <span class="text-2xl group-hover:scale-110 transition-transform">🎓</span>
+                        <span class="font-medium text-sm md:text-base text-[#2D2D2D]">Sinh viên / Học sinh</span>
+                    </button>
+                    <button onclick="showPage('p-maxdiff')"
+                        class="w-full text-left p-4 rounded-2xl border border-[#F0EBE5] hover:border-[#8B5E3C] hover:bg-[#F9F8F6] bg-white transition-all flex items-center gap-3 group">
+                        <span class="text-2xl group-hover:scale-110 transition-transform">🌱</span>
+                        <span class="font-medium text-sm md:text-base text-[#2D2D2D]">Mới đi làm 1–3 năm</span>
+                    </button>
+                    <button onclick="showPage('p-maxdiff')"
+                        class="w-full text-left p-4 rounded-2xl border border-[#F0EBE5] hover:border-[#8B5E3C] hover:bg-[#F9F8F6] bg-white transition-all flex items-center gap-3 group">
+                        <span class="text-2xl group-hover:scale-110 transition-transform">🧭</span>
+                        <span class="font-medium text-sm md:text-base text-[#2D2D2D]">Nhân viên văn phòng (3–7
+                            năm)</span>
+                    </button>
+                    <button onclick="showPage('p-maxdiff')"
+                        class="w-full text-left p-4 rounded-2xl border border-[#F0EBE5] hover:border-[#8B5E3C] hover:bg-[#F9F8F6] bg-white transition-all flex items-center gap-3 group">
+                        <span class="text-2xl group-hover:scale-110 transition-transform">🦋</span>
+                        <span class="font-medium text-sm md:text-base text-[#2D2D2D]">Freelancer / Tự kinh doanh</span>
+                    </button>
+                    <button onclick="showPage('p-maxdiff')"
+                        class="w-full text-left p-4 rounded-2xl border border-[#F0EBE5] hover:border-[#8B5E3C] hover:bg-[#F9F8F6] bg-white transition-all flex items-center gap-3 group">
+                        <span class="text-2xl group-hover:scale-110 transition-transform">🧳</span>
+                        <span class="font-medium text-sm md:text-base text-[#2D2D2D]">Digital Nomad / Creator</span>
+                    </button>
+                    <button onclick="showPage('p-maxdiff')"
+                        class="w-full text-left p-4 rounded-2xl border border-[#F0EBE5] hover:border-[#8B5E3C] hover:bg-[#F9F8F6] bg-white transition-all flex items-center gap-3 group">
+                        <span class="text-2xl group-hover:scale-110 transition-transform">💼</span>
+                        <span class="font-medium text-sm md:text-base text-[#2D2D2D]">Quản lý / Chủ doanh nghiệp</span>
+                    </button>
+                    <button onclick="showPage('p-maxdiff')"
+                        class="w-full text-left p-4 rounded-2xl border border-[#F0EBE5] hover:border-[#8B5E3C] hover:bg-[#F9F8F6] bg-white transition-all flex items-center gap-3 group">
+                        <span class="text-2xl group-hover:scale-110 transition-transform">🌸</span>
+                        <span class="font-medium text-sm md:text-base text-[#2D2D2D]">Phụ nữ cân bằng gia đình & sự
+                            nghiệp</span>
+                    </button>
+                    <button onclick="showPage('p-maxdiff')"
+                        class="w-full text-left p-4 rounded-2xl border border-[#F0EBE5] hover:border-[#8B5E3C] hover:bg-[#F9F8F6] bg-white transition-all flex items-center gap-3 group">
+                        <span class="text-2xl group-hover:scale-110 transition-transform">🌾</span>
+                        <span class="font-medium text-sm md:text-base text-[#2D2D2D]">Giáo viên / Công chức viên
+                            chức</span>
+                    </button>
+                    <button onclick="showPage('p-maxdiff')"
+                        class="w-full text-left p-4 rounded-2xl border border-dashed border-[#D4C9BC] hover:border-[#8B5E3C] hover:bg-[#FDF1E9] bg-white transition-all flex items-center gap-3 group">
+                        <span class="text-2xl group-hover:scale-110 transition-transform">🏔️</span>
+                        <span class="font-medium text-sm md:text-base text-[#8B7E74]">Lãnh đạo / Doanh nhân cấp
+                            cao</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+     PAGE 3 · MAXDIFF QUIZ SCREEN
+══════════════════════════════════════════════════════ -->
+    <div id="p-maxdiff" class="page">
+        <div class="quiz-wrap">
+            <div class="quiz-card anim-in" style="max-width:520px">
+
+                <!-- Top bar: persona badge + set counter -->
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2 rounded-full px-3 py-1.5" style="background:#378ADD15;border:1px solid #378ADD25">
+                        <span style="font-size:13px">🧭</span>
+                        <span style="font-size:11px;font-weight:600;color:#378ADD;letter-spacing:0.04em">NHÂN VIÊN VĂN PHÒNG</span>
+                    </div>
+                    <span style="font-size:12px;color:#8E8E93;font-weight:500;letter-spacing:-0.01em">Nhóm 3 / 7</span>
+                </div>
+
+                <!-- Progress bar -->
+                <div style="height:3px;background:#E5E5EA;border-radius:99px;margin-bottom:24px;overflow:hidden">
+                    <div style="height:100%;width:29%;background:#378ADD;border-radius:99px;transition:width 0.5s ease"></div>
+                </div>
+
+                <!-- Question -->
+                <p style="font-size:15px;font-weight:400;color:#1C1917;margin-bottom:20px;line-height:1.55;letter-spacing:-0.01em">
+                    Trong hành trình tìm lại sự cân bằng và định hướng, điều gì là <strong style="font-weight:600">quan trọng nhất</strong> với bạn lúc này?
+                </p>
+
+                <!-- Legend row -->
+                <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:14px;gap:8px">
+                    <div style="display:flex;align-items:center;gap:5px;background:#F0FDF4;border-radius:10px;padding:6px 10px">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                        <span style="font-size:10px;font-weight:600;color:#16A34A;letter-spacing:0.04em">QUAN TRỌNG NHẤT</span>
+                    </div>
+                    <div style="width:1px;height:24px;background:#E5E5EA"></div>
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;background:#FFF5F5;border-radius:10px;padding:6px 10px">
+                        <span style="font-size:10px;font-weight:600;color:#FF3B30;letter-spacing:0.04em">ÍT QUAN TRỌNG</span>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </div>
+                </div>
+
+                <!-- 4 items -->
+                <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+
+                    <!-- Item 1 — selected MOST -->
+                    <div class="md-row selected-most" id="row-1">
+                        <button class="md-btn" onclick="pickItem(1,'most')" title="Quan trọng nhất">
+                            <div class="md-circle" style="background:#34C759;box-shadow:0 2px 8px rgba(52,199,89,0.3)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                        </button>
+                        <div style="padding:15px 12px;border-left:1px solid #A7F3C0;border-right:1px solid #A7F3C0;text-align:center">
+                            <div style="font-size:14px;font-weight:500;color:#1C1917;line-height:1.4;letter-spacing:-0.01em">Định hướng sự nghiệp rõ ràng hơn</div>
+                        </div>
+                        <button class="md-btn" onclick="pickItem(1,'least')" title="Ít quan trọng">
+                            <div class="md-circle" style="border:1.5px solid #FF3B30;background:transparent">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="md-row" id="row-2">
+                        <button class="md-btn" onclick="pickItem(2,'most')" title="Quan trọng nhất">
+                            <div class="md-circle" style="border:1.5px solid #34C759;background:transparent">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34C759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                            </div>
+                        </button>
+                        <div style="padding:15px 12px;border-left:1px solid #E5E5EA;border-right:1px solid #E5E5EA;text-align:center">
+                            <div style="font-size:14px;font-weight:500;color:#1C1917;line-height:1.4;letter-spacing:-0.01em">Giảm stress và áp lực công việc</div>
+                        </div>
+                        <button class="md-btn" onclick="pickItem(2,'least')" title="Ít quan trọng">
+                            <div class="md-circle" style="border:1.5px solid #FF3B30;background:transparent">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Item 3 — selected LEAST -->
+                    <div class="md-row selected-least" id="row-3">
+                        <button class="md-btn" onclick="pickItem(3,'most')" title="Quan trọng nhất">
+                            <div class="md-circle" style="border:1.5px solid #34C759;background:transparent">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34C759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                            </div>
+                        </button>
+                        <div style="padding:15px 12px;border-left:1px solid #FFBBB7;border-right:1px solid #FFBBB7;text-align:center">
+                            <div style="font-size:14px;font-weight:500;color:#1C1917;line-height:1.4;letter-spacing:-0.01em">Tìm kiếm cộng đồng kết nối ý nghĩa</div>
+                        </div>
+                        <button class="md-btn" onclick="pickItem(3,'least')" title="Ít quan trọng">
+                            <div class="md-circle" style="background:#FF3B30;box-shadow:0 2px 8px rgba(255,59,48,0.3)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="md-row" id="row-4">
+                        <button class="md-btn" onclick="pickItem(4,'most')" title="Quan trọng nhất">
+                            <div class="md-circle" style="border:1.5px solid #34C759;background:transparent">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34C759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                            </div>
+                        </button>
+                        <div style="padding:15px 12px;border-left:1px solid #E5E5EA;border-right:1px solid #E5E5EA;text-align:center">
+                            <div style="font-size:14px;font-weight:500;color:#1C1917;line-height:1.4;letter-spacing:-0.01em">Cải thiện kỹ năng giao tiếp và thuyết phục</div>
+                        </div>
+                        <button class="md-btn" onclick="pickItem(4,'least')" title="Ít quan trọng">
+                            <div class="md-circle" style="border:1.5px solid #FF3B30;background:transparent">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </div>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Buttons -->
+                <div style="display:flex;gap:10px">
+                    <button onclick="showPage('p-stage')"
+                        style="flex:1;padding:14px 0;border:1px solid #E5E5EA;border-radius:14px;background:white;cursor:pointer;font-size:15px;font-weight:500;color:#8E8E93;font-family:inherit;letter-spacing:-0.01em">
+                        ← Quay lại
+                    </button>
+                    <button onclick="showPage('p-analyzing')"
+                        style="flex:2;padding:14px 0;background:#378ADD;border:none;border-radius:14px;cursor:pointer;font-size:15px;font-weight:600;color:#fff;font-family:inherit;letter-spacing:-0.01em;box-shadow:0 2px 12px rgba(55,138,221,0.35)">
+                        Nhóm tiếp theo →
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+     PAGE 4 · ANALYZING SCREEN
+══════════════════════════════════════════════════════ -->
+    <div id="p-analyzing" class="page">
+        <div class="quiz-wrap">
+            <div class="quiz-card pulsing" style="display:flex;align-items:center;justify-content:center">
+                <div
+                    style="text-align:center;padding:48px 0;display:flex;flex-direction:column;align-items:center;gap:32px">
+                    <!-- Sparkles icon spinning -->
+                    <svg class="spin-slow" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8B5E3C"
+                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+                        <path d="M20 3v4" />
+                        <path d="M22 5h-4" />
+                        <path d="M4 17v2" />
+                        <path d="M5 18H3" />
+                    </svg>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <h2 style="font-size:20px;font-weight:300;color:#1A1A1A;margin:0">Nedu AI đang thấu hiểu các chỉ
+                            số...</h2>
+                        <p style="font-size:14px;color:#8B7E74;margin:0">Dựa trên tâm lý học hành vi và triết lý thấu
+                            cảm nội tâm.</p>
+                    </div>
+                    <button onclick="showPage('p-result')"
+                        style="margin-top:8px;padding:10px 24px;border:1px solid #E7E5E1;border-radius:12px;background:transparent;cursor:pointer;font-size:12px;color:#A39A92;font-family:inherit">
+                        Xem kết quả ngay →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+     PAGE 5 · RESULT SCREEN
+══════════════════════════════════════════════════════ -->
+    <div id="p-result" class="page">
+        <div class="quiz-wrap">
+            <div class="quiz-card anim-in" style="padding-bottom:200px">
+
+                <!-- Header -->
+                <div style="text-align:center;margin-bottom:32px">
+                    <div
+                        style="display:inline-block;padding:6px 16px;background:#FDF1E9;color:#8B5E3C;border-radius:99px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">
+                        Kết quả
+                    </div>
+                    <h2 style="font-size:26px;font-weight:300;color:#1A1A1A;margin:0 0 8px">
+                        Nedu đã hiểu bạn hơn <span style="font-weight:600;font-style:italic">một chút</span>
+                    </h2>
+                    <p
+                        style="font-size:13px;color:#8B7E74;margin:0 0 4px;display:flex;align-items:center;justify-content:center;gap:6px">
+                        <span>🧭</span> Nhân viên văn phòng
+                    </p>
+                    <p
+                        style="font-size:13px;color:#8B7E74;margin:12px auto 0;max-width:320px;line-height:1.6;padding:0 16px">
+                        Dựa trên những gì bạn chia sẻ, đây là những gì chúng tôi nghĩ bạn đang cần nhất:
+                    </p>
+                </div>
+
+                <!-- AI Recommendation box -->
+                <div style="margin-bottom:16px">
+                    <h3
+                        style="font-size:11px;font-weight:600;color:#8B7E74;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px 4px">
+                        Gợi ý hành trình phù hợp nhất
+                    </h3>
+                    <div
+                        style="padding:20px;background:rgba(253,241,233,0.5);border-radius:16px;border:1px solid #FDF1E9">
+                        <div
+                            style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:white;border-radius:99px;border:1px solid #EACbb3;font-size:11px;font-weight:500;color:#8B5E3C;margin-bottom:10px">
+                            <span>⭐</span> Recommended
+                        </div>
+                        <a href="#"
+                            style="display:flex;align-items:center;gap:6px;font-size:19px;font-weight:500;color:#8B5E3C;margin-bottom:12px;text-decoration:none">
+                            Khóa học Cân Bằng Nội Tâm ↗
+                        </a>
+                        <p style="font-size:13px;color:#5C5550;line-height:1.7;margin:0 0 16px">
+                            <strong style="display:block;margin-bottom:4px">Tại sao khóa này phù hợp với bạn?</strong>
+                            Khóa học này được thiết kế đặc biệt cho những người đang trong giai đoạn chuyển tiếp nghề
+                            nghiệp, giúp bạn hiểu rõ giá trị cốt lõi và xây dựng lộ trình phát triển cá nhân bền vững.
+                        </p>
+                        <div
+                            style="font-size:11px;color:#8B7E74;background:white;padding:12px;border-radius:12px;border:1px solid #F0EBE5">
+                            <span style="font-weight:600;color:#8B5E3C">Lưu ý về phương pháp: </span>
+                            Kết hợp tâm lý học tích cực và coaching thực hành — phù hợp nếu bạn thích học qua trải
+                            nghiệm và phản chiếu thực tế.
+                        </div>
+                        <p style="font-size:11px;color:#e11d48;margin:16px 0 0;font-style:italic;font-weight:500">
+                            ⚡ Chỉ còn 3 suất cuối trong tháng này — đừng để cơ hội tuột khỏi tay!
+                        </p>
+                    </div>
+
+                    <!-- Backup course -->
+                    <div
+                        style="padding:16px;background:white;border-radius:16px;border:1px solid #F0EBE5;margin-top:12px">
+                        <h4 style="font-size:13px;font-weight:600;color:#8B7E74;margin:0 0 6px">Lựa chọn thay thế:</h4>
+                        <a href="#" style="font-size:13px;color:#2D2D2D;font-weight:500;text-decoration:none">
+                            Retreat Chánh Niệm Cuối Tuần ↗
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Restart link -->
+                <div style="text-align:center;padding:16px 0 8px">
+                    <button onclick="showPage('p-welcome')"
+                        style="font-size:11px;font-weight:500;color:#A39A92;background:transparent;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:4px;font-family:inherit">
+                        Làm lại từ đầu
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Sticky CTA -->
+        <div class="sticky-cta">
+            <div style="max-width:448px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:12px">
+                <p style="font-size:13px;color:#8B7E74;margin:0">Bạn muốn tiếp tục như thế nào?</p>
+                <div style="width:100%;display:flex;flex-direction:column;gap:10px">
+                    <button onclick="showPage('p-modal')"
+                        style="width:100%;background:#8B5E3C;color:white;padding:16px;border-radius:16px;border:none;cursor:pointer;font-size:14px;font-weight:500;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+                        <span>📩</span> Nhận kết quả phân tích chi tiết qua Email
+                    </button>
+                    <a href="#"
+                        style="width:100%;border:1.5px solid #8B5E3C;color:#8B5E3C;padding:16px;border-radius:16px;font-size:14px;font-weight:500;font-family:inherit;display:flex;align-items:center;justify-content:center;background:white;text-decoration:none;box-sizing:border-box">
+                        Xem chi tiết khóa học phù hợp →
+                    </a>
+                </div>
+                <p style="font-size:11px;color:#8B7E74;margin:0">Lựa chọn nào cũng đáng giá cho hành trình của bạn</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+     PAGE 6 · FOLLOW-UP MODAL
+══════════════════════════════════════════════════════ -->
+    <div id="p-modal" class="page">
+        <div
+            style="min-height:100vh;padding-top:52px;display:flex;align-items:flex-start;justify-content:center;background:rgba(26,26,26,0.4);backdrop-filter:blur(4px)">
+
+            <!-- Background result (faded) -->
+            <div
+                style="position:fixed;inset:0;top:52px;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0.15;z-index:0">
+                <div style="width:448px;background:white;padding:32px;border-radius:24px">
+                    <h2 style="font-size:24px;font-weight:300">Nedu đã hiểu bạn hơn <em>một chút</em></h2>
+                </div>
+            </div>
+
+            <!-- Modal -->
+            <div
+                style="position:relative;z-index:10;width:100%;max-width:448px;background:white;border-radius:24px;margin:16px;max-height:calc(100vh - 80px);overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,0.25)">
+
+                <!-- Close btn -->
+                <button onclick="showPage('p-result')"
+                    style="position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:#F9F8F6;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:20;font-size:16px;color:#A39A92">✕</button>
+
+                <div style="padding:32px;display:flex;flex-direction:column;gap:20px">
+                    <h3 style="font-size:19px;font-weight:500;color:#1A1A1A;margin:0;padding-right:32px">
+                        Nhận báo cáo phân tích chuyên sâu qua Email
+                    </h3>
+
+                    <div style="display:flex;flex-direction:column;gap:16px">
+
+                        <!-- Full name -->
+                        <div style="display:flex;flex-direction:column;gap:6px">
+                            <label style="font-size:13px;font-weight:500;color:#8B7E74">Họ và tên (Zalo)</label>
+                            <input type="text" placeholder="Thảo Lê"
+                                style="width:100%;padding:14px 16px;background:white;border:1px solid #F0EBE5;border-radius:12px;font-size:13px;color:#2D2D2D;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.04)"
+                                onfocus="this.style.borderColor='#8B5E3C'" onblur="this.style.borderColor='#F0EBE5'">
+                        </div>
+
+                        <!-- Email -->
+                        <div style="display:flex;flex-direction:column;gap:6px">
+                            <label style="font-size:13px;font-weight:500;color:#8B7E74">Email của bạn *</label>
+                            <input type="email" placeholder="an@gmail.com"
+                                style="width:100%;padding:14px 16px;background:white;border:1px solid #F0EBE5;border-radius:12px;font-size:13px;color:#2D2D2D;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.04)"
+                                onfocus="this.style.borderColor='#8B5E3C'" onblur="this.style.borderColor='#F0EBE5'">
+                        </div>
+
+                        <!-- Gender (divider above) -->
+                        <div
+                            style="border-top:1px solid #F0EBE5;padding-top:16px;display:flex;flex-direction:column;gap:6px">
+                            <label style="font-size:13px;font-weight:500;color:#8B7E74">Giới tính *</label>
+                            <select
+                                style="width:100%;padding:14px 16px;background:white;border:1px solid #F0EBE5;border-radius:12px;font-size:13px;color:#2D2D2D;box-sizing:border-box;appearance:none;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                                <option>Nữ</option>
+                                <option>Nam</option>
+                            </select>
+                        </div>
+
+                        <!-- DOB -->
+                        <div style="display:flex;flex-direction:column;gap:6px">
+                            <label style="font-size:13px;font-weight:500;color:#8B7E74">Ngày sinh dương lịch *</label>
+                            <input type="date"
+                                style="width:100%;padding:14px 16px;background:white;border:1px solid #F0EBE5;border-radius:12px;font-size:13px;color:#2D2D2D;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.04)"
+                                onfocus="this.style.borderColor='#8B5E3C'" onblur="this.style.borderColor='#F0EBE5'">
+                        </div>
+
+                        <!-- Birth time -->
+                        <div style="display:flex;flex-direction:column;gap:6px">
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <label style="font-size:13px;font-weight:500;color:#8B7E74">Giờ sinh *</label>
+                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                                    <input type="checkbox" style="accent-color:#8B5E3C;width:14px;height:14px">
+                                    <span style="font-size:11px;color:#8B7E74">Không nhớ</span>
+                                </label>
+                            </div>
+                            <input type="time"
+                                style="width:100%;padding:14px 16px;background:white;border:1px solid #F0EBE5;border-radius:12px;font-size:13px;color:#2D2D2D;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.04)"
+                                onfocus="this.style.borderColor='#8B5E3C'" onblur="this.style.borderColor='#F0EBE5'">
+                        </div>
+
+                        <!-- Birth place -->
+                        <div style="display:flex;flex-direction:column;gap:6px">
+                            <label style="font-size:13px;font-weight:500;color:#8B7E74">Nơi sinh (Múi giờ) *</label>
+                            <select
+                                style="width:100%;padding:14px 16px;background:white;border:1px solid #F0EBE5;border-radius:12px;font-size:13px;color:#2D2D2D;box-sizing:border-box;appearance:none;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                                <option>Việt Nam (GMT+7)</option>
+                                <option>Singapore (GMT+8)</option>
+                                <option>Thái Lan (GMT+7)</option>
+                                <option>Nhật Bản (GMT+9)</option>
+                                <option>Úc - Sydney (GMT+10/11)</option>
+                            </select>
+                        </div>
+
+                        <!-- Occupation (divider above) -->
+                        <div
+                            style="border-top:1px solid #F0EBE5;padding-top:16px;display:flex;flex-direction:column;gap:6px">
+                            <label style="font-size:13px;font-weight:500;color:#8B7E74">Công việc hiện tại *</label>
+                            <input type="text" placeholder="Marketing Manager"
+                                style="width:100%;padding:14px 16px;background:white;border:1px solid #F0EBE5;border-radius:12px;font-size:13px;color:#2D2D2D;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.04)"
+                                onfocus="this.style.borderColor='#8B5E3C'" onblur="this.style.borderColor='#F0EBE5'">
+                        </div>
+
+                        <!-- Feeling -->
+                        <div style="display:flex;flex-direction:column;gap:6px">
+                            <label style="font-size:13px;font-weight:500;color:#8B7E74">Điều bạn đang quan tâm *</label>
+                            <textarea rows="2" placeholder="Mình đang cảm thấy..."
+                                style="width:100%;padding:14px 16px;background:white;border:1px solid #F0EBE5;border-radius:12px;font-size:13px;color:#2D2D2D;box-sizing:border-box;resize:none;box-shadow:0 1px 3px rgba(0,0,0,0.04);font-family:inherit"
+                                onfocus="this.style.borderColor='#8B5E3C'"
+                                onblur="this.style.borderColor='#F0EBE5'"></textarea>
+                        </div>
+
+                        <!-- Submit -->
+                        <button onclick="showPage('p-success')"
+                            style="width:100%;padding:16px;background:#8B5E3C;color:white;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;box-shadow:0 4px 16px rgba(139,94,60,0.2);margin-top:4px">
+                            Gửi Kết Quả Cho Tôi
+                        </button>
+                        <p style="font-size:11px;text-align:center;color:#8B7E74;margin:0">Thông tin của bạn được bảo
+                            mật tuyệt đối.</p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+     PAGE 7 · EXPRESS SUCCESS
+══════════════════════════════════════════════════════ -->
+    <div id="p-success" class="page">
+        <div class="quiz-wrap">
+            <div class="quiz-card anim-in space-y-8 text-center"
+                style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh">
+
+                <!-- Check icon -->
+                <div
+                    style="width:72px;height:72px;border-radius:50%;background:#F0FDF4;display:flex;align-items:center;justify-content:center">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:12px">
+                    <h2 style="font-size:28px;font-weight:300;color:#1A1A1A;margin:0">Hoàn thành!</h2>
+                    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0;max-width:320px">
+                        Báo cáo phân tích chuyên sâu đang được gửi về email của bạn. Tiếp tục làm bài MBTI để nhận báo
+                        cáo đầy đủ hơn nhé!
+                    </p>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:10px;width:100%">
+                    <button onclick="showPage('p-mbti')"
+                        style="width:100%;padding:16px;background:#8B5E3C;color:white;border:none;border-radius:16px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+                        Làm bài MBTI
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="m9 18 6-6-6-6" />
+                        </svg>
+                    </button>
+                    <button onclick="showPage('p-report')"
+                        style="width:100%;padding:16px;background:white;color:#8B5E3C;border:1.5px solid #8B5E3C;border-radius:16px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
+                        Xem báo cáo tổng hợp
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+     PAGE 8 · FULL REPORT (MaxDiff + MBTI + Enneagram + Bazi + Numerology)
+══════════════════════════════════════════════════════ -->
+    <div id="p-report" class="page">
+        <div class="report-wrap" style="background:#FDFCFB;min-height:100vh">
+
+            <!-- ── Section 01: MaxDiff ── -->
+            <div style="max-width:672px;margin:0 auto;padding:40px 16px 48px">
+
+                <!-- Header -->
+                <div style="text-align:center;margin-bottom:40px">
+                    <div
+                        style="display:inline-block;padding:6px 16px;background:#FDF1E9;color:#8B5E3C;border-radius:99px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px">
+                        Kết quả phân tích
+                    </div>
+                    <h1 style="font-size:28px;font-weight:300;color:#1A1A1A;margin:0 0 8px;letter-spacing:-0.03em">
+                        Những gì Nedu <span style="font-weight:600;font-style:italic">thấy ở bạn</span>
+                    </h1>
+                    <p style="font-size:13px;color:#8B7E74;margin:0">
+                        Giai đoạn: <span style="font-weight:500;color:#5C5550">Nhân viên văn phòng (3–7 năm)</span>
+                    </p>
+                </div>
+
+                <!-- Top needs -->
+                <div
+                    style="background:white;border:1px solid #F0EBE5;border-radius:16px;padding:20px;margin-bottom:24px;box-shadow:0 1px 4px rgba(0,0,0,0.04)">
+                    <h2
+                        style="font-size:11px;font-weight:600;color:#8B7E74;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px">
+                        Nhu cầu ưu tiên của bạn</h2>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <div style="display:flex;align-items:flex-start;gap:10px">
+                            <span style="font-size:18px;line-height:1;margin-top:2px">🥇</span>
+                            <p style="font-size:13px;color:#2D2D2D;font-weight:500;margin:0;line-height:1.5">Định hướng
+                                sự nghiệp rõ ràng và lộ trình phát triển bản thân</p>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px">
+                            <span style="font-size:18px;line-height:1;margin-top:2px">🥈</span>
+                            <p style="font-size:13px;color:#2D2D2D;margin:0;line-height:1.5">Giảm stress, tái tạo năng
+                                lượng và cân bằng cuộc sống</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Needs chart -->
+                <div
+                    style="background:white;border:1px solid #F0EBE5;border-radius:16px;padding:20px;margin-bottom:24px;box-shadow:0 1px 4px rgba(0,0,0,0.04)">
+                    <h2
+                        style="font-size:11px;font-weight:600;color:#8B7E74;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 16px">
+                        Bản đồ nhu cầu chi tiết</h2>
+                    <div style="display:flex;flex-direction:column;gap:12px" id="chart-bars">
+                        <!-- Bar items injected by JS -->
+                    </div>
+                </div>
+
+                <!-- AI recommendation -->
+                <div style="margin-bottom:24px">
+                    <h2
+                        style="font-size:11px;font-weight:600;color:#8B7E74;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px 4px">
+                        Gợi ý hành trình phù hợp nhất</h2>
+                    <div
+                        style="padding:20px;background:rgba(253,241,233,0.5);border-radius:16px;border:1px solid #FDF1E9">
+                        <div
+                            style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:white;border-radius:99px;border:1px solid #EACbb3;font-size:11px;font-weight:500;color:#8B5E3C;margin-bottom:10px">
+                            <span>⭐</span> Recommended
+                        </div>
+                        <a href="#"
+                            style="display:flex;align-items:center;gap:6px;font-size:19px;font-weight:500;color:#8B5E3C;margin-bottom:12px;text-decoration:none">
+                            Khóa học Cân Bằng Nội Tâm ↗
+                        </a>
+                        <p style="font-size:13px;color:#5C5550;line-height:1.7;margin:0 0 16px">
+                            <strong style="display:block;margin-bottom:4px">Tại sao khóa này phù hợp với bạn?</strong>
+                            Khóa học này giúp bạn tìm lại định hướng thông qua các bài tập phản chiếu sâu, kết hợp
+                            coaching cá nhân và cộng đồng đồng hành. Phù hợp cho người đang ở giai đoạn giữa sự nghiệp,
+                            muốn có bước chuyển ý nghĩa.
+                        </p>
+                        <div
+                            style="font-size:11px;color:#8B7E74;background:white;padding:12px;border-radius:12px;border:1px solid #F0EBE5">
+                            <span style="font-weight:600;color:#8B5E3C">Lưu ý về phương pháp: </span>
+                            Kết hợp tâm lý học tích cực và coaching thực hành — phù hợp nếu bạn thích học qua trải
+                            nghiệm và phản chiếu thực tế.
+                        </div>
+                        <p style="font-size:11px;color:#e11d48;margin:16px 0 0;font-style:italic;font-weight:500">
+                            ⚡ Chỉ còn 3 suất cuối trong tháng này — đừng để cơ hội tuột khỏi tay!
+                        </p>
+                    </div>
+
+                    <!-- Backup -->
+                    <div
+                        style="padding:16px;background:white;border-radius:16px;border:1px solid #F0EBE5;margin-top:12px">
+                        <h3 style="font-size:13px;font-weight:600;color:#8B7E74;margin:0 0 6px">Lựa chọn thay thế:</h3>
+                        <a href="#" style="font-size:13px;color:#2D2D2D;font-weight:500;text-decoration:none">
+                            Retreat Chánh Niệm Cuối Tuần ↗
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section 02: MBTI ── -->
+            <hr class="section-divider">
+            <div style="max-width:672px;margin:0 auto;padding:40px 16px 48px;text-align:center">
+                <h2 style="font-size:22px;font-weight:700;color:#1C1917;margin:0 0 24px;letter-spacing:-0.02em">Kết quả MBTI của bạn</h2>
+                <div style="font-size:64px;font-weight:700;color:#8B5E3C;margin-bottom:24px;letter-spacing:-0.04em">INFP</div>
+                <div
+                    style="font-size:15px;color:#1C1917;line-height:1.75;text-align:left;background:#F9F9F9;padding:24px;border-radius:16px;border:1px solid #E5E5EA">
+                    <p style="margin:0 0 16px">INFP (Người Trung Gian) là những người lý tưởng và nhân ái, luôn tìm kiếm
+                        ý nghĩa sâu sắc trong mọi thứ — từ các mối quan hệ đến các dự án cá nhân.</p>
+                    <p style="margin:0 0 16px">Với thế giới quan phong phú và sự đồng cảm sâu sắc, bạn có khả năng hiểu
+                        được những điều người khác không nói ra. Bạn thường sống bằng cảm xúc và tưởng tượng nhiều hơn
+                        là thực tế bên ngoài.</p>
+                    <p style="margin:0">Trong công việc, INFP xuất sắc trong các lĩnh vực sáng tạo, tư vấn, giáo dục và
+                        bất kỳ vai trò nào cho phép họ thể hiện giá trị cốt lõi và giúp đỡ người khác một cách chân
+                        thật.</p>
+                </div>
+                <div style="margin-top:32px">
+                    <button onclick="showPage('p-enneagram')"
+                        style="display:inline-flex;align-items:center;gap:8px;padding:15px 32px;background:#8B5E3C;color:white;border:none;border-radius:14px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;letter-spacing:-0.01em">
+                        Làm tiếp Enneagram <span style="transition:transform 0.2s">→</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Section 03: Enneagram ── -->
+            <hr class="section-divider">
+            <div style="max-width:672px;margin:0 auto;padding:40px 16px 48px;text-align:center">
+                <h2 style="font-size:22px;font-weight:700;color:#1C1917;margin:0 0 24px;letter-spacing:-0.02em">Kết quả Enneagram của bạn</h2>
+                <div style="font-size:64px;font-weight:700;color:#8B5E3C;margin-bottom:24px;letter-spacing:-0.04em">Type 4</div>
+                <div
+                    style="font-size:15px;color:#1C1917;line-height:1.75;text-align:left;background:#F9F9F9;padding:24px;border-radius:16px;border:1px solid #E5E5EA">
+                    <p style="margin:0 0 16px">Type 4 — Người Cá Nhân (The Individualist): Bạn có chiều sâu cảm xúc đặc
+                        biệt và khao khát sống một cuộc đời có ý nghĩa, độc đáo và chân thật với bản thân.</p>
+                    <p style="margin:0 0 16px">Bạn dễ cảm nhận được sự thiếu hụt và thường tìm kiếm điều gì đó còn vắng
+                        mặt trong cuộc sống. Điều này thúc đẩy sự sáng tạo nhưng đôi khi cũng dẫn đến nỗi buồn hay cảm
+                        giác bị hiểu lầm.</p>
+                    <p style="margin:0">Hướng phát triển của Type 4: Học cách nhận ra và trân trọng những gì đang có,
+                        thay vì chỉ tập trung vào sự thiếu hụt. Kết nối với cộng đồng và hành động thay vì chỉ chiêm
+                        nghiệm nội tâm.</p>
+                </div>
+            </div>
+
+            <!-- ── Section 04: Bazi ── -->
+            <hr class="section-divider">
+            <div style="max-width:896px;margin:0 auto;padding:32px 16px 48px">
+
+                <!-- Header with gradient -->
+                <div
+                    style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:linear-gradient(to bottom,rgba(253,241,233,0.5),transparent);margin-bottom:24px;text-align:center">
+                    <span style="font-size:40px;margin-bottom:8px">✨</span>
+                    <h2 style="font-size:22px;font-weight:300;color:#1A1A1A;margin:0 0 4px">Hồ Sơ Bát Tự</h2>
+                    <div style="font-size:13px;color:#8B7E74">
+                        <span style="font-weight:600;color:#8B5E3C">Giáp</span> chủ
+                        <span style="margin:0 8px">•</span>
+                        <span>Tuổi Dần</span>
+                        <span style="margin:0 8px">•</span>
+                        <span>Nữ</span>
+                    </div>
+                </div>
+
+                <!-- Tứ Trụ Table -->
+                <div style="max-width:572px;margin:0 auto">
+                    <h3
+                        style="font-size:12px;font-weight:600;color:#8B7E74;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px 4px">
+                        Bảng Tứ Trụ</h3>
+                    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px">
+
+                        <!-- Trụ Giờ -->
+                        <div class="bazi-pillar">
+                            <div
+                                style="background:#FDF1E9;padding:8px;text-align:center;font-size:11px;font-weight:700;color:#8B5E3C;border-bottom:1px solid #F0EBE5">
+                                Trụ Giờ</div>
+                            <div
+                                style="padding:12px;text-align:center;background:#FAFAFA;border-bottom:1px solid #F0EBE5">
+                                <span
+                                    style="font-size:10px;color:#A39A92;text-transform:uppercase;display:block;margin-bottom:4px">Thiên
+                                    Can</span>
+                                <span
+                                    style="font-size:24px;font-weight:700;color:#2D2D2D;display:block;margin:4px 0">Bính</span>
+                                <span
+                                    style="font-size:11px;color:#8B7E74;background:#F0EBE5;padding:2px 8px;border-radius:6px">Thực
+                                    Thần</span>
+                            </div>
+                            <div style="padding:12px;text-align:center">
+                                <span
+                                    style="font-size:10px;color:#A39A92;text-transform:uppercase;display:block;margin-bottom:4px">Địa
+                                    Chi</span>
+                                <span
+                                    style="font-size:24px;font-weight:700;color:#2D2D2D;display:block;margin:4px 0">Ngọ</span>
+                                <div style="display:flex;gap:4px;margin-top:8px">
+                                    <div style="flex:1;border-top:1px solid #F0EBE5;padding-top:8px;text-align:center">
+                                        <span style="font-size:10px;color:#A39A92;display:block">Chủ khí</span>
+                                        <span style="font-size:13px;font-weight:600;color:#8B5E3C">Đinh</span>
+                                        <span style="font-size:9px;color:#8B7E74;display:block">Kiếp Tài</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trụ Ngày -->
+                        <div class="bazi-pillar" style="border-color:#8B5E3C;box-shadow:0 0 0 1px #8B5E3C">
+                            <div
+                                style="background:#8B5E3C;padding:8px;text-align:center;font-size:11px;font-weight:700;color:white">
+                                Trụ Ngày</div>
+                            <div
+                                style="padding:12px;text-align:center;background:#FAFAFA;border-bottom:1px solid #F0EBE5">
+                                <span
+                                    style="font-size:10px;color:#A39A92;text-transform:uppercase;display:block;margin-bottom:4px">Thiên
+                                    Can</span>
+                                <span
+                                    style="font-size:24px;font-weight:700;color:#8B5E3C;display:block;margin:4px 0">Giáp</span>
+                                <span
+                                    style="font-size:11px;color:#8B7E74;background:#F0EBE5;padding:2px 8px;border-radius:6px">Nhật
+                                    Chủ</span>
+                            </div>
+                            <div style="padding:12px;text-align:center">
+                                <span
+                                    style="font-size:10px;color:#A39A92;text-transform:uppercase;display:block;margin-bottom:4px">Địa
+                                    Chi</span>
+                                <span
+                                    style="font-size:24px;font-weight:700;color:#2D2D2D;display:block;margin:4px 0">Tuất</span>
+                                <div style="display:flex;gap:4px;margin-top:8px">
+                                    <div style="flex:1;border-top:1px solid #F0EBE5;padding-top:8px;text-align:center">
+                                        <span style="font-size:10px;color:#A39A92;display:block">Chủ khí</span>
+                                        <span style="font-size:13px;font-weight:600;color:#8B5E3C">Mậu</span>
+                                        <span style="font-size:9px;color:#8B7E74;display:block">Thiên Tài</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trụ Tháng -->
+                        <div class="bazi-pillar">
+                            <div
+                                style="background:#FDF1E9;padding:8px;text-align:center;font-size:11px;font-weight:700;color:#8B5E3C;border-bottom:1px solid #F0EBE5">
+                                Trụ Tháng</div>
+                            <div
+                                style="padding:12px;text-align:center;background:#FAFAFA;border-bottom:1px solid #F0EBE5">
+                                <span
+                                    style="font-size:10px;color:#A39A92;text-transform:uppercase;display:block;margin-bottom:4px">Thiên
+                                    Can</span>
+                                <span
+                                    style="font-size:24px;font-weight:700;color:#2D2D2D;display:block;margin:4px 0">Canh</span>
+                                <span
+                                    style="font-size:11px;color:#8B7E74;background:#F0EBE5;padding:2px 8px;border-radius:6px">Thất
+                                    Sát</span>
+                            </div>
+                            <div style="padding:12px;text-align:center">
+                                <span
+                                    style="font-size:10px;color:#A39A92;text-transform:uppercase;display:block;margin-bottom:4px">Địa
+                                    Chi</span>
+                                <span
+                                    style="font-size:24px;font-weight:700;color:#2D2D2D;display:block;margin:4px 0">Thân</span>
+                                <div style="display:flex;gap:4px;margin-top:8px">
+                                    <div style="flex:1;border-top:1px solid #F0EBE5;padding-top:8px;text-align:center">
+                                        <span style="font-size:10px;color:#A39A92;display:block">Chủ khí</span>
+                                        <span style="font-size:13px;font-weight:600;color:#8B5E3C">Canh</span>
+                                        <span style="font-size:9px;color:#8B7E74;display:block">Thất Sát</span>
+                                    </div>
+                                    <div
+                                        style="flex:1;border-top:1px solid #F0EBE5;padding-top:8px;text-align:center;border-left:1px solid #F0EBE5">
+                                        <span style="font-size:10px;color:#A39A92;display:block">Trung khí</span>
+                                        <span style="font-size:13px;font-weight:600;color:#8B5E3C">Nhâm</span>
+                                        <span style="font-size:9px;color:#8B7E74;display:block">Thiên Ấn</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trụ Năm -->
+                        <div class="bazi-pillar">
+                            <div
+                                style="background:#FDF1E9;padding:8px;text-align:center;font-size:11px;font-weight:700;color:#8B5E3C;border-bottom:1px solid #F0EBE5">
+                                Trụ Năm</div>
+                            <div
+                                style="padding:12px;text-align:center;background:#FAFAFA;border-bottom:1px solid #F0EBE5">
+                                <span
+                                    style="font-size:10px;color:#A39A92;text-transform:uppercase;display:block;margin-bottom:4px">Thiên
+                                    Can</span>
+                                <span
+                                    style="font-size:24px;font-weight:700;color:#2D2D2D;display:block;margin:4px 0">Quý</span>
+                                <span
+                                    style="font-size:11px;color:#8B7E74;background:#F0EBE5;padding:2px 8px;border-radius:6px">Chính
+                                    Ấn</span>
+                            </div>
+                            <div style="padding:12px;text-align:center">
+                                <span
+                                    style="font-size:10px;color:#A39A92;text-transform:uppercase;display:block;margin-bottom:4px">Địa
+                                    Chi</span>
+                                <span
+                                    style="font-size:24px;font-weight:700;color:#2D2D2D;display:block;margin:4px 0">Dần</span>
+                                <div style="display:flex;gap:4px;margin-top:8px">
+                                    <div style="flex:1;border-top:1px solid #F0EBE5;padding-top:8px;text-align:center">
+                                        <span style="font-size:10px;color:#A39A92;display:block">Chủ khí</span>
+                                        <span style="font-size:13px;font-weight:600;color:#8B5E3C">Giáp</span>
+                                        <span style="font-size:9px;color:#8B7E74;display:block">Tỷ Kiên</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Thần Sát -->
+                <div style="max-width:572px;margin:24px auto 0;padding-top:20px;border-top:1px solid #F0EBE5">
+                    <h3
+                        style="font-size:12px;font-weight:600;color:#8B7E74;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px 4px">
+                        Thần Sát Nổi Bật</h3>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px">
+                        <span
+                            style="background:#F9F8F6;color:#6B5A4D;padding:6px 12px;border-radius:8px;font-size:13px;border:1px solid #EBE3DC">Văn
+                            Xương</span>
+                        <span
+                            style="background:#F9F8F6;color:#6B5A4D;padding:6px 12px;border-radius:8px;font-size:13px;border:1px solid #EBE3DC">Thiên
+                            Đức</span>
+                        <span
+                            style="background:#F9F8F6;color:#6B5A4D;padding:6px 12px;border-radius:8px;font-size:13px;border:1px solid #EBE3DC">Nguyệt
+                            Đức</span>
+                        <span
+                            style="background:#F9F8F6;color:#6B5A4D;padding:6px 12px;border-radius:8px;font-size:13px;border:1px solid #EBE3DC">Hồng
+                            Loan</span>
+                        <span
+                            style="background:#F9F8F6;color:#6B5A4D;padding:6px 12px;border-radius:8px;font-size:13px;border:1px solid #EBE3DC">Tướng
+                            Tinh</span>
+                        <span
+                            style="background:#F9F8F6;color:#6B5A4D;padding:6px 12px;border-radius:8px;font-size:13px;border:1px solid #EBE3DC">Dịch
+                            Mã</span>
+                    </div>
+                </div>
+
+                <!-- Đại Vận -->
+                <div style="max-width:572px;margin:24px auto 0;padding-top:20px;border-top:1px solid #F0EBE5">
+                    <h3
+                        style="font-size:12px;font-weight:600;color:#8B7E74;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px;display:flex;justify-content:space-between;align-items:flex-end">
+                        <span>Đại Vận (10 Năm)</span>
+                        <span style="font-size:11px;font-weight:400;text-transform:none">bắt đầu lúc 8 tuổi</span>
+                    </h3>
+                    <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:12px">
+                        <div
+                            style="flex:none;width:88px;background:white;border:1px solid #EBE3DC;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                            <span style="font-size:17px;font-weight:700;color:#8B5E3C;display:block">Tân Dậu</span>
+                            <span style="font-size:10px;color:#A39A92;display:block;margin-top:4px">8–18t</span>
+                        </div>
+                        <div
+                            style="flex:none;width:88px;background:white;border:1px solid #EBE3DC;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                            <span style="font-size:17px;font-weight:700;color:#8B5E3C;display:block">Nhâm Tuất</span>
+                            <span style="font-size:10px;color:#A39A92;display:block;margin-top:4px">18–28t</span>
+                        </div>
+                        <div
+                            style="flex:none;width:88px;background:#FDF1E9;border:2px solid #8B5E3C;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                            <span style="font-size:17px;font-weight:700;color:#8B5E3C;display:block">Quý Hợi</span>
+                            <span style="font-size:10px;color:#A39A92;display:block;margin-top:4px">28–38t ◀</span>
+                        </div>
+                        <div
+                            style="flex:none;width:88px;background:white;border:1px solid #EBE3DC;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                            <span style="font-size:17px;font-weight:700;color:#8B5E3C;display:block">Giáp Tý</span>
+                            <span style="font-size:10px;color:#A39A92;display:block;margin-top:4px">38–48t</span>
+                        </div>
+                        <div
+                            style="flex:none;width:88px;background:white;border:1px solid #EBE3DC;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                            <span style="font-size:17px;font-weight:700;color:#8B5E3C;display:block">Ất Sửu</span>
+                            <span style="font-size:10px;color:#A39A92;display:block;margin-top:4px">48–58t</span>
+                        </div>
+                        <div
+                            style="flex:none;width:88px;background:white;border:1px solid #EBE3DC;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                            <span style="font-size:17px;font-weight:700;color:#8B5E3C;display:block">Bính Dần</span>
+                            <span style="font-size:10px;color:#A39A92;display:block;margin-top:4px">58–68t</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Interpretation (Bazi) -->
+                <div
+                    style="max-width:572px;margin:24px auto 0;background:#FDF1E9;border-radius:16px;padding:20px;border:1px solid #F0EBE5;position:relative">
+                    <div
+                        style="position:absolute;top:-12px;right:-12px;background:white;padding:8px;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.1)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D85A30" stroke-width="1.5">
+                            <path
+                                d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+                        </svg>
+                    </div>
+                    <h3 style="font-size:17px;font-weight:600;color:#8B5E3C;margin:0 0 12px;font-family:Georgia,serif">
+                        Khám Phá Chiếu Trí (Từ AI)</h3>
+                    <div
+                        style="font-size:14px;line-height:1.8;color:#2D2D2D;display:flex;flex-direction:column;gap:16px">
+                        <p style="margin:0"><strong style="color:#8B5E3C">Nhật chủ Giáp Mộc</strong> tọa Tuất Thổ — bạn
+                            là người có nội tâm phong phú, ý chí độc lập mạnh mẽ và khả năng lãnh đạo tiềm ẩn. Giáp Mộc
+                            như cây đại thụ, luôn vươn thẳng lên phía ánh sáng.</p>
+                        <p style="margin:0">Với <strong style="color:#8B5E3C">Thất Sát Canh Kim</strong> vượng ở tháng
+                            Thân, bạn có khuynh hướng đối mặt với áp lực và thách thức — nhưng nếu biết hóa hóa, đây
+                            chính là động lực thúc đẩy bạn vươn đến đỉnh cao. Đại vận hiện tại Quý Hợi thuận lợi cho tài
+                            vận và học vấn.</p>
+                        <p style="margin:0">Giai đoạn 2025–2028 là thời điểm vàng để mở rộng mạng lưới quan hệ và đầu tư
+                            vào phát triển bản thân — đặc biệt trong lĩnh vực tư duy, sáng tạo và kết nối cộng đồng.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ── Section 05: Numerology ── -->
+            <hr class="section-divider">
+            <div style="max-width:896px;margin:0 auto;padding:32px 16px 64px">
+
+                <!-- Header -->
+                <div
+                    style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:linear-gradient(to bottom,rgba(253,248,240,0.8),transparent);margin-bottom:24px;text-align:center">
+                    <span style="font-size:40px;margin-bottom:8px">⭐</span>
+                    <h2 style="font-size:22px;font-weight:300;color:#1A1A1A;margin:0 0 4px">Hồ Sơ Thần Số Học</h2>
+                    <p style="font-size:13px;color:#8B7E74;margin:0">Pythagorean Numerology</p>
+                </div>
+
+                <div style="max-width:572px;margin:0 auto">
+
+                    <!-- 3 core numbers -->
+                    <div style="margin-bottom:24px">
+                        <h3
+                            style="font-size:12px;font-weight:600;color:#8B7E74;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px 4px">
+                            Chỉ Số Cốt Lõi</h3>
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                            <!-- Life Path 7 -->
+                            <div class="num-card" style="background:linear-gradient(135deg,#8B5E3C,#6B4528)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5" style="margin:0 auto 4px;display:block;opacity:0.8">
+                                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                                    <polyline points="16 7 22 7 22 13" />
+                                </svg>
+                                <span style="font-size:36px;font-weight:700;display:block;margin:4px 0">7</span>
+                                <span
+                                    style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;opacity:0.8">Đường
+                                    Đời</span>
+                                <p style="font-size:8px;margin:4px 0 0;opacity:0.7;line-height:1.3">Tri thức, tâm linh,
+                                    phân tích</p>
+                            </div>
+                            <!-- Destiny 3 -->
+                            <div class="num-card" style="background:linear-gradient(135deg,#CDA376,#A8844F)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5" style="margin:0 auto 4px;display:block;opacity:0.8">
+                                    <polygon
+                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                                <span style="font-size:36px;font-weight:700;display:block;margin:4px 0">3</span>
+                                <span
+                                    style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;opacity:0.8">Sứ
+                                    Mệnh</span>
+                                <p style="font-size:8px;margin:4px 0 0;opacity:0.7;line-height:1.3">Sáng tạo, giao tiếp,
+                                    biểu đạt</p>
+                            </div>
+                            <!-- Soul Urge 9 -->
+                            <div class="num-card" style="background:linear-gradient(135deg,#D85A30,#B04420)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5" style="margin:0 auto 4px;display:block;opacity:0.8">
+                                    <path
+                                        d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                                </svg>
+                                <span style="font-size:36px;font-weight:700;display:block;margin:4px 0">9</span>
+                                <span
+                                    style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;opacity:0.8">Linh
+                                    Hồn</span>
+                                <p style="font-size:8px;margin:4px 0 0;opacity:0.7;line-height:1.3">Nhân đạo, lý tưởng,
+                                    trưởng thành</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4 Đỉnh Cao -->
+                    <div style="padding-top:20px;border-top:1px solid #F0EBE5;margin-bottom:24px">
+                        <h3
+                            style="font-size:12px;font-weight:600;color:#8B7E74;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px 4px">
+                            4 Đỉnh Cao Cuộc Đời</h3>
+                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+                            <div
+                                style="background:white;border:1px solid #EBE3DC;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                                <span style="font-size:10px;color:#A39A92;display:block;margin-bottom:4px">Đỉnh 1</span>
+                                <span style="font-size:26px;font-weight:700;color:#8B5E3C;display:block">4</span>
+                                <span style="font-size:9px;color:#A39A92;display:block;margin-top:2px">~29t</span>
+                            </div>
+                            <div
+                                style="background:white;border:1px solid #EBE3DC;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                                <span style="font-size:10px;color:#A39A92;display:block;margin-bottom:4px">Đỉnh 2</span>
+                                <span style="font-size:26px;font-weight:700;color:#8B5E3C;display:block">7</span>
+                                <span style="font-size:9px;color:#A39A92;display:block;margin-top:2px">~38t</span>
+                            </div>
+                            <div
+                                style="background:#FDF1E9;border:2px solid #8B5E3C;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                                <span style="font-size:10px;color:#A39A92;display:block;margin-bottom:4px">Đỉnh 3
+                                    ◀</span>
+                                <span style="font-size:26px;font-weight:700;color:#8B5E3C;display:block">11</span>
+                                <span style="font-size:9px;color:#A39A92;display:block;margin-top:2px">~47t</span>
+                            </div>
+                            <div
+                                style="background:white;border:1px solid #EBE3DC;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                                <span style="font-size:10px;color:#A39A92;display:block;margin-bottom:4px">Đỉnh 4</span>
+                                <span style="font-size:26px;font-weight:700;color:#8B5E3C;display:block">3</span>
+                                <span style="font-size:9px;color:#A39A92;display:block;margin-top:2px">Trở đi</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Name chart -->
+                    <div style="padding-top:20px;border-top:1px solid #F0EBE5;margin-bottom:24px">
+                        <h3
+                            style="font-size:12px;font-weight:600;color:#8B7E74;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px;display:flex;align-items:center;gap:8px">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <path d="M3 9h18M3 15h18M9 3v18" />
+                            </svg>
+                            Biểu Đồ Tên
+                        </h3>
+                        <div
+                            style="background:#F9F8F6;border-radius:12px;padding:16px;font-family:monospace;text-align:center;font-size:17px;letter-spacing:0.2em;color:#8B5E3C;border:1px solid #EBE3DC;line-height:2">
+                            T H A O<br>
+                            2 8 1 6
+                        </div>
+                    </div>
+
+                    <!-- AI Interpretation (Numerology) -->
+                    <div
+                        style="background:#FDF8F0;border-radius:16px;padding:20px;border:1px solid #F0EBE5;position:relative">
+                        <div
+                            style="position:absolute;top:-12px;right:-12px;background:white;padding:8px;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.1)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CDA376"
+                                stroke-width="1.5">
+                                <path
+                                    d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+                            </svg>
+                        </div>
+                        <h3
+                            style="font-size:17px;font-weight:600;color:#8B5E3C;margin:0 0 12px;font-family:Georgia,serif">
+                            Giải Mã Con Số (Từ AI)</h3>
+                        <div
+                            style="font-size:14px;line-height:1.8;color:#2D2D2D;display:flex;flex-direction:column;gap:16px">
+                            <p style="margin:0"><strong style="color:#8B5E3C">Đường đời số 7</strong> — bạn là người tìm
+                                kiếm sự thật sâu bên trong mọi thứ. Không bằng lòng với câu trả lời hời hợt, bạn luôn
+                                muốn hiểu bản chất cốt lõi của con người và cuộc sống.</p>
+                            <p style="margin:0">Sứ mệnh số 3 kết hợp với linh hồn số 9 tạo nên một sự kết hợp đặc biệt:
+                                <strong style="color:#8B5E3C">người có khả năng truyền đạt những thông điệp sâu sắc bằng
+                                    ngôn ngữ đẹp đẽ, để lại dấu ấn cho nhân loại</strong>. Đây là thời điểm để bạn tin
+                                tưởng vào giọng nói và sứ mệnh chia sẻ của mình.
+                            </p>
+                            <p style="margin:0">Giai đoạn Đỉnh 3 đang đến gần (số 11 — Master Number) báo hiệu một bước
+                                nhảy vọt về tâm linh và sự dẫn dắt. Hãy chuẩn bị nội lực ngay từ hôm nay.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div><!-- end report-wrap -->
+    </div><!-- end p-report -->
+
+
+    <!-- ══════════════════════════════════════════════════════
+     PAGE 9 · MBTI RESULT PAGE (standalone)
+══════════════════════════════════════════════════════ -->
+    <div id="p-mbti" class="page">
+        <div style="min-height:100vh;padding-top:52px;background:#FDFCFB">
+            <div style="max-width:672px;margin:0 auto;padding:40px 16px;text-align:center" class="anim-in">
+                <h2 style="font-size:22px;font-weight:700;color:#1C1917;margin:0 0 24px;letter-spacing:-0.02em">Kết quả MBTI của bạn</h2>
+                <div style="font-size:64px;font-weight:700;color:#8B5E3C;margin-bottom:24px;letter-spacing:-0.04em">INFP</div>
+                <div
+                    style="font-size:16px;color:#374151;line-height:1.8;text-align:left;background:#FAF8F5;padding:24px;border-radius:12px;border:1px solid #EAE3DC;margin-bottom:32px">
+                    <p style="margin:0 0 16px">INFP (Người Trung Gian) là những người lý tưởng và nhân ái, luôn tìm kiếm
+                        ý nghĩa sâu sắc trong mọi thứ — từ các mối quan hệ đến các dự án cá nhân.</p>
+                    <p style="margin:0 0 16px">Với thế giới quan phong phú và sự đồng cảm sâu sắc, bạn có khả năng hiểu
+                        được những điều người khác không nói ra. Bạn thường sống bằng cảm xúc và tưởng tượng nhiều hơn
+                        là thực tế bên ngoài.</p>
+                    <p style="margin:0">Trong công việc, INFP xuất sắc trong các lĩnh vực sáng tạo, tư vấn, giáo dục và
+                        bất kỳ vai trò nào cho phép họ thể hiện giá trị cốt lõi và giúp đỡ người khác một cách chân
+                        thật.</p>
+                </div>
+                <button onclick="showPage('p-enneagram')"
+                    style="display:inline-flex;align-items:center;gap:8px;padding:15px 32px;background:#8B5E3C;color:white;border:none;border-radius:14px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;letter-spacing:-0.01em">
+                    Làm tiếp Enneagram →
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+     PAGE 10 · ENNEAGRAM RESULT PAGE (standalone)
+══════════════════════════════════════════════════════ -->
+    <div id="p-enneagram" class="page">
+        <div style="min-height:100vh;padding-top:52px;background:#FDFCFB">
+            <div style="max-width:672px;margin:0 auto;padding:40px 16px;text-align:center" class="anim-in">
+                <h2 style="font-size:22px;font-weight:700;color:#1C1917;margin:0 0 24px;letter-spacing:-0.02em">Kết quả Enneagram của bạn</h2>
+                <div style="font-size:64px;font-weight:700;color:#8B5E3C;margin-bottom:24px;letter-spacing:-0.04em">Type 4</div>
+                <div
+                    style="font-size:16px;color:#374151;line-height:1.8;text-align:left;background:#FAF8F5;padding:24px;border-radius:12px;border:1px solid #EAE3DC;margin-bottom:32px">
+                    <p style="margin:0 0 16px">Type 4 — Người Cá Nhân (The Individualist): Bạn có chiều sâu cảm xúc đặc
+                        biệt và khao khát sống một cuộc đời có ý nghĩa, độc đáo và chân thật với bản thân.</p>
+                    <p style="margin:0 0 16px">Bạn dễ cảm nhận được sự thiếu hụt và thường tìm kiếm điều gì đó còn vắng
+                        mặt trong cuộc sống. Điều này thúc đẩy sự sáng tạo nhưng đôi khi cũng dẫn đến nỗi buồn hay cảm
+                        giác bị hiểu lầm.</p>
+                    <p style="margin:0">Hướng phát triển: Học cách nhận ra và trân trọng những gì đang có, thay vì chỉ
+                        tập trung vào sự thiếu hụt. Kết nối với cộng đồng và hành động thay vì chỉ chiêm nghiệm nội tâm.
+                    </p>
+                </div>
+
+                <!-- Consent step -->
+                <div
+                    style="background:#F9F8F6;border:1px solid #F0EBE5;border-radius:16px;padding:24px;text-align:left;margin-bottom:24px">
+                    <h3 style="font-size:17px;font-weight:600;color:#1A1A1A;margin:0 0 12px">Chia sẻ kết quả với Nedu?
+                    </h3>
+                    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 20px">
+                        Bạn có muốn chia sẻ kết quả với đội ngũ Nedu không?<br>
+                        (Sau bước này bạn sẽ nhận được báo cáo chi tiết)
+                    </p>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap">
+                        <button onclick="showPage('p-report')"
+                            style="padding:12px 24px;background:#8B5E3C;color:white;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
+                            Có, tôi muốn chia sẻ
+                        </button>
+                        <button onclick="showPage('p-report')"
+                            style="padding:12px 24px;background:#F3F4F6;color:#374151;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
+                            Không, cảm ơn
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════ -->
+    <script>
+        // ── Screen navigation ────────────────────────────────
+        const QUIZ_PAGES = ['p-welcome', 'p-stage', 'p-maxdiff', 'p-analyzing', 'p-result', 'p-modal', 'p-success'];
+
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach((btn, i) => {
+                const pageIds = ['p-welcome', 'p-stage', 'p-maxdiff', 'p-analyzing', 'p-result', 'p-modal', 'p-success', 'p-report', 'p-mbti', 'p-enneagram'];
+                btn.classList.toggle('active', pageIds[i] === id);
+            });
+
+            // Progress bar: show only on quiz pages
+            const progressBar = document.getElementById('progress-bar');
+            const progressMap = { 'p-welcome': 5, 'p-stage': 15, 'p-maxdiff': 45, 'p-analyzing': 80, 'p-result': 95, 'p-modal': 95, 'p-success': 100 };
+            if (id in progressMap) {
+                progressBar.style.display = 'block';
+                document.getElementById('progress-fill').style.width = progressMap[id] + '%';
+            } else {
+                progressBar.style.display = 'none';
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ── Chart bars (report page) ─────────────────────────
+        const scores = [
+            { label: 'Định hướng sự nghiệp rõ ràng', value: 87.4, top: true },
+            { label: 'Giảm stress và áp lực công việc', value: 74.1, top: true },
+            { label: 'Phát triển kỹ năng lãnh đạo', value: 58.3, top: false },
+            { label: 'Cải thiện kỹ năng giao tiếp', value: 47.9, top: false },
+            { label: 'Tìm kiếm cộng đồng kết nối', value: 38.6, top: false },
+            { label: 'Cân bằng gia đình và sự nghiệp', value: 31.2, top: false },
+            { label: 'Tài chính và đầu tư cá nhân', value: 24.8, top: false },
+            { label: 'Sức khỏe thể chất và tinh thần', value: 19.3, top: false },
+            { label: 'Sáng tạo và biểu đạt bản thân', value: 12.7, top: false },
+        ];
+
+        function buildChart() {
+            const container = document.getElementById('chart-bars');
+            if (!container) return;
+            container.innerHTML = '';
+            scores.forEach(s => {
+                container.innerHTML += `
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;${s.top ? 'font-weight:600;color:#8B5E3C' : 'color:#5C5550'};line-height:1.3">${s.label}</span>
+            <span style="font-size:10px;color:#A39A92;font-family:monospace;margin-left:8px;flex-shrink:0">${s.value.toFixed(1)}</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill" style="width:0%;background:${s.top ? '#8B5E3C' : '#D4C4B0'}" data-width="${s.value}"></div>
+          </div>
+        </div>`;
+            });
+            // Animate bars
+            setTimeout(() => {
+                document.querySelectorAll('.bar-fill[data-width]').forEach(el => {
+                    el.style.width = el.getAttribute('data-width') + '%';
+                });
+            }, 100);
+        }
+
+        // Run chart build when report page shown
+        const origShow = window.showPage;
+        window.showPage = function (id) {
+            if (id === 'p-report') setTimeout(buildChart, 50);
+            if (typeof origShow === 'function') origShow(id);
+        };
+        // Also build on load if report is shown
+        window.addEventListener('load', () => {
+            if (document.getElementById('p-report').classList.contains('active')) buildChart();
+        });
+
+        // ── MaxDiff interaction ──────────────────────────────
+        let activeMost = null, activeLeast = null;
+        function pickItem(id, type) {
+            const rows = document.querySelectorAll('.md-row');
+            if (type === 'most') {
+                if (activeMost !== null) document.getElementById('row-' + activeMost)?.classList.remove('selected-most');
+                activeMost = (activeMost === id) ? null : id;
+                if (activeMost !== null) {
+                    if (activeLeast === activeMost) { activeLeast = null; document.getElementById('row-' + id)?.classList.remove('selected-least'); }
+                    document.getElementById('row-' + activeMost)?.classList.add('selected-most');
+                }
+            } else {
+                if (activeLeast !== null) document.getElementById('row-' + activeLeast)?.classList.remove('selected-least');
+                activeLeast = (activeLeast === id) ? null : id;
+                if (activeLeast !== null) {
+                    if (activeMost === activeLeast) { activeMost = null; document.getElementById('row-' + id)?.classList.remove('selected-most'); }
+                    document.getElementById('row-' + activeLeast)?.classList.add('selected-least');
+                }
+            }
+        }
+
+        // Init chart on first load if report page
+        buildChart();
+    </script>
+
+</body>
+
+</html>

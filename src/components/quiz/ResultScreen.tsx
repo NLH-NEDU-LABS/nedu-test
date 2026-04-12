@@ -22,6 +22,23 @@ const COURSE_TYPE_BADGE: Record<string, { label: string; bg: string; text: strin
 
 export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }: ResultScreenProps) => {
   const [showModal, setShowModal] = useState(false);
+  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+
+  const handleAcceptTerms = async () => {
+    setHasAcceptedTerms(true);
+    try {
+      await fetch('/api/track-consent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          persona_id: persona.id,
+          source: typeof window !== 'undefined' ? window.location.hostname : 'web'
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to log consent:', err);
+    }
+  };
 
   const handleFollowUpSubmit = (data: UserBirthData) => {
     console.log("Submit follow up:", data);
@@ -133,7 +150,7 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
                 rel="noreferrer"
                 className="w-full border border-[#8B5E3C] text-[#8B5E3C] bg-white p-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[#FDF1E9] transition-colors font-medium shadow-sm block text-center"
               >
-                Xem chi tiết khoá học chủ lực →
+                Xem chi tiết khóa học phù hợp →
               </a>
             </div>
             <p className="text-xs text-[#8B7E74]">Lựa chọn nào cũng đáng giá cho hành trình của bạn</p>
@@ -146,6 +163,33 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
           onClose={() => setShowModal(false)}
           onSubmit={handleFollowUpSubmit}
         />
+      )}
+
+      {!hasAcceptedTerms && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#1A1A1A]/50 backdrop-blur-md animate-in fade-in duration-500">
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 sm:p-8 space-y-5 relative animate-in zoom-in-95 duration-500">
+            <div className="w-12 h-12 bg-[#FDF1E9] text-[#8B5E3C] rounded-full flex items-center justify-center mb-2">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+            
+            <h3 className="text-xl font-medium text-[#1A1A1A]">Bảo mật & Quyền riêng tư</h3>
+            
+            <p className="text-sm text-[#5C5550] leading-relaxed">
+              Bạn vui lòng cho phép Nedu lưu trữ và phân tích các lựa chọn vừa rồi để hệ thống có thể đối chiếu dữ liệu và tạo ra báo cáo chính xác nhất.
+            </p>
+
+            <div className="text-xs text-[#8B7E74] bg-[#F9F8F6] p-4 rounded-2xl border border-[#F0EBE5] leading-relaxed">
+              Dữ liệu của bạn được bảo mật tuyệt đối, chỉ phục vụ cho việc cá nhân hóa lộ trình và phân tích nội bộ. Nedu cam kết không chia sẻ cho bên thứ ba.
+            </div>
+
+            <button
+              onClick={handleAcceptTerms}
+              className="w-full py-4 bg-[#8B5E3C] text-white rounded-2xl font-medium hover:bg-[#704B30] transition-colors mt-2 shadow-sm cursor-pointer"
+            >
+              Đồng ý & Xem kết quả
+            </button>
+          </div>
+        </div>
       )}
     </>
   );
