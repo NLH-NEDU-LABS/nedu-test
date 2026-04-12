@@ -50,18 +50,17 @@ export async function completeExpressFlow(token: string, consent: boolean): Prom
   const reportUrl = `${BASE_URLS.landing}report/${token}`;
 
   // 2. Send email
-  const emailSubject = 'Báo cáo tính cách chuyên sâu - N-Education';
+  const emailSubject = 'Kết quả phân tích chuyên sâu của bạn từ N-Education';
   const emailBody = `Chào ${fullName},
 
-Bạn vừa hoàn thành quy trình phân tích tính cách chuyên sâu (Express Mode) của hệ sinh thái N-Education. 
-Hồ sơ hoàn chỉnh của bạn, kết hợp 4 hệ thống phân tích (MaxDiff, MBTI, Enneagram, Bazi/Numerology) đã sẵn sàng!
+Bản báo cáo phân tích chuyên sâu bạn vừa thực hiện trên hệ thống N-Education đã sẵn sàng.
 
-Báo cáo này được thiết kế để giúp bạn hiểu sâu sắc về thế mạnh, nhược điểm, hành vi làm việc, cũng như khám phá tiềm năng bản thân.
+Thay vì để bạn phải đối chiếu nhiều tài liệu rời rạc, chúng tôi đã tổng hợp dữ liệu từ 4 công cụ đo lường (MaxDiff, MBTI, Enneagram, Thần Số - Bát Tự) thành một hồ sơ duy nhất. Hy vọng bạn sẽ tìm thấy ở đây những góc nhìn rõ ràng hơn về thế mạnh tự nhiên, phong cách làm việc và những tiềm năng thực sự của mình.
 
-Hãy kiểm tra báo cáo tại đường liên kết bên dưới. Bạn có thể lưu lại liên kết này để xem lại bất cứ lúc nào:
+Bạn hãy truy cập vào liên kết bên dưới để xem báo cáo chi tiết (bạn có thể lưu lại link này để xem lại bất cứ lúc nào):
 ${reportUrl}
 
-(Nếu cần tư vấn thêm, hãy liên hệ trực tiếp với Nedu nhé!)
+Hành trình phát triển bản thân hiếm khi dễ dàng nếu đi một mình. Nếu bạn cần thảo luận thêm về kết quả của mình hay có định hướng riêng cần chia sẻ, đừng ngần ngại phản hồi trực tiếp email này nhé. Luôn có những người thật ở N-Education sẵn sàng lắng nghe và đồng hành cùng bạn.
 
 Trân trọng,
 Đội ngũ N-Education.`;

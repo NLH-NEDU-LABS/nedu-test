@@ -1,4 +1,4 @@
-﻿// Bazi terminology translation maps (Chinese -> Vietnamese)
+// Bazi terminology translation maps (Chinese -> Vietnamese)
 
 export const stemsMap: Record<string, string> = {
   '甲': 'Giáp',
@@ -128,7 +128,9 @@ export const starsMap: Record<string, string> = {
   '小耗': 'Tiểu Hao',
   '天德合': 'Thiên Đức Hợp',
   '月德合': 'Nguyệt Đức Hợp',
-  '天厨贵人': 'Thiên Trù Quý Nhân'
+  '天厨贵人': 'Thiên Trù Quý Nhân',
+  '德秀贵人': 'Đức Tú Quý Nhân',
+  '披头': 'Phi Đầu'
 };
 
 // Translate function

@@ -151,7 +151,7 @@ export const NumerologyResultView = ({ numerologyData, numerologyInterp, onBack 
           <div className="absolute -top-3 -right-3 bg-white p-2 rounded-full shadow-sm">
             <Sparkles className="text-[#CDA376]" size={20} />
           </div>
-          <h3 className="text-lg font-semibold text-[#8B5E3C] mb-3 font-serif">
+          <h3 className="text-lg font-sans font-semibold text-[#8B5E3C] mb-3">
             Giải Mã Con Số (Từ AI)
           </h3>
           

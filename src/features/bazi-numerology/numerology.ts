@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Thần Số Học (Pythagorean Numerology) — Ported from nlf-education-backend Python logic
  * Includes: Life Path, Destiny, Soul Urge, Name Chart, 4 Pinnacles, 4 Challenges, Life Peaks
  */
@@ -98,15 +98,18 @@ export function calculateSoulUrgeNumber(fullName: string): number {
   return soulUrgeSum;
 }
 
-// ===== NAME CHART =====
+// ===== NAME CHART (Biểu đồ tên) =====
+// Uses standard Pythagorean A-Z mapping. Note: Full name must be normalized without accents.
 const NAME_CHART_VALUES: Record<string, number> = {
   'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8, 'I': 9,
   'J': 1, 'K': 2, 'L': 3, 'M': 4, 'N': 5, 'O': 6, 'P': 7, 'Q': 8, 'R': 9,
   'S': 1, 'T': 2, 'U': 3, 'V': 4, 'W': 5, 'X': 6, 'Y': 7, 'Z': 8
 };
 
-export function createNameChart(fullName: string): string {
-  const upper = fullName.toUpperCase();
+export function buildNameChart(fullName: string): string {
+  // Normalize string to decompose diacritics, then remove the diacritics
+  const normalized = fullName.normalize('NFD').replace(/[\u0300-\u036f(\u0111|\u0110)]/g, c => ({ 'đ': 'd', 'Đ': 'D' }[c] || ''));
+  const upper = normalized.toUpperCase().replace(/\s+/g, '');
   const chart: string[] = [];
 
   for (const char of upper) {
@@ -210,7 +213,7 @@ export function calculateFullNumerology(dob: string, fullName?: string) {
   if (fullName && fullName.trim()) {
     result.destiny_number = calculateDestinyNumber(fullName);
     result.soul_urge_number = calculateSoulUrgeNumber(fullName);
-    result.name_chart = createNameChart(fullName);
+    result.name_chart = buildNameChart(fullName);
   }
 
   return result;
