@@ -13,7 +13,7 @@ export const ALLOWED_ORIGINS = [
   // Vercel preview deployments
   /^https:\/\/nedu-test-[a-z0-9]+-nhile-teams\.vercel\.app$/,
   // Landing page
-  'https://landing-lane-connect.vercel.app',
+  'https://test.nedu.vn',
 ] as const;
 
 /**

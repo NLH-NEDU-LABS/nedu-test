@@ -27,10 +27,10 @@ export default function EnneagramResultView({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, consent })
       });
-      window.location.href = `https://landing-lane-connect.vercel.app/report/${token}`;
+      window.location.href = `https://test.nedu.vn/report/${token}`;
     } catch (e) {
       console.error(e);
-      window.location.href = `https://landing-lane-connect.vercel.app/report/${token}`;
+      window.location.href = `https://test.nedu.vn/report/${token}`;
     }
   };
 
