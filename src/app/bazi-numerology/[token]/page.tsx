@@ -60,7 +60,7 @@ export default async function BaziNumerologyPage({
   }
 
   return (
-    <div className="flex flex-col items-center max-w-4xl mx-auto py-8">
+    <div className="flex flex-col items-center max-w-4xl mx-auto py-8 px-4 overflow-x-hidden w-full">
       <BaziResultView
         baziData={data.bazi_data}
         baziInterp={data.bazi_interp ?? undefined}
