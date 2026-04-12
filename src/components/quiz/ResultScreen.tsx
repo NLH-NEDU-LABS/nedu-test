@@ -177,7 +177,7 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
                </div>
 
                <p className="text-sm text-[#2D2D2D] leading-relaxed mb-2">
-                 Bằng cách nhấn vào nút Đồng ý bên dưới, bạn đồng ý cho N-Education (thuộc NhiLe Holding) thu thập và xử lý những thông tin sau:
+                 Bằng cách nhấn &ldquo;Đồng ý&rdquo;, bạn xác nhận đã đọc và cho phép N-Education (thuộc NHILE HOLDING.,JSC, ĐKKD số: 0402230476) thu thập và xử lý các dữ liệu cá nhân sau theo Luật Bảo vệ dữ liệu cá nhân năm 2025, Nghị định số 356/2025/NĐ-CP:
                </p>
                <p className="text-[#2D2D2D] text-sm mb-5 font-semibold">
                  Xem chi tiết quyền truy cập:
@@ -185,10 +185,9 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
 
                <ul className="space-y-4 mb-6">
                  {[
-                   <><span className="font-semibold text-[#2D2D2D]">Thông tin cơ bản</span> — họ tên, email, số điện thoại, độ tuổi</>,
+                   <><span className="font-semibold text-[#2D2D2D]">Thông tin cơ bản</span> — họ và tên, ngày tháng năm sinh, giờ sinh, nơi sinh, giới tính, email, số điện thoại, độ tuổi, công việc</>,
                    <><span className="font-semibold text-[#2D2D2D]">Kết quả bài test</span> — điểm số và phân tích năng lực học tập</>,
-                   <><span className="font-semibold text-[#2D2D2D]">Dữ liệu hành vi</span> — cookies và analytics trong phiên làm bài</>,
-                   <><span className="font-semibold text-[#2D2D2D]">Gợi ý cá nhân hoá</span> — đề xuất khoá học phù hợp kết quả</>
+                   <><span className="font-semibold text-[#2D2D2D]">Dữ liệu hành vi</span> — cookies và analytics trong phiên làm bài <span className="text-[#8B7E74]">(chỉ dùng để cải thiện trải nghiệm)</span></>
                  ].map((item, idx) => (
                    <li key={idx} className="flex items-start gap-3.5 text-[13px] text-[#5C5550] leading-relaxed">
                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 mt-0.5">
@@ -202,10 +201,19 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
 
                <div className="border-t border-[#F0EBE5] pt-5 space-y-2.5">
                  <p className="text-xs text-[#8B7E74] leading-relaxed">
-                   Thông tin của bạn chỉ dùng để đánh giá năng lực và gợi ý khoá học, không cung cấp cho bên thứ ba. Dữ liệu được lưu tối đa 24 tháng hoặc đến khi bạn yêu cầu xoá.
+                   <span className="font-medium text-[#5C5550]">Mục đích xử lý dữ liệu:</span> Đánh giá năng lực và đề xuất khoá học phù hợp với bạn.
                  </p>
                  <p className="text-xs text-[#8B7E74] leading-relaxed">
-                   Bạn có quyền xem, sửa hoặc xoá dữ liệu bất cứ lúc nào tại <a href="mailto:privacy@n-education.com" className="text-[#8B5E3C] hover:underline font-medium">privacy@n-education.com</a>
+                   <span className="font-medium text-[#5C5550]">Thời gian lưu trữ:</span> Tối đa 24 tháng kể từ ngày thu thập, hoặc đến khi chúng tôi nhận được yêu cầu xoá của bạn.
+                 </p>
+                 <p className="text-xs text-[#8B7E74] leading-relaxed">
+                   <span className="font-medium text-[#5C5550]">Chia sẻ dữ liệu:</span> Chúng tôi không bán dữ liệu của bạn. Dữ liệu chỉ được chia sẻ với các đơn vị, cá nhân thực hiện vận hành kỹ thuật (như hệ thống lưu trữ đám mây) theo hợp đồng bảo mật ràng buộc, và cơ quan nhà nước khi có yêu cầu hợp pháp.
+                 </p>
+                 <p className="text-xs text-[#8B7E74] leading-relaxed">
+                   <span className="font-medium text-[#5C5550]">Quyền của bạn:</span> Xem, chỉnh sửa, hoặc xoá dữ liệu bất cứ lúc nào — liên hệ <a href="mailto:privacy@n-education.com" className="text-[#8B5E3C] hover:underline font-medium">privacy@n-education.com</a> (phản hồi trong 72 giờ)
+                 </p>
+                 <p className="text-xs text-[#8B7E74] leading-relaxed">
+                   <a href="#" className="text-[#8B5E3C] hover:underline font-medium">Xem đầy đủ Chính sách Bảo mật</a>
                  </p>
                </div>
             </div>
