@@ -172,7 +172,7 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
                </div>
 
                <p className="text-sm text-[#2D2D2D] leading-relaxed mb-2">
-                 Bằng cách tiếp tục, bạn đồng ý cho N-Education (thuộc NhiLe Holding) thu thập và xử lý những thông tin sau:
+                 Bằng cách nhấn vào nút Đồng ý bên dưới, bạn đồng ý cho N-Education (thuộc NhiLe Holding) thu thập và xử lý những thông tin sau:
                </p>
                <p className="text-[#2D2D2D] text-sm mb-5 font-semibold">
                  Xem chi tiết quyền truy cập:

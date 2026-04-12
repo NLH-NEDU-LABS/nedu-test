@@ -111,7 +111,10 @@ export const useQuizFlow = () => {
         dob: data.dob,
         birthTime: data.birthTime,
         gender: data.gender,
-        birthPlace: data.birthPlace,
+        birthPlace: data.birthPlaceTimezone || data.birthPlace,
+        birthPlaceName: data.birthPlace,
+        birthPlaceLat: data.birthPlaceLat,
+        birthPlaceLng: data.birthPlaceLng,
         mode: isExpressMode ? 'express' : 'drip'
       };
 
