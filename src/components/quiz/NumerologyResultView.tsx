@@ -86,27 +86,27 @@ export const NumerologyResultView = ({ numerologyData, numerologyInterp, onBack 
           <h3 className="text-sm font-semibold text-[#8B7E74] uppercase tracking-wider ml-1">
             Chỉ Số Cốt Lõi
           </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {/* Life Path */}
-            <div className="bg-gradient-to-br from-[#8B5E3C] to-[#6B4528] rounded-2xl p-4 text-center text-white shadow-md">
-              <TrendingUp size={18} className="mx-auto mb-1 opacity-80" />
-              <span className="text-3xl font-bold block my-1">{life_path_number}</span>
-              <span className="text-[10px] uppercase tracking-wider font-semibold opacity-80">Đường Đời</span>
-              <p className="text-[9px] mt-1 opacity-70 leading-tight">{getNumberMeaning(life_path_number)}</p>
+            <div className="bg-gradient-to-br from-[#8B5E3C] to-[#6B4528] rounded-2xl p-3 text-center text-white shadow-md">
+              <TrendingUp size={16} className="mx-auto mb-1 opacity-80" />
+              <span className="text-2xl sm:text-3xl font-bold block my-1">{life_path_number}</span>
+              <span className="text-[9px] sm:text-[10px] uppercase tracking-wide font-semibold opacity-80">Đường Đời</span>
+              <p className="text-[8px] sm:text-[9px] mt-1 opacity-70 leading-tight">{getNumberMeaning(life_path_number)}</p>
             </div>
             {/* Destiny */}
-            <div className="bg-gradient-to-br from-[#CDA376] to-[#A8844F] rounded-2xl p-4 text-center text-white shadow-md">
-              <Star size={18} className="mx-auto mb-1 opacity-80" />
-              <span className="text-3xl font-bold block my-1">{destiny_number}</span>
-              <span className="text-[10px] uppercase tracking-wider font-semibold opacity-80">Sứ Mệnh</span>
-              <p className="text-[9px] mt-1 opacity-70 leading-tight">{getNumberMeaning(destiny_number)}</p>
+            <div className="bg-gradient-to-br from-[#CDA376] to-[#A8844F] rounded-2xl p-3 text-center text-white shadow-md">
+              <Star size={16} className="mx-auto mb-1 opacity-80" />
+              <span className="text-2xl sm:text-3xl font-bold block my-1">{destiny_number}</span>
+              <span className="text-[9px] sm:text-[10px] uppercase tracking-wide font-semibold opacity-80">Sứ Mệnh</span>
+              <p className="text-[8px] sm:text-[9px] mt-1 opacity-70 leading-tight">{getNumberMeaning(destiny_number)}</p>
             </div>
             {/* Soul Urge */}
-            <div className="bg-gradient-to-br from-[#D85A30] to-[#B04420] rounded-2xl p-4 text-center text-white shadow-md">
-              <Heart size={18} className="mx-auto mb-1 opacity-80" />
-              <span className="text-3xl font-bold block my-1">{soul_urge_number}</span>
-              <span className="text-[10px] uppercase tracking-wider font-semibold opacity-80">Linh Hồn</span>
-              <p className="text-[9px] mt-1 opacity-70 leading-tight">{getNumberMeaning(soul_urge_number)}</p>
+            <div className="bg-gradient-to-br from-[#D85A30] to-[#B04420] rounded-2xl p-3 text-center text-white shadow-md">
+              <Heart size={16} className="mx-auto mb-1 opacity-80" />
+              <span className="text-2xl sm:text-3xl font-bold block my-1">{soul_urge_number}</span>
+              <span className="text-[9px] sm:text-[10px] uppercase tracking-wide font-semibold opacity-80">Linh Hồn</span>
+              <p className="text-[8px] sm:text-[9px] mt-1 opacity-70 leading-tight">{getNumberMeaning(soul_urge_number)}</p>
             </div>
           </div>
         </div>
@@ -117,7 +117,7 @@ export const NumerologyResultView = ({ numerologyData, numerologyInterp, onBack 
             <h3 className="text-sm font-semibold text-[#8B7E74] uppercase tracking-wider ml-1">
               4 Đỉnh Cao Cuộc Đời
             </h3>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {Object.entries(life_pinnacles).map(([key, val], idx) => (
                 <div key={key} className="bg-white border border-[#EBE3DC] rounded-xl p-3 text-center shadow-sm">
                   <span className="text-[10px] text-[#A39A92] block mb-1">Đỉnh {idx + 1}</span>
@@ -140,7 +140,7 @@ export const NumerologyResultView = ({ numerologyData, numerologyInterp, onBack 
               <Grid3X3 size={14} />
               Biểu Đồ Tên
             </h3>
-            <div className="bg-[#F9F8F6] rounded-xl p-4 font-mono text-center text-lg tracking-[0.25em] text-[#8B5E3C] border border-[#EBE3DC]">
+            <div className="bg-[#F9F8F6] rounded-xl p-4 font-mono text-center text-base sm:text-lg tracking-[0.15em] sm:tracking-[0.25em] text-[#8B5E3C] border border-[#EBE3DC] overflow-x-auto break-words">
               {name_chart}
             </div>
           </div>
