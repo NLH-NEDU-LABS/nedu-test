@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Calendar, Briefcase, ChevronRight, X, User, MapPin } from 'lucide-react';
 import { LocationAutocomplete, type GeoLocation } from '@/components/ui/location-autocomplete';
 import type { UserBirthData } from '@/types/user-data';
+import { isExpressMode } from '@/config/constants';
 
 interface FollowUpModalProps {
   onClose: () => void;
@@ -58,7 +59,11 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
 
         <div className="p-8 space-y-6 max-h-[85vh] overflow-y-auto custom-scrollbar">
           <div className="text-center space-y-2 pr-6">
-            <h3 className="text-xl font-medium text-[#1A1A1A] text-left">Nhận báo cáo phân tích chuyên sâu qua Email</h3>
+            <h3 className="text-xl font-medium text-[#1A1A1A] text-left">
+              {isExpressMode 
+                ? 'Hãy để lại thông tin để tiếp tục bài phân tích chuyên sâu'
+                : 'Nhận báo cáo phân tích chuyên sâu qua Email'}
+            </h3>
           </div>
 
           <form onSubmit={handleFormSubmit} className="space-y-5">

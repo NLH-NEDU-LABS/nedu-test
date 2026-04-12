@@ -137,7 +137,28 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
 
     await updateLeadId(submissionId, leadId);
 
-    // 4. Initialize the personal_profiles Single Source of Truth
+    // 4. Auto-calculate Bazi & Numerology since we have the birth details
+    let bazi_data: any = null;
+    let numerology_data: any = null;
+    
+    if (dob) {
+      try {
+        const { calculate } = await import('@/features/bazi-numerology/service');
+        const calcRes = calculate({
+          dob,
+          birthTime: birthTime || '12:00',
+          birthPlace: birthPlaceName || birthPlace || 'vietnam',
+          gender: (gender as 0 | 1) ?? 0,
+          fullName: name || undefined
+        });
+        bazi_data = calcRes.bazi;
+        numerology_data = calcRes.numerology;
+      } catch (calcErr) {
+        console.error('[SendResult] Bazi/Numerology auto-calc error:', calcErr);
+      }
+    }
+
+    // 5. Initialize the personal_profiles Single Source of Truth
     const { upsertProfileData } = await import('@/features/shared/profile-repository');
     await upsertProfileData(leadId, dob, {
       persona_label,
@@ -146,6 +167,8 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
       primary_course_name,
       primary_course_url,
       why_fits,
+      ...(bazi_data && { bazi: bazi_data }),
+      ...(numerology_data && { numerology: numerology_data }),
     });
   } catch (dbError) {
     // DB failure doesn't fail the request — email was already sent

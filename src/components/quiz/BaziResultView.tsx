@@ -53,7 +53,7 @@ export const BaziResultView = ({ baziData, baziInterp, onBack }: BaziResultViewP
       return (
         <div className="flex flex-col items-center justify-center pt-2 border-t border-[#F0EBE5] min-h-[40px]">
           <span className="text-[11px] text-[#A39A92]">{key}</span>
-          <span className="text-sm font-semibold text-[#8B5E3C]">{tCan(stem.天干)}</span>
+          <span className="text-sm font-sans font-semibold text-[#8B5E3C]">{tCan(stem.天干)}</span>
           <span className="text-[10px] text-[#8B7E74]">{tGod(stem.十神)}</span>
         </div>
       );
@@ -68,7 +68,7 @@ export const BaziResultView = ({ baziData, baziInterp, onBack }: BaziResultViewP
         {/* Thiên Can */}
         <div className="p-3 text-center flex flex-col gap-1 items-center bg-[#FAFAFA]">
           <span className="text-[10px] text-[#A39A92] uppercase">Thiên Can</span>
-          <span className="text-2xl font-bold text-[#2D2D2D] my-1">{tCan(data.天干?.天干)}</span>
+          <span className="text-2xl leading-relaxed py-1 font-sans font-bold text-[#2D2D2D] my-1">{tCan(data.天干?.天干)}</span>
           <span className="text-xs text-[#8B7E74] font-medium bg-[#F0EBE5] px-2 py-0.5 rounded-md min-w-[50px]">
             {tGod(data.天干?.十神) || 'Nhật Chủ'}
           </span>
@@ -77,7 +77,7 @@ export const BaziResultView = ({ baziData, baziInterp, onBack }: BaziResultViewP
         {/* Địa Chi */}
         <div className="p-3 text-center flex flex-col gap-1 items-center border-t border-[#F0EBE5]">
           <span className="text-[10px] text-[#A39A92] uppercase">Địa Chi</span>
-          <span className="text-2xl font-bold text-[#2D2D2D] my-1">{tChi(data.地支?.地支)}</span>
+          <span className="text-2xl leading-relaxed py-1 font-sans font-bold text-[#2D2D2D] my-1">{tChi(data.地支?.地支)}</span>
           <div className="flex gap-2 w-full mt-2">
             <div className="flex-1">{renderHiddenStem('Chủ khí', data.地支?.藏干?.主气)}</div>
             {data.地支?.藏干?.中气 && <div className="flex-1">{renderHiddenStem('Trung khí', data.地支?.藏干?.中气)}</div>}
@@ -152,7 +152,7 @@ export const BaziResultView = ({ baziData, baziInterp, onBack }: BaziResultViewP
           <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar">
             {baziData.大运?.大运?.slice(0, 6).map((van: any, idx: number) => (
               <div key={idx} className="flex-none w-24 bg-white border border-[#EBE3DC] rounded-xl p-3 text-center flex flex-col gap-1 items-center shadow-sm">
-                <span className="text-lg font-bold text-[#8B5E3C]">{tCanChi(van.干支)}</span>
+                <span className="text-lg font-sans font-bold text-[#8B5E3C]">{tCanChi(van.干支)}</span>
                 <span className="text-[11px] text-[#A39A92]">{van.开始年龄}-{van.结束年龄}t</span>
               </div>
             ))}
@@ -164,7 +164,7 @@ export const BaziResultView = ({ baziData, baziInterp, onBack }: BaziResultViewP
           <div className="absolute -top-3 -right-3 bg-white p-2 rounded-full shadow-sm">
             <Sparkles className="text-[#D85A30]" size={20} />
           </div>
-          <h3 className="text-lg font-semibold text-[#8B5E3C] mb-3 font-serif">
+          <h3 className="text-lg font-sans font-semibold text-[#8B5E3C] mb-3">
             Khám Phá Chiếu Trí (Từ AI)
           </h3>
           

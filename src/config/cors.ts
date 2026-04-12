@@ -10,10 +10,12 @@ export const ALLOWED_ORIGINS = [
   // Production app
   'https://test.nhi.sg',
   'https://nedu.nhi.sg',
-  // Vercel preview deployments
-  /^https:\/\/nedu-test-[a-z0-9]+-nhile-teams\.vercel\.app$/,
   // Landing page
   'https://test.nedu.vn',
+  // Local testing
+  'http://localhost:8080',
+  'http://localhost:5173',
+  'http://localhost:3000',
 ] as const;
 
 /**
@@ -23,7 +25,7 @@ export const ALLOWED_ORIGINS = [
 export function isOriginAllowed(origin: string | null): boolean {
   if (!origin) return false;
   return ALLOWED_ORIGINS.some((allowed) =>
-    typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
+    typeof allowed === 'string' ? allowed === origin : (allowed as RegExp).test(origin)
   );
 }
 
