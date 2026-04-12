@@ -213,7 +213,7 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
                    <span className="font-medium text-[#5C5550]">Quyền của bạn:</span> Xem, chỉnh sửa, hoặc xoá dữ liệu bất cứ lúc nào — liên hệ <a href="mailto:privacy@n-education.com" className="text-[#8B5E3C] hover:underline font-medium">privacy@n-education.com</a> (phản hồi trong 72 giờ)
                  </p>
                  <p className="text-xs text-[#8B7E74] leading-relaxed">
-                   <a href="#" className="text-[#8B5E3C] hover:underline font-medium">Xem đầy đủ Chính sách Bảo mật</a>
+                   <a href="https://nedu.nhi.sg/policy" target="_blank" rel="noopener noreferrer" className="text-[#8B5E3C] hover:underline font-medium">Xem đầy đủ Chính sách Bảo mật</a>
                  </p>
                </div>
             </div>
