@@ -45,21 +45,19 @@ export function calculateLifePathNumber(dob: string): number {
 }
 
 // ===== DESTINY NUMBER (Expression Number) =====
-// Hỗ trợ ký tự tiếng Việt (Â, Ê, Ô, Ư, Ơ, Ă, Đ)
 const DESTINY_LETTER_VALUES: Record<string, number> = {
   'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8, 'I': 9,
   'J': 1, 'K': 2, 'L': 3, 'M': 4, 'N': 5, 'O': 6, 'P': 7, 'Q': 8, 'R': 9,
-  'S': 1, 'T': 2, 'U': 3, 'V': 4, 'W': 5, 'X': 6, 'Y': 7, 'Z': 8,
-  // Vietnamese special chars
-  'Â': 1, 'Ê': 5, 'Ô': 6, 'Ư': 3, 'Ơ': 6, 'Ă': 1, 'Đ': 4
+  'S': 1, 'T': 2, 'U': 3, 'V': 4, 'W': 5, 'X': 6, 'Y': 7, 'Z': 8
 };
 
 export function calculateDestinyNumber(fullName: string): number {
-  const upper = fullName.toUpperCase();
+  const normalized = fullName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+  const upper = normalized.toUpperCase();
   let letterSum = 0;
 
   for (const char of upper) {
-    if (/[A-ZÂÊÔƯƠĂĐa-zâêôươăđ]/u.test(char)) {
+    if (/[A-Z]/.test(char)) {
       letterSum += DESTINY_LETTER_VALUES[char] || 0;
     }
   }
@@ -73,20 +71,22 @@ export function calculateDestinyNumber(fullName: string): number {
 }
 
 // ===== SOUL URGE NUMBER (Heart's Desire) =====
-// Tính bằng nguyên âm (vowels), hỗ trợ tiếng Việt
+// Tính bằng nguyên âm (vowels)
 const SOUL_VOWELS: Record<string, number> = {
-  'a': 1, 'e': 5, 'i': 9, 'o': 6, 'u': 3,
-  'â': 1, 'ê': 5, 'ô': 6, 'ư': 3, 'ơ': 6,
-  'ă': 1, 'y': 7
+  'A': 1, 'E': 5, 'I': 9, 'O': 6, 'U': 3, 'Y': 7
 };
 
 export function calculateSoulUrgeNumber(fullName: string): number {
-  const name = fullName.toLowerCase().replace(/[^a-zâêôươăđ]/gu, '');
-  if (!name) return 0;
+  const normalized = fullName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+  const upper = normalized.toUpperCase();
+  const nameChars = upper.replace(/[^A-Z]/g, '');
+  if (!nameChars) return 0;
 
   let soulUrgeSum = 0;
-  for (const char of name) {
-    soulUrgeSum += SOUL_VOWELS[char] || 0;
+  for (const char of nameChars) {
+    if (SOUL_VOWELS[char]) {
+      soulUrgeSum += SOUL_VOWELS[char];
+    }
   }
 
   if ([11, 22, 33].includes(soulUrgeSum)) return soulUrgeSum;
