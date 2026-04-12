@@ -60,7 +60,7 @@ export const BaziResultView = ({ baziData, baziInterp, onBack }: BaziResultViewP
     };
 
     return (
-      <div className="flex flex-col border border-[#F0EBE5] rounded-xl overflow-hidden bg-white shadow-sm flex-1">
+      <div className="flex flex-col border border-[#F0EBE5] rounded-xl overflow-hidden bg-white shadow-sm">
         <div className="bg-[#FDF1E9] py-2 text-center text-xs font-bold text-[#8B5E3C] border-b border-[#F0EBE5]">
           {title}
         </div>
@@ -118,7 +118,7 @@ export const BaziResultView = ({ baziData, baziInterp, onBack }: BaziResultViewP
           <h3 className="text-sm font-semibold text-[#8B7E74] uppercase tracking-wider ml-1">
             Bảng Tứ Trụ
           </h3>
-          <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2 custom-scrollbar">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-4">
             {renderPillar('Trụ Giờ', baziData.时柱)}
             {renderPillar('Trụ Ngày', baziData.日柱)}
             {renderPillar('Trụ Tháng', baziData.月柱)}
