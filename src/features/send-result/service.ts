@@ -27,6 +27,11 @@ export interface SendResultInput {
   feeling: string | null;
   dob: string | null;
   birthTime: string | null;
+  birthPlace?: string;        // timezone offset or legacy key
+  birthPlaceName?: string;    // display label, e.g. "Nha Trang, Khánh Hòa, Vietnam"
+  birthPlaceLat?: number;
+  birthPlaceLng?: number;
+  gender?: 0 | 1;
   mode?: 'drip' | 'express';
 }
 
@@ -42,6 +47,8 @@ export async function processSendResult(input: SendResultInput): Promise<{ repor
     top_problem_1, top_problem_2,
     scores, ai_recommendation,
     source, occupation, feeling, dob, birthTime,
+    birthPlace, birthPlaceName, birthPlaceLat, birthPlaceLng,
+    gender = 1,
     mode = 'drip',
   } = input;
 
@@ -105,7 +112,7 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
       visitor_name: name,
       persona_id,
       result_json: { primary_course_name, why_fits, top_problem_1, top_problem_2 },
-      answers: { occupation, feeling },
+      answers: { occupation, feeling, has_consented_policy: true },
       utm_source: source,
     });
 
@@ -120,6 +127,11 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
         report_token,
         has_advanced: false,
         assessment_mode: mode,
+        full_name: name,
+        gender,
+        birth_place: birthPlaceName || birthPlace || 'vietnam',
+        birth_place_lat: birthPlaceLat,
+        birth_place_lng: birthPlaceLng,
       },
     });
 

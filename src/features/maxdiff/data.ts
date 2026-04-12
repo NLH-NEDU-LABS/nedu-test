@@ -1,4 +1,4 @@
-﻿import type { PersonaRoute, Persona } from '@/types/assessment';
+import type { PersonaRoute, Persona } from '@/types/assessment';
 
 // ─── Persona Routing ───
 export const PERSONA_ROUTES: PersonaRoute[] = [
@@ -20,7 +20,7 @@ export const PERSONAS: Record<string, Persona> = {
     label: "Sinh viên / Học sinh",
     emoji: "🎓",
     color: "#1D9E75",
-    maxdiff_instruction: "Trong hành trình tìm lại sự cân bằng, điều gì QUAN TRỌNG NHẤT với bạn, và điều gì ÍT quan trọng nhất?",
+    maxdiff_instruction: "Trong hành trình tìm lại sự cân bằng, điều gì QUAN TRỌNG NHẤT với bạn và điều gì ÍT QUAN TRỌNG NHẤT?",
     most_label: "QUAN TRỌNG NHẤT",
     least_label: "ÍT QUAN TRỌNG NHẤT",
     problem_pool: [
@@ -57,7 +57,7 @@ export const PERSONAS: Record<string, Persona> = {
     label: "Mới đi làm 1–3 năm",
     emoji: "🌱",
     color: "#639922",
-    maxdiff_instruction: "Đối diện với áp lực hàng ngày, điều gì giúp bạn đứng vững NHẤT, và điều gì ít giúp ích NHẤT?",
+    maxdiff_instruction: "Đối diện với áp lực hằng ngày, điều gì giúp bạn ĐỨNG VỮNG NHẤT và điều gì ÍT GIÚP ÍT NHẤT?",
     most_label: "GIÚP ĐỨNG VỮNG NHẤT",
     least_label: "ÍT GIÚP ÍCH NHẤT",
     problem_pool: [
@@ -94,7 +94,7 @@ export const PERSONAS: Record<string, Persona> = {
     label: "Nhân viên văn phòng / Corporate",
     emoji: "🧭",
     color: "#378ADD",
-    maxdiff_instruction: "Khi cạn kiệt năng lượng, điều gì giúp bạn phục hồi NHẤT, và điều gì ít tác dụng NHẤT?",
+    maxdiff_instruction: "Khi cạn kiệt năng lượng, điều gì giúp bạn PHỤC HỒI NHẤT và điều gì ÍT TÁC DỤNG NHẤT?",
     most_label: "PHỤC HỒI NHẤT",
     least_label: "ÍT TÁC DỤNG NHẤT",
     problem_pool: [
@@ -131,7 +131,7 @@ export const PERSONAS: Record<string, Persona> = {
     label: "Freelancer / Tự kinh doanh",
     emoji: "🦋",
     color: "#D85A30",
-    maxdiff_instruction: "Nếu chỉ được ưu tiên một thứ duy nhất, bạn chọn gì NHẤT, và bỏ gì CUỐI CÙNG?",
+    maxdiff_instruction: "Nếu chỉ ưu tiên một thứ duy nhất, bạn chọn gì NHẤT và bỏ gì CUỐI CÙNG?",
     most_label: "ƯU TIÊN NHẤT",
     least_label: "BỎ LẠI CUỐI CÙNG",
     problem_pool: [
@@ -168,7 +168,7 @@ export const PERSONAS: Record<string, Persona> = {
     label: "Digital Nomad / Creator / YouTuber",
     emoji: "🧳",
     color: "#0F6E56",
-    maxdiff_instruction: 'Để thực sự "Là Chính Mình", điều gì là nền móng NHẤT, và điều gì bạn có thể bỏ qua?',
+    maxdiff_instruction: 'Để thực sự "Là Chính Mình", điều gì là NỀN MÓNG NHẤT và điều gì bạn CÓ THỂ BỎ QUA?',
     most_label: "NỀN MÓNG NHẤT",
     least_label: "CÓ THỂ BỎ QUA",
     problem_pool: [
@@ -205,7 +205,7 @@ export const PERSONAS: Record<string, Persona> = {
     label: "Quản lý / Chủ doanh nghiệp nhỏ",
     emoji: "💼",
     color: "#534AB7",
-    maxdiff_instruction: "Ở vị trí hiện tại, mục tiêu nào CẤP THIẾT nhất, và cái nào chưa cần?",
+    maxdiff_instruction: "Ở vị trí hiện tại, mục tiêu nào với bạn là CẤP THIẾT NHẤT và cái nào CHƯA CẦN ĐẾN?",
     most_label: "CẤP THIẾT NHẤT",
     least_label: "CHƯA CẦN ĐẾN",
     problem_pool: [
@@ -277,7 +277,7 @@ export const PERSONAS: Record<string, Persona> = {
     label: "Giáo viên / Công chức / Viên chức",
     emoji: "🌾",
     color: "#BA7517",
-    maxdiff_instruction: "Lắng nghe trực giác ngay lúc này: điều gì đang kêu gọi bạn NHẤT, và điều gì mờ nhạt nhất?",
+    maxdiff_instruction: "Lắng nghe trực giác ngay lúc này: điều gì đang KÊU GỌI BẠN NHẤT và điều gì MỜ NHẠT NHẤT?",
     most_label: "KÊU GỌI NHẤT",
     least_label: "MỜ NHẠT NHẤT",
     problem_pool: [
@@ -314,7 +314,7 @@ export const PERSONAS: Record<string, Persona> = {
     label: "Lãnh đạo cấp cao / Doanh nhân",
     emoji: "🏔️",
     color: "#5F5E5A",
-    maxdiff_instruction: "Nếu thiết kế lại lộ trình từ hôm nay, bạn chọn gì làm kim chỉ nam NHẤT, và bỏ gì CUỐI CÙNG?",
+    maxdiff_instruction: "Nếu thiết kế lại lộ trình từ hôm nay, bạn chọn gì làm KIM CHỈ NAM NHẤT và BỎ GÌ LẠI SAU CÙNG?",
     most_label: "KIM CHỈ NAM NHẤT",
     least_label: "BỎ LẠI SAU CÙNG",
     problem_pool: [

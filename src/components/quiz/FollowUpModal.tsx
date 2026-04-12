@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Calendar, Briefcase, ChevronRight, X, User, MapPin } from 'lucide-react';
-import { BIRTHPLACE_OPTIONS } from '@/lib/timezone';
+import { LocationAutocomplete, type GeoLocation } from '@/components/ui/location-autocomplete';
 import type { UserBirthData } from '@/types/user-data';
 
 interface FollowUpModalProps {
@@ -27,7 +27,7 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
     dob: '',
     birthTime: '',
     birthTimeUnknown: false,
-    birthPlace: 'vietnam',
+    birthPlace: '',
     gender: 0,
     occupation: '',
     feeling: ''
@@ -156,21 +156,18 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-[#8B7E74]">Nơi sinh (Múi giờ) *</label>
-              <div className="relative">
-                <select
-                  required
-                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
-                  value={formData.birthPlace}
-                  onChange={(e) => setFormData({...formData, birthPlace: e.target.value})}
-                >
-                  {BIRTHPLACE_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label} (GMT{opt.tz})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <label className="text-sm font-medium text-[#8B7E74]">Nơi sinh *</label>
+              <LocationAutocomplete
+                value={formData.birthPlace}
+                onChange={(loc: GeoLocation) => setFormData({
+                  ...formData,
+                  birthPlace: `${loc.name}, ${loc.adminName1 ? loc.adminName1 + ', ' : ''}${loc.countryName}`,
+                  birthPlaceLat: loc.lat,
+                  birthPlaceLng: loc.lng,
+                  birthPlaceTimezone: loc.timezone,
+                })}
+                placeholder="Nhập thành phố (VD: Nha Trang)"
+              />
             </div>
 
             <div className="space-y-1.5 border-t border-[#F0EBE5] pt-4 mt-2">

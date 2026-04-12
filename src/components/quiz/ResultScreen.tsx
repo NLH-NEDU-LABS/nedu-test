@@ -22,6 +22,11 @@ const COURSE_TYPE_BADGE: Record<string, { label: string; bg: string; text: strin
 
 export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }: ResultScreenProps) => {
   const [showModal, setShowModal] = useState(false);
+  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+
+  const handleAcceptTerms = () => {
+    setHasAcceptedTerms(true);
+  };
 
   const handleFollowUpSubmit = (data: UserBirthData) => {
     console.log("Submit follow up:", data);
@@ -133,7 +138,7 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
                 rel="noreferrer"
                 className="w-full border border-[#8B5E3C] text-[#8B5E3C] bg-white p-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer hover:bg-[#FDF1E9] transition-colors font-medium shadow-sm block text-center"
               >
-                Xem chi tiết khoá học chủ lực →
+                Xem chi tiết khóa học phù hợp →
               </a>
             </div>
             <p className="text-xs text-[#8B7E74]">Lựa chọn nào cũng đáng giá cho hành trình của bạn</p>
@@ -146,6 +151,79 @@ export const ResultScreen = ({ result, persona, onRestart, onAdvancedTestStart }
           onClose={() => setShowModal(false)}
           onSubmit={handleFollowUpSubmit}
         />
+      )}
+
+      {!hasAcceptedTerms && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#1A1A1A]/40 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full h-auto max-h-[90vh] rounded-3xl max-w-md shadow-2xl relative animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col border border-[#F0EBE5]">
+            
+            <div className="flex-1 overflow-y-auto px-6 lg:px-8 pt-8 pb-6 custom-scrollbar">
+               {/* Logos at top */}
+               <div className="flex items-center justify-center gap-5 mb-6">
+                 <div className="w-12 h-12 bg-[#F9F8F6] border border-[#F0EBE5] rounded-full flex items-center justify-center shadow-sm">
+                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2D2D2D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                 </div>
+                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A39A92" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                    <path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>
+                 </svg>
+                 <div className="w-12 h-12 bg-white border border-[#EACbb3]/50 rounded-full flex items-center justify-center shadow-sm overflow-hidden">
+                   <img src="/nedu-logo.jpg" alt="Nedu" className="w-full h-full object-cover" />
+                 </div>
+               </div>
+
+               <p className="text-sm text-[#2D2D2D] leading-relaxed mb-2">
+                 Bằng cách nhấn vào nút Đồng ý bên dưới, bạn đồng ý cho N-Education (thuộc NhiLe Holding) thu thập và xử lý những thông tin sau:
+               </p>
+               <p className="text-[#2D2D2D] text-sm mb-5 font-semibold">
+                 Xem chi tiết quyền truy cập:
+               </p>
+
+               <ul className="space-y-4 mb-6">
+                 {[
+                   <><span className="font-semibold text-[#2D2D2D]">Thông tin cơ bản</span> — họ tên, email, số điện thoại, độ tuổi</>,
+                   <><span className="font-semibold text-[#2D2D2D]">Kết quả bài test</span> — điểm số và phân tích năng lực học tập</>,
+                   <><span className="font-semibold text-[#2D2D2D]">Dữ liệu hành vi</span> — cookies và analytics trong phiên làm bài</>,
+                   <><span className="font-semibold text-[#2D2D2D]">Gợi ý cá nhân hoá</span> — đề xuất khoá học phù hợp kết quả</>
+                 ].map((item, idx) => (
+                   <li key={idx} className="flex items-start gap-3.5 text-[13px] text-[#5C5550] leading-relaxed">
+                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 mt-0.5">
+                       <circle cx="12" cy="12" r="10" fill="#FDF1E9" />
+                       <path d="M8 12L10.5 14.5L16 9" stroke="#8B5E3C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                     </svg>
+                     <span>{item}</span>
+                   </li>
+                 ))}
+               </ul>
+
+               <div className="border-t border-[#F0EBE5] pt-5 space-y-2.5">
+                 <p className="text-xs text-[#8B7E74] leading-relaxed">
+                   Thông tin của bạn chỉ dùng để đánh giá năng lực và gợi ý khoá học, không cung cấp cho bên thứ ba. Dữ liệu được lưu tối đa 24 tháng hoặc đến khi bạn yêu cầu xoá.
+                 </p>
+                 <p className="text-xs text-[#8B7E74] leading-relaxed">
+                   Bạn có quyền xem, sửa hoặc xoá dữ liệu bất cứ lúc nào tại <a href="mailto:privacy@n-education.com" className="text-[#8B5E3C] hover:underline font-medium">privacy@n-education.com</a>
+                 </p>
+               </div>
+            </div>
+
+            <div className="p-6 bg-white border-t border-[#F0EBE5] flex flex-col gap-2">
+              <button
+                onClick={handleAcceptTerms}
+                className="w-full py-4 bg-[#8B5E3C] text-white rounded-2xl font-medium hover:bg-[#704B30] transition-colors mt-2 shadow-sm cursor-pointer"
+              >
+                Đồng ý
+              </button>
+              <button
+                onClick={() => {
+                   alert('Xin lỗi, nhưng Nedu cần phải thu thập các thông tin trên mới có thể phân tích và kết xuất kết quả cho bạn.');
+                }}
+                className="w-full py-2 bg-transparent text-[#8B7E74] hover:text-[#2D2D2D] font-medium text-sm transition-colors"
+               >
+                Không đồng ý
+              </button>
+            </div>
+
+          </div>
+        </div>
       )}
     </>
   );
