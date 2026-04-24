@@ -11,7 +11,7 @@
 // ---------------------------------------------------------------------------
 
 /** "From" address used by all outgoing emails (via AWS SES) */
-export const EMAIL_SENDER = 'Nhi Le <hi@test.nhi.sg>';
+export const EMAIL_SENDER = 'Nhi Le <noreply@nhi.sg>';
 
 // ---------------------------------------------------------------------------
 // Course catalog
