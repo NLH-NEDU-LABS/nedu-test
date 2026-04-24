@@ -31,7 +31,9 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
     birthPlace: '',
     gender: 0,
     occupation: '',
-    feeling: ''
+    feeling: '',
+    phone: '',
+    telegram: ''
   });
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -99,6 +101,34 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
                   className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-[#8B7E74]">Số điện thoại *</label>
+              <div className="relative">
+                <input
+                  required
+                  type="tel"
+                  placeholder="0912 345 678"
+                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-[#8B7E74]">Username Telegram *</label>
+              <div className="relative">
+                <input 
+                  required
+                  type="text" 
+                  placeholder="@username" 
+                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
+                  value={formData.telegram}
+                  onChange={(e) => setFormData({...formData, telegram: e.target.value})}
                 />
               </div>
             </div>

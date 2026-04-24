@@ -39,11 +39,11 @@ export const NumerologyResultView = ({ numerologyData, numerologyInterp, onBack 
       }
       setIsAiLoading(true);
       try {
-        const data = await api.post<{ success?: boolean; interpretation?: string }>('/interpret', {
+        const data = await api.post<{ success?: boolean; interpretation?: string }>('/bazi-numerology/interpret', {
           payload: numerologyData,
           type: 'numerology',
         });
-        if (data.success && data.interpretation && mounted) {
+        if (data.interpretation && mounted) {
           setInterpretation(data.interpretation);
         }
       } catch (e) {

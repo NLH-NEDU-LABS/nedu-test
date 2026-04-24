@@ -68,7 +68,7 @@ export default function EnneagramQuizClient({
     const type = calculateEnneagramType(center!, phase2Answers);
     setEnneagramType(type);
     api
-      .post<{ enneagram_desc?: string }>('/enneagram/score', { token, enneagram_type: type })
+      .post<{ enneagram_desc?: string }>('/enneagram/score', { token, enneagram_type: String(type) })
       .then((data) => {
         if (data.enneagram_desc) setEnneagramDesc(data.enneagram_desc);
         setAppState('result');

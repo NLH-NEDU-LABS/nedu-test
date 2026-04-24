@@ -16,4 +16,6 @@ export interface UserBirthData {
   gender: 0 | 1;         // 0=female, 1=male
   occupation: string;
   feeling: string;
+  phone?: string;
+  telegram?: string;
 }
