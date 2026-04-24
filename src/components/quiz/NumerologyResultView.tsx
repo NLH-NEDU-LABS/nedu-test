@@ -1,6 +1,6 @@
-"use client";
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Sparkles, Loader2, Hash, Heart, Star, User, TrendingUp, Grid3X3 } from 'lucide-react';
+import { api } from '@/lib/api';
 
 interface NumerologyResultViewProps {
   numerologyData: any;
@@ -39,13 +39,11 @@ export const NumerologyResultView = ({ numerologyData, numerologyInterp, onBack 
       }
       setIsAiLoading(true);
       try {
-        const res = await fetch('/api/interpret', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ payload: numerologyData, type: 'numerology' })
+        const data = await api.post<{ success?: boolean; interpretation?: string }>('/interpret', {
+          payload: numerologyData,
+          type: 'numerology',
         });
-        const data = await res.json();
-        if (data.success && mounted) {
+        if (data.success && data.interpretation && mounted) {
           setInterpretation(data.interpretation);
         }
       } catch (e) {

@@ -1,7 +1,6 @@
-'use client';
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
+import { api } from '@/lib/api';
 
 export interface GeoLocation {
   name: string;
@@ -59,8 +58,7 @@ export const LocationAutocomplete = ({
     }
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
-      const data: GeoLocation[] = await res.json();
+      const data = await api.get<GeoLocation[]>(`/geocode?q=${encodeURIComponent(q)}`);
       if (Array.isArray(data)) {
         setResults(data);
         setIsOpen(data.length > 0);

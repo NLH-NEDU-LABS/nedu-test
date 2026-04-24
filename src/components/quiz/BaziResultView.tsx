@@ -1,7 +1,7 @@
-"use client";
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
 import { tCan, tChi, tGod, tStar, tZodiac, tGender, tCanChi } from '@/lib/bazi-translation';
+import { api } from '@/lib/api';
 
 interface BaziResultViewProps {
   baziData: any;
@@ -22,13 +22,11 @@ export const BaziResultView = ({ baziData, baziInterp, onBack }: BaziResultViewP
       }
       setIsAiLoading(true);
       try {
-        const res = await fetch('/api/interpret', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ payload: baziData, type: 'bazi' })
+        const data = await api.post<{ success?: boolean; interpretation?: string }>('/interpret', {
+          payload: baziData,
+          type: 'bazi',
         });
-        const data = await res.json();
-        if (data.success && mounted) {
+        if (data.success && data.interpretation && mounted) {
           setInterpretation(data.interpretation);
         }
       } catch (e) {

@@ -4,6 +4,7 @@ import { calculateMaxDiffScores } from '@/lib/scoring';
 import type { SetAnswer, AssessmentResult, Persona } from '@/types/assessment';
 import type { UserBirthData } from '@/types/user-data';
 import { isExpressMode } from '@/config/constants';
+import { api } from '@/lib/api';
 
 export type StepType = 'welcome' | 'personaSelect' | 'maxdiff' | 'analyzing' | 'result' | 'flowerTest' | 'expressLoading' | 'expressSuccess';
 
@@ -37,17 +38,12 @@ export const useQuizFlow = () => {
       const calculatedResult = calculateMaxDiffScores(persona!, newAnswers);
       const topTwo = calculatedResult.top_problems;
       
-      fetch('/api/recommend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          persona_id: persona!.id, 
-          persona_label: persona!.label,
-          top_problem_1: topTwo[0]?.label || "",
-          top_problem_2: topTwo[1]?.label || ""
-        })
+      api.post<AssessmentResult['ai_recommendation']>('/recommend', {
+        persona_id: persona!.id,
+        persona_label: persona!.label,
+        top_problem_1: topTwo[0]?.label || "",
+        top_problem_2: topTwo[1]?.label || ""
       })
-      .then(res => res.json())
       .then(data => {
         const fullResult: AssessmentResult = {
           persona_id: persona!.id,
@@ -118,19 +114,14 @@ export const useQuizFlow = () => {
         mode: isExpressMode ? 'express' : 'drip'
       };
 
-      fetch('/api/send-result', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(resData => {
-        if (isExpressMode && resData.report_token) {
-          setReportToken(resData.report_token);
-          setStep('expressSuccess');
-        }
-      })
-      .catch(console.error);
+      api.post<{ report_token?: string; success?: boolean }>('/send-result', payload)
+        .then(resData => {
+          if (isExpressMode && resData.report_token) {
+            setReportToken(resData.report_token);
+            setStep('expressSuccess');
+          }
+        })
+        .catch(console.error);
     }
   }, [assessmentResult, persona]);
 
