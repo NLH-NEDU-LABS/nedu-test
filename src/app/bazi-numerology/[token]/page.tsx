@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import { intakeClient } from '@/lib/nedu-intake/client';
 import { calculate, interpret } from '@/features/bazi-numerology/service';
 import { getBaziNumerologyReport } from '@/features/report/service';
+
+export const dynamic = 'force-dynamic';
 import { BaziResultView } from '@/components/quiz/BaziResultView';
 import { NumerologyResultView } from '@/components/quiz/NumerologyResultView';
 

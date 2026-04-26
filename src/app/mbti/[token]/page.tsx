@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { intakeClient } from '@/lib/nedu-intake/client';
 import MbtiQuizClient from './MbtiQuizClient';
 import MbtiResultView from './MbtiResultView';
+
+export const dynamic = 'force-dynamic';
 
 interface MbtiPageProps {
   params: Promise<{ token: string }>;
@@ -9,35 +11,18 @@ interface MbtiPageProps {
 }
 
 export default async function MbtiPage({ params, searchParams }: MbtiPageProps) {
-  const resolvedParams = await params;
-  const token = resolvedParams.token;
-  
-  const resolvedSearchParams = await searchParams;
-  const nextStep = resolvedSearchParams.next;
-  
-  // Query leads theo report_token để lấy profile_data
-  const { data: lead } = await supabase
-    .from('leads')
-    .select('id, personal_profiles ( profile_data )')
-    .eq('metadata->>report_token', token)
-    .single();
+  const { token } = await params;
+  const { next: nextStep } = await searchParams;
 
-  if (!lead) {
-    notFound();
-  }
+  const report = await intakeClient.getReport(token).catch(() => null);
+  if (!report) notFound();
 
-  const profileDataArray = lead.personal_profiles as { profile_data?: any }[] | undefined;
-  const pData = Array.isArray(profileDataArray) ? profileDataArray[0]?.profile_data : (lead.personal_profiles as any)?.profile_data;
-  const profileData = (pData || {}) as Record<string, any>;
+  const mbtiType = report.personalProfile?.mbtiType ?? null;
+  const mbtiDesc = report.personalProfile?.mbtiDesc ?? null;
 
-  const mbtiType = profileData.mbti_type;
-  const mbtiDesc = profileData.mbti_desc;
-
-  // Nếu đã có mbti_type -> render MbtiResultView (không cho làm lại)
   if (mbtiType) {
     return <MbtiResultView mbtiType={mbtiType} mbtiDesc={mbtiDesc} token={token} nextStep={nextStep} />;
   }
 
-  // Nếu chưa có -> render bài test
   return <MbtiQuizClient token={token} nextStep={nextStep} />;
 }

@@ -20,6 +20,7 @@ function getKey(): string {
 async function intakeFetch<T>(path: string, init: RequestInit): Promise<T> {
   const res = await fetch(`${getBase()}/api/intake${path}`, {
     ...init,
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
       'X-Intake-Api-Key': getKey(),
@@ -32,7 +33,11 @@ async function intakeFetch<T>(path: string, init: RequestInit): Promise<T> {
     throw new Error(`[nedu-intake] ${init.method ?? 'GET'} ${path} → ${res.status}: ${text}`);
   }
 
-  return res.json() as Promise<T>;
+  const json = await res.json() as { data: T } | T;
+  if (json && typeof json === 'object' && !Array.isArray(json) && 'data' in (json as object)) {
+    return (json as { data: T }).data;
+  }
+  return json as T;
 }
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -130,6 +135,22 @@ export interface IntakeReportResult {
   } | null;
 }
 
+export interface EmailQueueItem {
+  id: string;
+  email: string;
+  full_name: string;
+  day_number: number;
+  report_token: string;
+  persona_label: string | null;
+  primary_course_name: string | null;
+  primary_course_url: string | null;
+  why_fits: string | null;
+  mbti_type: string | null;
+  enneagram_type: string | null;
+  job: string | null;
+  goal: string | null;
+}
+
 // ── API calls ──────────────────────────────────────────────────────────────
 
 export const intakeClient = {
@@ -144,4 +165,7 @@ export const intakeClient = {
 
   getReport: (sourceRef: string) =>
     intakeFetch<IntakeReportResult>(`/leads/${encodeURIComponent(sourceRef)}`, { method: 'GET' }),
+
+  getEmailQueue: () =>
+    intakeFetch<EmailQueueItem[]>('/leads/email-queue', { method: 'GET' }),
 };
