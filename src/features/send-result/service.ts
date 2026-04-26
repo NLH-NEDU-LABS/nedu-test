@@ -10,12 +10,13 @@ import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini/client';
 import { SEND_RESULT_EMAIL_PROMPT } from '@/lib/gemini/prompts';
 import { buildHtml, sendEmail } from '@/lib/email/templates';
 import { BASE_URLS } from '@/config/constants';
-import { createSubmission, updateLeadId } from '@/features/maxdiff/repository';
-import { createLead } from '@/features/lead/repository';
+import { intakeClient } from '@/lib/nedu-intake/client';
 
 export interface SendResultInput {
   name: string | null;
   email: string;
+  phone?: string | null;
+  telegramUsername?: string | null;
   persona_label: string;
   persona_id: string;
   top_problem_1: string;
@@ -43,7 +44,8 @@ export interface SendResultInput {
  */
 export async function processSendResult(input: SendResultInput): Promise<{ report_token: string }> {
   const {
-    name, email, persona_label, persona_id,
+    name, email, phone, telegramUsername,
+    persona_label, persona_id,
     top_problem_1, top_problem_2,
     scores, ai_recommendation,
     source, occupation, feeling, dob, birthTime,
@@ -56,6 +58,28 @@ export async function processSendResult(input: SendResultInput): Promise<{ repor
   const primary_course_id = ai_recommendation?.primary_course_id || '';
   const primary_course_url = ai_recommendation?.primary_course_url || '';
   const why_fits = ai_recommendation?.why_fits || '';
+
+  // Normalize dob to YYYY-MM-DD (HTML date input always returns this, but guard against locale quirks)
+  const normalizedDob = (() => {
+    if (!dob) return undefined;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dob)) return dob;
+    const parsed = new Date(dob);
+    return isNaN(parsed.getTime()) ? undefined : parsed.toISOString().split('T')[0];
+  })();
+
+  // Normalize birth_time to HH:mm (strip AM/PM if browser returns 12-hour format)
+  const normalizedBirthTime = (() => {
+    if (!birthTime) return undefined;
+    if (/^\d{2}:\d{2}(:\d{2})?$/.test(birthTime)) return birthTime;
+    const match = birthTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+    if (!match) return undefined;
+    let h = parseInt(match[1], 10);
+    const m = match[2];
+    const ampm = match[3]?.toUpperCase();
+    if (ampm === 'PM' && h !== 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    return `${String(h).padStart(2, '0')}:${m}`;
+  })();
 
   const crypto = await import('crypto');
   const report_token = crypto.randomUUID();
@@ -105,74 +129,69 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
     await sendEmail({ to: email, subject: emailSubject, html });
   }
 
-  // 3. Persist to DB (best-effort — email already sent)
+  // 3. Create lead — must succeed for the token to be usable
+  const testDesc = `Persona: ${persona_label} | Problems: ${top_problem_1}, ${top_problem_2}`;
+
+  await intakeClient.submitLead({
+    source_ref: report_token,
+    source_channel: 'test.nhi.sg',
+    full_name: name || 'Ẩn danh',
+    email,
+    phone: phone || undefined,
+    telegram_username: telegramUsername || undefined,
+    birth_date: normalizedDob,
+    birth_time: normalizedBirthTime,
+    occupation: occupation || undefined,
+    goal: feeling || undefined,
+    test_desc: testDesc,
+    interested_courses: primary_course_id ? [primary_course_id] : [],
+    ai_profile_consent: true,
+    utm_source: source || undefined,
+    metadata: {
+      assessment_mode: mode,
+      gender,
+      birth_place: birthPlaceName || birthPlace || 'vietnam',
+      birth_place_lat: birthPlaceLat,
+      birth_place_lng: birthPlaceLng,
+    },
+  });
+
+  // 4. Profile upserts are best-effort — lead already exists, report page still works
   try {
-    const submissionId = await createSubmission({
-      visitor_email: email,
-      visitor_name: name,
-      persona_id,
-      result_json: { primary_course_name, why_fits, top_problem_1, top_problem_2 },
-      answers: { occupation, feeling, has_consented_policy: true },
-      utm_source: source,
-    });
-
-    const leadId = await createLead({
-      quiz_persona: persona_id,
-      job: occupation,
-      goal: feeling,
-      dob,
-      birth_time: birthTime,
-      courses: primary_course_id ? [primary_course_id] : [],
-      metadata: {
-        report_token,
-        has_advanced: false,
-        assessment_mode: mode,
-        full_name: name,
-        gender,
-        birth_place: birthPlaceName || birthPlace || 'vietnam',
-        birth_place_lat: birthPlaceLat,
-        birth_place_lng: birthPlaceLng,
-      },
-    });
-
-    await updateLeadId(submissionId, leadId);
-
-    // 4. Auto-calculate Bazi & Numerology since we have the birth details
-    let bazi_data: any = null;
-    let numerology_data: any = null;
-    
-    if (dob) {
-      try {
-        const { calculate } = await import('@/features/bazi-numerology/service');
-        const calcRes = calculate({
-          dob,
-          birthTime: birthTime || '12:00',
-          birthPlace: birthPlaceName || birthPlace || 'vietnam',
-          gender: (gender as 0 | 1) ?? 0,
-          fullName: name || undefined
-        });
-        bazi_data = calcRes.bazi;
-        numerology_data = calcRes.numerology;
-      } catch (calcErr) {
-        console.error('[SendResult] Bazi/Numerology auto-calc error:', calcErr);
-      }
-    }
-
-    // 5. Initialize the personal_profiles Single Source of Truth
-    const { upsertProfileData } = await import('@/features/shared/profile-repository');
-    await upsertProfileData(leadId, dob, {
+    await intakeClient.upsertProfile(report_token, {
       persona_label,
-      ai_recommendation,
-      maxdiff_scores: scores,
+      top_problem_1,
+      top_problem_2,
+      primary_course_code: primary_course_id,
       primary_course_name,
       primary_course_url,
       why_fits,
-      ...(bazi_data && { bazi: bazi_data }),
-      ...(numerology_data && { numerology: numerology_data }),
+      ai_recommendation,
+      maxdiff_scores: scores,
     });
-  } catch (dbError) {
-    // DB failure doesn't fail the request — email was already sent
-    console.error('[SendResult] DB error (email already sent):', dbError);
+  } catch (profileErr) {
+    console.error('[SendResult] Profile upsert error:', profileErr);
+  }
+
+  // 5. Auto-calculate Bazi & Numerology
+  if (normalizedDob) {
+    try {
+      const { calculate } = await import('@/features/bazi-numerology/service');
+      const calcRes = calculate({
+        dob: normalizedDob,
+        birthTime: normalizedBirthTime || '12:00',
+        birthPlace: birthPlaceName || birthPlace || 'vietnam',
+        gender: (gender as 0 | 1) ?? 0,
+        fullName: name || undefined,
+      });
+
+      await intakeClient.upsertProfile(report_token, {
+        bazi: calcRes.bazi,
+        numerology: calcRes.numerology,
+      });
+    } catch (calcErr) {
+      console.error('[SendResult] Bazi/Numerology auto-calc error:', calcErr);
+    }
   }
 
   return { report_token };

@@ -1,10 +1,5 @@
-/**
- * Enneagram service — scoreAndDescribe().
- * Mirror of features/mbti/service.ts.
- */
 import { ENNEAGRAM_NAMES } from './data';
-import { findByReportToken } from '@/features/lead/repository';
-import { upsertProfileData } from '@/features/shared/profile-repository';
+import { intakeClient } from '@/lib/nedu-intake/client';
 import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini/client';
 import { buildEnneagramPrompt } from '@/lib/gemini/prompts';
 
@@ -18,30 +13,21 @@ export interface EnneagramScoreResult {
   enneagram_desc: string;
 }
 
-/**
- * Score Enneagram, generate AI description, persist to DB.
- */
 export async function scoreAndDescribe(input: EnneagramScoreInput): Promise<EnneagramScoreResult> {
   const { token } = input;
   const typeStr = String(input.enneagram_type);
 
-  // 1. Find lead
-  const lead = await findByReportToken(token);
-  if (!lead) throw Object.assign(new Error('Lead not found'), { status: 404 });
+  // 1. Find lead context via intake API
+  const report = await intakeClient.getReport(token).catch(() => null);
+  if (!report) throw Object.assign(new Error('Lead not found'), { status: 404 });
 
-  const metadata = lead.metadata as Record<string, unknown>;
-  const persona_label = (metadata.persona_label as string) || 'Chưa xác định';
-  const goal = lead.goal || 'Chưa làm rõ';
+  const persona_label = report.personalProfile?.personaLabel || 'Chưa xác định';
+  const goal = report.goal || 'Chưa làm rõ';
   const enneagram_name = ENNEAGRAM_NAMES[typeStr] || `Type ${typeStr}`;
 
   // 2. Generate AI description
   const ai = getGeminiModel({ responseJson: true });
-  const prompt = buildEnneagramPrompt({
-    enneagram_type: typeStr,
-    enneagram_name,
-    persona_label,
-    goal,
-  });
+  const prompt = buildEnneagramPrompt({ enneagram_type: typeStr, enneagram_name, persona_label, goal });
 
   let enneagram_desc = `Enneagram Type ${typeStr} (${enneagram_name}) phản ánh nhiều sâu thẳm bên trong bạn.`;
   try {
@@ -51,11 +37,8 @@ export async function scoreAndDescribe(input: EnneagramScoreInput): Promise<Enne
     console.error('[Enneagram] Gemini error (after retries):', err);
   }
 
-  // 3. Persist to DB (Single Source of Truth)
-  await upsertProfileData(lead.id, lead.dob, {
-    enneagram_type: typeStr,
-    enneagram_desc,
-  });
+  // 3. Upsert vào personal_profiles
+  await intakeClient.upsertProfile(token, { enneagram_type: typeStr, enneagram_desc });
 
   return { enneagram_type: typeStr, enneagram_desc };
 }

@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation';
-import { findByReportToken } from '@/features/lead/repository';
+import { intakeClient } from '@/lib/nedu-intake/client';
 import { calculate, interpret } from '@/features/bazi-numerology/service';
-import { upsertProfileData } from '@/features/shared/profile-repository';
 import { getBaziNumerologyReport } from '@/features/report/service';
+
+export const dynamic = 'force-dynamic';
 import { BaziResultView } from '@/components/quiz/BaziResultView';
 import { NumerologyResultView } from '@/components/quiz/NumerologyResultView';
 
@@ -19,17 +20,17 @@ export default async function BaziNumerologyPage({
 
   // 2. Generate + cache if missing
   if (!data.bazi_data || !data.bazi_interp) {
-    const lead = await findByReportToken(token);
-    if (!lead) notFound();
+    const report = await intakeClient.getReport(token).catch(() => null);
+    if (!report) notFound();
 
-    const metadata = lead.metadata as Record<string, unknown>;
+    const meta = (report.metadata ?? {}) as Record<string, unknown>;
 
     const { bazi, numerology } = calculate({
-      dob: lead.dob ?? '',
-      birthTime: null,
-      birthPlace: (metadata.birth_place as string) ?? 'vietnam',
-      gender: ((metadata.gender as 0 | 1) ?? 1),
-      fullName: (metadata.full_name as string) ?? undefined,
+      dob: report.birthDate ?? '',
+      birthTime: report.birthTime ?? null,
+      birthPlace: (meta.birth_place as string) ?? 'vietnam',
+      gender: ((meta.gender as 0 | 1) ?? 1),
+      fullName: report.fullName ?? undefined,
     });
 
     const [bazi_interp, numerology_interp] = await Promise.all([
@@ -37,17 +38,10 @@ export default async function BaziNumerologyPage({
       interpret('numerology', numerology).catch(() => null),
     ]);
 
-    // We wrap these in a try-catch to avoid crashing the whole page
-    // if the database cache insertion fails (e.g., due to RLS or constraints).
     try {
-      await upsertProfileData(lead.id, lead.dob, {
-        bazi,
-        numerology,
-        bazi_interp,
-        numerology_interp,
-      });
-    } catch (upsertError: any) {
-      console.error('Failed to cache bazi/numerology profile data:', upsertError?.message || upsertError);
+      await intakeClient.upsertProfile(token, { bazi, numerology, bazi_interp: bazi_interp ?? undefined, numerology_interp: numerology_interp ?? undefined });
+    } catch (err) {
+      console.error('[BaziPage] Failed to cache bazi result:', err);
     }
 
     data = {

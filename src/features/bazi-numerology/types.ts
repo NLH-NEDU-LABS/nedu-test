@@ -6,6 +6,8 @@
 export interface UserBirthData {
   email: string;
   fullName?: string;
+  phone?: string;
+  telegramUsername?: string;
   dob: string;           // YYYY-MM-DD
   birthTime: string;     // HH:MM
   birthTimeUnknown: boolean;
