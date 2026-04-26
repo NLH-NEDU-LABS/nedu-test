@@ -1,6 +1,6 @@
 /**
  * nedu-intake client — server-side only (API routes, not components).
- * Gọi nedu-backend POST /api/intake/* với X-Intake-Api-Key.
+ * Gọi nedu-backend POST/PATCH /api/intake/* với X-Intake-Api-Key.
  * Không bao giờ expose key ra browser.
  */
 
@@ -17,10 +17,7 @@ function getKey(): string {
   return KEY;
 }
 
-async function intakeFetch<T>(
-  path: string,
-  init: RequestInit,
-): Promise<T> {
+async function intakeFetch<T>(path: string, init: RequestInit): Promise<T> {
   const res = await fetch(`${getBase()}/api/intake${path}`, {
     ...init,
     headers: {
@@ -69,18 +66,28 @@ export interface SubmitLeadResult {
   is_new: boolean;
 }
 
-export type QuizType = 'maxdiff' | 'mbti' | 'enneagram' | 'bazi';
-
-export interface SubmitQuizInput {
-  source_ref: string;
-  quiz_type: QuizType;
-  payload: Record<string, unknown>;
-  score?: number;
-}
-
-export interface SubmitQuizResult {
-  submission_id: string;
-  lead_id: string;
+export interface UpsertProfileInput {
+  // MaxDiff
+  persona_label?: string;
+  top_problem_1?: string;
+  top_problem_2?: string;
+  primary_course_code?: string;
+  primary_course_name?: string;
+  primary_course_url?: string;
+  why_fits?: string;
+  ai_recommendation?: Record<string, unknown>;
+  maxdiff_scores?: unknown[];
+  // MBTI
+  mbti_type?: string;
+  mbti_desc?: string;
+  // Enneagram
+  enneagram_type?: string;
+  enneagram_desc?: string;
+  // Bazi / Numerology
+  bazi?: Record<string, unknown>;
+  numerology?: Record<string, unknown>;
+  bazi_interp?: string;
+  numerology_interp?: string;
 }
 
 export interface IntakeReportResult {
@@ -99,20 +106,28 @@ export interface IntakeReportResult {
   metadata: Record<string, unknown> | null;
   personalProfile: {
     mbtiType: string | null;
+    mbtiDesc: string | null;
     enneagramType: string | null;
+    enneagramDesc: string | null;
     lifePathNumber: number | null;
     nineStar: string | null;
     nhutChu: string | null;
     sunSign: string | null;
     menhCuc: string | null;
+    personaLabel: string | null;
+    topProblem1: string | null;
+    topProblem2: string | null;
+    primaryCourseCode: string | null;
+    primaryCourseName: string | null;
+    primaryCourseUrl: string | null;
+    whyFits: string | null;
+    aiRecommendation: Record<string, unknown> | null;
+    maxdiffScores: unknown[] | null;
+    bazi: Record<string, unknown> | null;
+    numerology: Record<string, unknown> | null;
+    baziInterp: string | null;
+    numerologyInterp: string | null;
   } | null;
-  quiz_submissions: Array<{
-    id: string;
-    quizType: string;
-    payload: Record<string, unknown>;
-    score: number | null;
-    createdAt: string;
-  }>;
 }
 
 // ── API calls ──────────────────────────────────────────────────────────────
@@ -121,8 +136,11 @@ export const intakeClient = {
   submitLead: (body: SubmitLeadInput) =>
     intakeFetch<SubmitLeadResult>('/leads', { method: 'POST', body: JSON.stringify(body) }),
 
-  submitQuiz: (body: SubmitQuizInput) =>
-    intakeFetch<SubmitQuizResult>('/quiz-submissions', { method: 'POST', body: JSON.stringify(body) }),
+  upsertProfile: (sourceRef: string, patch: UpsertProfileInput) =>
+    intakeFetch<{ success: boolean }>(
+      `/leads/${encodeURIComponent(sourceRef)}/profile`,
+      { method: 'PATCH', body: JSON.stringify(patch) },
+    ),
 
   getReport: (sourceRef: string) =>
     intakeFetch<IntakeReportResult>(`/leads/${encodeURIComponent(sourceRef)}`, { method: 'GET' }),

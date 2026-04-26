@@ -1,7 +1,7 @@
 import { intakeClient } from '@/lib/nedu-intake/client';
 
 // ---------------------------------------------------------------------------
-// Quiz Report (MaxDiff + MBTI + Enneagram + Bazi)
+// Quiz Report
 // ---------------------------------------------------------------------------
 
 export interface QuizReportPayload {
@@ -18,7 +18,6 @@ export interface QuizReportPayload {
   mbti_desc: string | null;
   enneagram_type: string | null;
   enneagram_desc: string | null;
-  // Bazi + Numerology
   has_bazi: boolean;
   bazi_data: unknown | null;
   numerology_data: unknown | null;
@@ -30,36 +29,32 @@ export async function getQuizReport(token: string): Promise<QuizReportPayload | 
   const report = await intakeClient.getReport(token).catch(() => null);
   if (!report) return null;
 
-  const sub = (type: string) => report.quiz_submissions.find((s) => s.quizType === type);
-  const maxdiff = sub('maxdiff')?.payload ?? {};
-  const mbti = sub('mbti')?.payload ?? {};
-  const enneagram = sub('enneagram')?.payload ?? {};
-  const bazi = sub('bazi')?.payload ?? {};
+  const p = report.personalProfile;
 
   return {
     name: report.fullName ?? null,
-    persona_label: (maxdiff.persona_label as string) ?? null,
-    top_problem_1: (maxdiff.top_problem_1 as string) ?? null,
-    top_problem_2: (maxdiff.top_problem_2 as string) ?? null,
-    primary_course_name: (maxdiff.primary_course_name as string) ?? null,
-    primary_course_url: (maxdiff.primary_course_url as string) ?? null,
-    why_fits: (maxdiff.why_fits as string) ?? null,
-    maxdiff_scores: (maxdiff.scores as unknown[]) ?? [],
-    ai_recommendation: maxdiff.ai_recommendation ?? null,
-    mbti_type: (mbti.type as string) ?? (report.personalProfile?.mbtiType ?? null),
-    mbti_desc: (mbti.description as string) ?? null,
-    enneagram_type: (enneagram.type as string) ?? (report.personalProfile?.enneagramType ?? null),
-    enneagram_desc: (enneagram.description as string) ?? null,
-    has_bazi: !!sub('bazi'),
-    bazi_data: bazi.bazi ?? null,
-    numerology_data: bazi.numerology ?? null,
-    bazi_interp: (bazi.bazi_interp as string) ?? null,
-    numerology_interp: (bazi.numerology_interp as string) ?? null,
+    persona_label: p?.personaLabel ?? null,
+    top_problem_1: p?.topProblem1 ?? null,
+    top_problem_2: p?.topProblem2 ?? null,
+    primary_course_name: p?.primaryCourseName ?? null,
+    primary_course_url: p?.primaryCourseUrl ?? null,
+    why_fits: p?.whyFits ?? null,
+    maxdiff_scores: (p?.maxdiffScores as unknown[]) ?? [],
+    ai_recommendation: p?.aiRecommendation ?? null,
+    mbti_type: p?.mbtiType ?? null,
+    mbti_desc: p?.mbtiDesc ?? null,
+    enneagram_type: p?.enneagramType ?? null,
+    enneagram_desc: p?.enneagramDesc ?? null,
+    has_bazi: !!p?.bazi,
+    bazi_data: p?.bazi ?? null,
+    numerology_data: p?.numerology ?? null,
+    bazi_interp: p?.baziInterp ?? null,
+    numerology_interp: p?.numerologyInterp ?? null,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Bazi + Numerology Report (subset of the above)
+// Bazi + Numerology Report
 // ---------------------------------------------------------------------------
 
 export interface BaziNumerologyPayload {
@@ -74,14 +69,13 @@ export async function getBaziNumerology(token: string): Promise<BaziNumerologyPa
   const report = await intakeClient.getReport(token).catch(() => null);
   if (!report) return null;
 
-  const baziSub = report.quiz_submissions.find((s) => s.quizType === 'bazi');
-  const p = baziSub?.payload ?? {};
+  const p = report.personalProfile;
 
   return {
-    has_bazi: !!baziSub,
-    bazi_data: p.bazi ?? null,
-    numerology_data: p.numerology ?? null,
-    bazi_interp: (p.bazi_interp as string) ?? null,
-    numerology_interp: (p.numerology_interp as string) ?? null,
+    has_bazi: !!p?.bazi,
+    bazi_data: p?.bazi ?? null,
+    numerology_data: p?.numerology ?? null,
+    bazi_interp: p?.baziInterp ?? null,
+    numerology_interp: p?.numerologyInterp ?? null,
   };
 }

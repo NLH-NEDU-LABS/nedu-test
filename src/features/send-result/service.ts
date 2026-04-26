@@ -135,24 +135,20 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
       },
     });
 
-    // 4. Submit MaxDiff quiz result
-    await intakeClient.submitQuiz({
-      source_ref: report_token,
-      quiz_type: 'maxdiff',
-      payload: {
-        persona_id,
-        persona_label,
-        top_problem_1,
-        top_problem_2,
-        scores,
-        ai_recommendation,
-        primary_course_name,
-        primary_course_url,
-        why_fits,
-      },
+    // 4. Upsert MaxDiff assessment result vào personal_profiles
+    await intakeClient.upsertProfile(report_token, {
+      persona_label,
+      top_problem_1,
+      top_problem_2,
+      primary_course_code: primary_course_id,
+      primary_course_name,
+      primary_course_url,
+      why_fits,
+      ai_recommendation,
+      maxdiff_scores: scores,
     });
 
-    // 5. Auto-calculate Bazi & Numerology and submit if birth data available
+    // 5. Auto-calculate Bazi & Numerology and upsert if birth data available
     if (dob) {
       try {
         const { calculate } = await import('@/features/bazi-numerology/service');
@@ -164,13 +160,9 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
           fullName: name || undefined,
         });
 
-        await intakeClient.submitQuiz({
-          source_ref: report_token,
-          quiz_type: 'bazi',
-          payload: {
-            bazi: calcRes.bazi,
-            numerology: calcRes.numerology,
-          },
+        await intakeClient.upsertProfile(report_token, {
+          bazi: calcRes.bazi,
+          numerology: calcRes.numerology,
         });
       } catch (calcErr) {
         console.error('[SendResult] Bazi/Numerology auto-calc error:', calcErr);

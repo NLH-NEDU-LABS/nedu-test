@@ -38,12 +38,8 @@ export async function scoreAndDescribe(input: EnneagramScoreInput): Promise<Enne
     console.error('[Enneagram] Gemini error (after retries):', err);
   }
 
-  // 3. Persist quiz result via intake API
-  await intakeClient.submitQuiz({
-    source_ref: token,
-    quiz_type: 'enneagram',
-    payload: { type: typeStr, description: enneagram_desc },
-  });
+  // 3. Upsert vào personal_profiles
+  await intakeClient.upsertProfile(token, { enneagram_type: typeStr, enneagram_desc });
 
   return { enneagram_type: typeStr, enneagram_desc };
 }

@@ -37,12 +37,8 @@ export async function scoreAndDescribe(input: MbtiScoreInput): Promise<MbtiScore
     console.error('[MBTI] Gemini error (after retries):', err);
   }
 
-  // 3. Persist quiz result via intake API
-  await intakeClient.submitQuiz({
-    source_ref: token,
-    quiz_type: 'mbti',
-    payload: { type: mbti_type, description: mbti_desc },
-  });
+  // 3. Upsert vào personal_profiles
+  await intakeClient.upsertProfile(token, { mbti_type, mbti_desc });
 
   return { mbti_type, mbti_desc };
 }

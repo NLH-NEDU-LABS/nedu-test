@@ -37,11 +37,7 @@ export default async function BaziNumerologyPage({
     ]);
 
     try {
-      await intakeClient.submitQuiz({
-        source_ref: token,
-        quiz_type: 'bazi',
-        payload: { bazi, numerology, bazi_interp, numerology_interp },
-      });
+      await intakeClient.upsertProfile(token, { bazi, numerology, bazi_interp: bazi_interp ?? undefined, numerology_interp: numerology_interp ?? undefined });
     } catch (err) {
       console.error('[BaziPage] Failed to cache bazi result:', err);
     }
