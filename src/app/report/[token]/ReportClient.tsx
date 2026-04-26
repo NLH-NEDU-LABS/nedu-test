@@ -41,6 +41,8 @@ export default function ReportClient({ data, token }: ReportClientProps) {
   );
   const rec = ai_recommendation as CourseRecommendation | null;
 
+  const hasData = persona_label || sortedScores.length > 0 || rec || mbti_type || enneagram_type;
+
   return (
     <main className="min-h-screen bg-[#FDFCFB]">
 
@@ -61,6 +63,12 @@ export default function ReportClient({ data, token }: ReportClientProps) {
             </p>
           )}
         </div>
+
+        {!hasData && (
+          <div className="text-center py-16 text-[#A39A92]">
+            <p className="text-sm">Báo cáo đang được xử lý. Vui lòng quay lại sau.</p>
+          </div>
+        )}
 
         {/* Top Needs */}
         {(top_problem_1 || top_problem_2) && (

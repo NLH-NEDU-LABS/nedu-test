@@ -21,8 +21,7 @@ export async function scoreAndDescribe(input: EnneagramScoreInput): Promise<Enne
   const report = await intakeClient.getReport(token).catch(() => null);
   if (!report) throw Object.assign(new Error('Lead not found'), { status: 404 });
 
-  const maxdiff = report.quiz_submissions.find((s) => s.quizType === 'maxdiff');
-  const persona_label = (maxdiff?.payload.persona_label as string) || 'Chưa xác định';
+  const persona_label = report.personalProfile?.personaLabel || 'Chưa xác định';
   const goal = report.goal || 'Chưa làm rõ';
   const enneagram_name = ENNEAGRAM_NAMES[typeStr] || `Type ${typeStr}`;
 

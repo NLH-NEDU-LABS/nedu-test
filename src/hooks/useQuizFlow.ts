@@ -106,6 +106,8 @@ export const useQuizFlow = () => {
         scores: assessmentResult.scores,
         ai_recommendation: assessmentResult.ai_recommendation,
         source: typeof window !== 'undefined' ? window.location.hostname : "web",
+        phone: data.phone,
+        telegramUsername: data.telegramUsername,
         occupation: data.occupation,
         feeling: data.feeling,
         dob: data.dob,

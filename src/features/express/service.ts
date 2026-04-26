@@ -16,14 +16,7 @@ export async function completeExpressFlow(token: string, consent: boolean): Prom
   const email = report.email || '';
   const fullName = report.fullName || 'bạn';
 
-  if (!email) {
-    console.error('[ExpressComplete] No email found for lead:', report.id);
-    throw new Error('No email found for lead');
-  }
-
-  const maxdiff = report.quiz_submissions.find((s) => s.quizType === 'maxdiff')?.payload ?? {};
-  const mbtiSub = report.quiz_submissions.find((s) => s.quizType === 'mbti')?.payload ?? {};
-  const enneagramSub = report.quiz_submissions.find((s) => s.quizType === 'enneagram')?.payload ?? {};
+  const p = report.personalProfile;
 
   const reportUrl = `${BASE_URLS.landing}report/${token}`;
 
@@ -43,8 +36,10 @@ Hành trình phát triển bản thân hiếm khi dễ dàng nếu đi một mì
 Trân trọng,
 Đội ngũ N-Education.`;
 
-  const html = buildHtml(emailBody, 'Xem Báo Cáo Ngay', reportUrl);
-  await sendEmail({ to: email, subject: emailSubject, html });
+  if (email) {
+    const html = buildHtml(emailBody, 'Xem Báo Cáo Ngay', reportUrl);
+    await sendEmail({ to: email, subject: emailSubject, html });
+  }
 
   // 3. Notify Telegram if consented
   if (consent) {
@@ -54,12 +49,12 @@ Trân trọng,
       full_name: fullName,
       day_number: 16,
       report_token: token,
-      persona_label: (maxdiff.persona_label as string) || null,
-      primary_course_name: (maxdiff.primary_course_name as string) || null,
-      primary_course_url: (maxdiff.primary_course_url as string) || null,
-      why_fits: (maxdiff.why_fits as string) || null,
-      mbti_type: (mbtiSub.type as string) || (report.personalProfile?.mbtiType ?? null),
-      enneagram_type: (enneagramSub.type as string) || (report.personalProfile?.enneagramType?.toString() ?? null),
+      persona_label: p?.personaLabel ?? null,
+      primary_course_name: p?.primaryCourseName ?? null,
+      primary_course_url: p?.primaryCourseUrl ?? null,
+      why_fits: p?.whyFits ?? null,
+      mbti_type: p?.mbtiType ?? null,
+      enneagram_type: p?.enneagramType?.toString() ?? null,
       job: report.occupation || null,
       goal: report.goal || null,
     };

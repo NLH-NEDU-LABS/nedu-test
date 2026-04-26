@@ -59,6 +59,28 @@ export async function processSendResult(input: SendResultInput): Promise<{ repor
   const primary_course_url = ai_recommendation?.primary_course_url || '';
   const why_fits = ai_recommendation?.why_fits || '';
 
+  // Normalize dob to YYYY-MM-DD (HTML date input always returns this, but guard against locale quirks)
+  const normalizedDob = (() => {
+    if (!dob) return undefined;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dob)) return dob;
+    const parsed = new Date(dob);
+    return isNaN(parsed.getTime()) ? undefined : parsed.toISOString().split('T')[0];
+  })();
+
+  // Normalize birth_time to HH:mm (strip AM/PM if browser returns 12-hour format)
+  const normalizedBirthTime = (() => {
+    if (!birthTime) return undefined;
+    if (/^\d{2}:\d{2}(:\d{2})?$/.test(birthTime)) return birthTime;
+    const match = birthTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+    if (!match) return undefined;
+    let h = parseInt(match[1], 10);
+    const m = match[2];
+    const ampm = match[3]?.toUpperCase();
+    if (ampm === 'PM' && h !== 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    return `${String(h).padStart(2, '0')}:${m}`;
+  })();
+
   const crypto = await import('crypto');
   const report_token = crypto.randomUUID();
 
@@ -107,35 +129,35 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
     await sendEmail({ to: email, subject: emailSubject, html });
   }
 
-  // 3. Persist to nedu-backend via intake API (best-effort — email already sent)
+  // 3. Create lead — must succeed for the token to be usable
+  const testDesc = `Persona: ${persona_label} | Problems: ${top_problem_1}, ${top_problem_2}`;
+
+  await intakeClient.submitLead({
+    source_ref: report_token,
+    source_channel: 'test.nhi.sg',
+    full_name: name || 'Ẩn danh',
+    email,
+    phone: phone || undefined,
+    telegram_username: telegramUsername || undefined,
+    birth_date: normalizedDob,
+    birth_time: normalizedBirthTime,
+    occupation: occupation || undefined,
+    goal: feeling || undefined,
+    test_desc: testDesc,
+    interested_courses: primary_course_id ? [primary_course_id] : [],
+    ai_profile_consent: true,
+    utm_source: source || undefined,
+    metadata: {
+      assessment_mode: mode,
+      gender,
+      birth_place: birthPlaceName || birthPlace || 'vietnam',
+      birth_place_lat: birthPlaceLat,
+      birth_place_lng: birthPlaceLng,
+    },
+  });
+
+  // 4. Profile upserts are best-effort — lead already exists, report page still works
   try {
-    const testDesc = `Persona: ${persona_label} | Problems: ${top_problem_1}, ${top_problem_2}`;
-
-    await intakeClient.submitLead({
-      source_ref: report_token,
-      source_channel: 'test.nhi.sg',
-      full_name: name || 'Ẩn danh',
-      email,
-      phone: phone || undefined,
-      telegram_username: telegramUsername || undefined,
-      birth_date: dob || undefined,
-      birth_time: birthTime || undefined,
-      occupation: occupation || undefined,
-      goal: feeling || undefined,
-      test_desc: testDesc,
-      interested_courses: primary_course_id ? [primary_course_id] : [],
-      ai_profile_consent: true,
-      utm_source: source || undefined,
-      metadata: {
-        assessment_mode: mode,
-        gender,
-        birth_place: birthPlaceName || birthPlace || 'vietnam',
-        birth_place_lat: birthPlaceLat,
-        birth_place_lng: birthPlaceLng,
-      },
-    });
-
-    // 4. Upsert MaxDiff assessment result vào personal_profiles
     await intakeClient.upsertProfile(report_token, {
       persona_label,
       top_problem_1,
@@ -147,30 +169,29 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
       ai_recommendation,
       maxdiff_scores: scores,
     });
+  } catch (profileErr) {
+    console.error('[SendResult] Profile upsert error:', profileErr);
+  }
 
-    // 5. Auto-calculate Bazi & Numerology and upsert if birth data available
-    if (dob) {
-      try {
-        const { calculate } = await import('@/features/bazi-numerology/service');
-        const calcRes = calculate({
-          dob,
-          birthTime: birthTime || '12:00',
-          birthPlace: birthPlaceName || birthPlace || 'vietnam',
-          gender: (gender as 0 | 1) ?? 0,
-          fullName: name || undefined,
-        });
+  // 5. Auto-calculate Bazi & Numerology
+  if (normalizedDob) {
+    try {
+      const { calculate } = await import('@/features/bazi-numerology/service');
+      const calcRes = calculate({
+        dob: normalizedDob,
+        birthTime: normalizedBirthTime || '12:00',
+        birthPlace: birthPlaceName || birthPlace || 'vietnam',
+        gender: (gender as 0 | 1) ?? 0,
+        fullName: name || undefined,
+      });
 
-        await intakeClient.upsertProfile(report_token, {
-          bazi: calcRes.bazi,
-          numerology: calcRes.numerology,
-        });
-      } catch (calcErr) {
-        console.error('[SendResult] Bazi/Numerology auto-calc error:', calcErr);
-      }
+      await intakeClient.upsertProfile(report_token, {
+        bazi: calcRes.bazi,
+        numerology: calcRes.numerology,
+      });
+    } catch (calcErr) {
+      console.error('[SendResult] Bazi/Numerology auto-calc error:', calcErr);
     }
-  } catch (dbError) {
-    // Intake API failure doesn't fail the request — email was already sent
-    console.error('[SendResult] Intake API error (email already sent):', dbError);
   }
 
   return { report_token };

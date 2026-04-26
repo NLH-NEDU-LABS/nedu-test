@@ -4,15 +4,11 @@
  *
  * Usage:
  *   import { env } from '@/config/env';
- *   env.SUPABASE_URL
+ *   env.NEDU_BACKEND_URL
  */
 import { z } from 'zod';
 
 const envSchema = z.object({
-  // Supabase (giữ lại trong quá trình migration parallel)
-  SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL').optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
-
   // NEDU backend intake channel
   NEDU_BACKEND_URL: z.string().url('NEDU_BACKEND_URL must be a valid URL').optional(),
   NEDU_INTAKE_API_KEY: z.string().min(1).optional(),

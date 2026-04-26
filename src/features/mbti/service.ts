@@ -20,8 +20,7 @@ export async function scoreAndDescribe(input: MbtiScoreInput): Promise<MbtiScore
   const report = await intakeClient.getReport(token).catch(() => null);
   if (!report) throw Object.assign(new Error('Lead not found'), { status: 404 });
 
-  const maxdiff = report.quiz_submissions.find((s) => s.quizType === 'maxdiff');
-  const persona_label = (maxdiff?.payload.persona_label as string) || 'Chưa xác định';
+  const persona_label = report.personalProfile?.personaLabel || 'Chưa xác định';
   const goal = report.goal || 'Chưa làm rõ';
   const mbti_name = MBTI_NAMES[mbti_type] || mbti_type;
 
