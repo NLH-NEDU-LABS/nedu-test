@@ -1,28 +1,7 @@
-/**
- * Report repository — 2 focused queries, 1 shared lead lookup.
- *
- * getQuizReport()       → MaxDiff + MBTI + Enneagram (leads + quiz_submissions)
- * getBaziNumerology()   → Bazi + Numerology (leads + personal_profiles)
- *
- * Both share findLeadByToken() to avoid code duplication.
- */
-import { supabase } from '@/lib/supabase/client';
+import { intakeClient } from '@/lib/nedu-intake/client';
 
 // ---------------------------------------------------------------------------
-// Shared internal helper
-// ---------------------------------------------------------------------------
-
-async function findLeadByToken(token: string) {
-  const { data } = await supabase
-    .from('leads')
-    .select('id, metadata, personal_profiles ( profile_data )')
-    .eq('metadata->>report_token', token)
-    .single();
-  return data;
-}
-
-// ---------------------------------------------------------------------------
-// Quiz Report (MaxDiff + MBTI + Enneagram)
+// Quiz Report (MaxDiff + MBTI + Enneagram + Bazi)
 // ---------------------------------------------------------------------------
 
 export interface QuizReportPayload {
@@ -39,7 +18,7 @@ export interface QuizReportPayload {
   mbti_desc: string | null;
   enneagram_type: string | null;
   enneagram_desc: string | null;
-  // Bazi + Numerology (from personal_profiles)
+  // Bazi + Numerology
   has_bazi: boolean;
   bazi_data: unknown | null;
   numerology_data: unknown | null;
@@ -48,51 +27,39 @@ export interface QuizReportPayload {
 }
 
 export async function getQuizReport(token: string): Promise<QuizReportPayload | null> {
-  const lead = await findLeadByToken(token);
-  if (!lead) return null;
+  const report = await intakeClient.getReport(token).catch(() => null);
+  if (!report) return null;
 
-  const metadata = (lead.metadata || {}) as Record<string, unknown>;
-
-  // Profile data (bazi + numerology)
-  const profileData = Array.isArray(lead.personal_profiles)
-    ? (lead.personal_profiles as { profile_data?: unknown }[])[0]?.profile_data
-    : (lead.personal_profiles as { profile_data?: unknown })?.profile_data;
-  const p = (profileData || {}) as Record<string, unknown>;
-
-  const { data: quizSub } = await supabase
-    .from('quiz_submissions')
-    .select('result_json, visitor_name')
-    .eq('lead_id', lead.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const resultJson = (quizSub?.result_json || {}) as Record<string, unknown>;
+  const sub = (type: string) => report.quiz_submissions.find((s) => s.quizType === type);
+  const maxdiff = sub('maxdiff')?.payload ?? {};
+  const mbti = sub('mbti')?.payload ?? {};
+  const enneagram = sub('enneagram')?.payload ?? {};
+  const bazi = sub('bazi')?.payload ?? {};
 
   return {
-    name: (quizSub?.visitor_name as string | null) ?? (metadata.name as string | null) ?? null,
-    persona_label: (p.persona_label as string | null) ?? null,
-    top_problem_1: (metadata.top_problem_1 as string | null) ?? null,
-    top_problem_2: (metadata.top_problem_2 as string | null) ?? null,
-    primary_course_name: (p.primary_course_name as string | null) ?? null,
-    primary_course_url: (p.primary_course_url as string | null) ?? null,
-    why_fits: (p.why_fits as string | null) ?? null,
-    maxdiff_scores: (p.maxdiff_scores as unknown[]) ?? (resultJson.scores as unknown[]) ?? [],
-    ai_recommendation: p.ai_recommendation ?? null,
-    mbti_type: (p.mbti_type as string | null) ?? null,
-    mbti_desc: (p.mbti_desc as string | null) ?? null,
-    enneagram_type: (p.enneagram_type as string | null) ?? null,
-    enneagram_desc: (p.enneagram_desc as string | null) ?? null,
-    has_bazi: !!p.bazi,
-    bazi_data: p.bazi ?? null,
-    numerology_data: p.numerology ?? null,
-    bazi_interp: (p.bazi_interp as string | null) ?? null,
-    numerology_interp: (p.numerology_interp as string | null) ?? null,
+    name: report.fullName ?? null,
+    persona_label: (maxdiff.persona_label as string) ?? null,
+    top_problem_1: (maxdiff.top_problem_1 as string) ?? null,
+    top_problem_2: (maxdiff.top_problem_2 as string) ?? null,
+    primary_course_name: (maxdiff.primary_course_name as string) ?? null,
+    primary_course_url: (maxdiff.primary_course_url as string) ?? null,
+    why_fits: (maxdiff.why_fits as string) ?? null,
+    maxdiff_scores: (maxdiff.scores as unknown[]) ?? [],
+    ai_recommendation: maxdiff.ai_recommendation ?? null,
+    mbti_type: (mbti.type as string) ?? (report.personalProfile?.mbtiType ?? null),
+    mbti_desc: (mbti.description as string) ?? null,
+    enneagram_type: (enneagram.type as string) ?? (report.personalProfile?.enneagramType ?? null),
+    enneagram_desc: (enneagram.description as string) ?? null,
+    has_bazi: !!sub('bazi'),
+    bazi_data: bazi.bazi ?? null,
+    numerology_data: bazi.numerology ?? null,
+    bazi_interp: (bazi.bazi_interp as string) ?? null,
+    numerology_interp: (bazi.numerology_interp as string) ?? null,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Bazi + Numerology Report (from personal_profiles)
+// Bazi + Numerology Report (subset of the above)
 // ---------------------------------------------------------------------------
 
 export interface BaziNumerologyPayload {
@@ -104,20 +71,17 @@ export interface BaziNumerologyPayload {
 }
 
 export async function getBaziNumerology(token: string): Promise<BaziNumerologyPayload | null> {
-  const lead = await findLeadByToken(token);
-  if (!lead) return null;
+  const report = await intakeClient.getReport(token).catch(() => null);
+  if (!report) return null;
 
-  const profileData = Array.isArray(lead.personal_profiles)
-    ? (lead.personal_profiles as { profile_data?: unknown }[])[0]?.profile_data
-    : (lead.personal_profiles as { profile_data?: unknown })?.profile_data;
-
-  const p = (profileData || {}) as Record<string, unknown>;
+  const baziSub = report.quiz_submissions.find((s) => s.quizType === 'bazi');
+  const p = baziSub?.payload ?? {};
 
   return {
-    has_bazi: !!p.bazi,
+    has_bazi: !!baziSub,
     bazi_data: p.bazi ?? null,
     numerology_data: p.numerology ?? null,
-    bazi_interp: (p.bazi_interp as string | null) ?? null,
-    numerology_interp: (p.numerology_interp as string | null) ?? null,
+    bazi_interp: (p.bazi_interp as string) ?? null,
+    numerology_interp: (p.numerology_interp as string) ?? null,
   };
 }

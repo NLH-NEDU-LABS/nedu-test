@@ -9,9 +9,13 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  // Supabase
-  SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL'),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
+  // Supabase (giữ lại trong quá trình migration parallel)
+  SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL').optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+
+  // NEDU backend intake channel
+  NEDU_BACKEND_URL: z.string().url('NEDU_BACKEND_URL must be a valid URL').optional(),
+  NEDU_INTAKE_API_KEY: z.string().min(1).optional(),
 
   // Gemini
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),

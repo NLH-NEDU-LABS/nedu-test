@@ -10,12 +10,13 @@ import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini/client';
 import { SEND_RESULT_EMAIL_PROMPT } from '@/lib/gemini/prompts';
 import { buildHtml, sendEmail } from '@/lib/email/templates';
 import { BASE_URLS } from '@/config/constants';
-import { createSubmission, updateLeadId } from '@/features/maxdiff/repository';
-import { createLead } from '@/features/lead/repository';
+import { intakeClient } from '@/lib/nedu-intake/client';
 
 export interface SendResultInput {
   name: string | null;
   email: string;
+  phone?: string | null;
+  telegramUsername?: string | null;
   persona_label: string;
   persona_id: string;
   top_problem_1: string;
@@ -43,7 +44,8 @@ export interface SendResultInput {
  */
 export async function processSendResult(input: SendResultInput): Promise<{ report_token: string }> {
   const {
-    name, email, persona_label, persona_id,
+    name, email, phone, telegramUsername,
+    persona_label, persona_id,
     top_problem_1, top_problem_2,
     scores, ai_recommendation,
     source, occupation, feeling, dob, birthTime,
@@ -105,29 +107,27 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
     await sendEmail({ to: email, subject: emailSubject, html });
   }
 
-  // 3. Persist to DB (best-effort — email already sent)
+  // 3. Persist to nedu-backend via intake API (best-effort — email already sent)
   try {
-    const submissionId = await createSubmission({
-      visitor_email: email,
-      visitor_name: name,
-      persona_id,
-      result_json: { primary_course_name, why_fits, top_problem_1, top_problem_2 },
-      answers: { occupation, feeling, has_consented_policy: true },
-      utm_source: source,
-    });
+    const testDesc = `Persona: ${persona_label} | Problems: ${top_problem_1}, ${top_problem_2}`;
 
-    const leadId = await createLead({
-      quiz_persona: persona_id,
-      job: occupation,
-      goal: feeling,
-      dob,
-      birth_time: birthTime,
-      courses: primary_course_id ? [primary_course_id] : [],
+    await intakeClient.submitLead({
+      source_ref: report_token,
+      source_channel: 'test.nhi.sg',
+      full_name: name || 'Ẩn danh',
+      email,
+      phone: phone || undefined,
+      telegram_username: telegramUsername || undefined,
+      birth_date: dob || undefined,
+      birth_time: birthTime || undefined,
+      occupation: occupation || undefined,
+      goal: feeling || undefined,
+      test_desc: testDesc,
+      interested_courses: primary_course_id ? [primary_course_id] : [],
+      ai_profile_consent: true,
+      utm_source: source || undefined,
       metadata: {
-        report_token,
-        has_advanced: false,
         assessment_mode: mode,
-        full_name: name,
         gender,
         birth_place: birthPlaceName || birthPlace || 'vietnam',
         birth_place_lat: birthPlaceLat,
@@ -135,12 +135,24 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
       },
     });
 
-    await updateLeadId(submissionId, leadId);
+    // 4. Submit MaxDiff quiz result
+    await intakeClient.submitQuiz({
+      source_ref: report_token,
+      quiz_type: 'maxdiff',
+      payload: {
+        persona_id,
+        persona_label,
+        top_problem_1,
+        top_problem_2,
+        scores,
+        ai_recommendation,
+        primary_course_name,
+        primary_course_url,
+        why_fits,
+      },
+    });
 
-    // 4. Auto-calculate Bazi & Numerology since we have the birth details
-    let bazi_data: any = null;
-    let numerology_data: any = null;
-    
+    // 5. Auto-calculate Bazi & Numerology and submit if birth data available
     if (dob) {
       try {
         const { calculate } = await import('@/features/bazi-numerology/service');
@@ -149,30 +161,24 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
           birthTime: birthTime || '12:00',
           birthPlace: birthPlaceName || birthPlace || 'vietnam',
           gender: (gender as 0 | 1) ?? 0,
-          fullName: name || undefined
+          fullName: name || undefined,
         });
-        bazi_data = calcRes.bazi;
-        numerology_data = calcRes.numerology;
+
+        await intakeClient.submitQuiz({
+          source_ref: report_token,
+          quiz_type: 'bazi',
+          payload: {
+            bazi: calcRes.bazi,
+            numerology: calcRes.numerology,
+          },
+        });
       } catch (calcErr) {
         console.error('[SendResult] Bazi/Numerology auto-calc error:', calcErr);
       }
     }
-
-    // 5. Initialize the personal_profiles Single Source of Truth
-    const { upsertProfileData } = await import('@/features/shared/profile-repository');
-    await upsertProfileData(leadId, dob, {
-      persona_label,
-      ai_recommendation,
-      maxdiff_scores: scores,
-      primary_course_name,
-      primary_course_url,
-      why_fits,
-      ...(bazi_data && { bazi: bazi_data }),
-      ...(numerology_data && { numerology: numerology_data }),
-    });
   } catch (dbError) {
-    // DB failure doesn't fail the request — email was already sent
-    console.error('[SendResult] DB error (email already sent):', dbError);
+    // Intake API failure doesn't fail the request — email was already sent
+    console.error('[SendResult] Intake API error (email already sent):', dbError);
   }
 
   return { report_token };

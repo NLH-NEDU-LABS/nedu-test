@@ -1,13 +1,5 @@
-/**
- * MBTI service — scoreAndDescribe().
- *
- * Key improvement: uses shared profile-repository to eliminate
- * the duplicate SELECT → if/else INSERT/UPDATE pattern.
- */
-import { calculateMBTI } from './scoring';
 import { MBTI_NAMES } from './data';
-import { findByReportToken } from '@/features/lead/repository';
-import { upsertProfileData } from '@/features/shared/profile-repository';
+import { intakeClient } from '@/lib/nedu-intake/client';
 import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini/client';
 import { buildMbtiPrompt } from '@/lib/gemini/prompts';
 
@@ -21,19 +13,16 @@ export interface MbtiScoreResult {
   mbti_desc: string;
 }
 
-/**
- * Score MBTI, generate AI description, persist to DB.
- */
 export async function scoreAndDescribe(input: MbtiScoreInput): Promise<MbtiScoreResult> {
   const { token, mbti_type } = input;
 
-  // 1. Find lead
-  const lead = await findByReportToken(token);
-  if (!lead) throw Object.assign(new Error('Lead not found'), { status: 404 });
+  // 1. Find lead context via intake API
+  const report = await intakeClient.getReport(token).catch(() => null);
+  if (!report) throw Object.assign(new Error('Lead not found'), { status: 404 });
 
-  const metadata = lead.metadata as Record<string, unknown>;
-  const persona_label = (metadata.persona_label as string) || 'Chưa xác định';
-  const goal = lead.goal || 'Chưa làm rõ';
+  const maxdiff = report.quiz_submissions.find((s) => s.quizType === 'maxdiff');
+  const persona_label = (maxdiff?.payload.persona_label as string) || 'Chưa xác định';
+  const goal = report.goal || 'Chưa làm rõ';
   const mbti_name = MBTI_NAMES[mbti_type] || mbti_type;
 
   // 2. Generate AI description
@@ -48,10 +37,11 @@ export async function scoreAndDescribe(input: MbtiScoreInput): Promise<MbtiScore
     console.error('[MBTI] Gemini error (after retries):', err);
   }
 
-  // 3. Persist to DB (Single Source of Truth)
-  await upsertProfileData(lead.id, lead.dob, {
-    mbti_type,
-    mbti_desc,
+  // 3. Persist quiz result via intake API
+  await intakeClient.submitQuiz({
+    source_ref: token,
+    quiz_type: 'mbti',
+    payload: { type: mbti_type, description: mbti_desc },
   });
 
   return { mbti_type, mbti_desc };

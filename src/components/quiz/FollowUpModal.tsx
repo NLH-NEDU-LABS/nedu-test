@@ -25,6 +25,8 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
   const [formData, setFormData] = useState<UserBirthData>({
     email: '',
     fullName: '',
+    phone: '',
+    telegramUsername: '',
     dob: '',
     birthTime: '',
     birthTimeUnknown: false,
@@ -105,6 +107,32 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
 
 
             
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-[#8B7E74]">Số điện thoại</label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  placeholder="0901234567"
+                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
+                  value={formData.phone ?? ''}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-[#8B7E74]">Telegram username</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="@username"
+                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
+                  value={formData.telegramUsername ?? ''}
+                  onChange={(e) => setFormData({...formData, telegramUsername: e.target.value})}
+                />
+              </div>
+            </div>
+
             <div className="space-y-1.5 border-t border-[#F0EBE5] pt-4 mt-2">
               <label className="text-sm font-medium text-[#8B7E74]">Giới tính *</label>
               <div className="relative">
