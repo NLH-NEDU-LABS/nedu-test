@@ -1,55 +1,41 @@
-import { supabase } from '@/lib/supabase';
-import { notifyTelegram } from '@/lib/telegram/client';
+/**
+ * Express complete flow — final step of test.nhi.sg quiz.
+ *
+ * 1. Fetch report data from nedu (for email rendering).
+ * 2. Send day-16 email via SES.
+ * 3. POST /complete to nedu with consent flag.
+ *    BE handles: set aiProfileConsent + completedAt. If consent=true,
+ *    BE emits lead.ingested → nedu's TelegramListener pings consultant.
+ *    test.nhi.sg no longer fires Telegram directly.
+ *
+ * Migrated from Supabase 2026-04.
+ */
+import { neduApi } from '@/lib/nedu-api/client';
 import { buildHtml, sendEmail } from '@/lib/email/templates';
 import { BASE_URLS } from '@/config/constants';
-import type { Lead } from '@/features/email-sequence/types';
 
 export async function completeExpressFlow(token: string, consent: boolean): Promise<{ success: boolean }> {
-  // 1. Fetch lead info and personal profiles
-  // 1a. Fetch lead
-  const { data: lead, error } = await supabase
-    .from('leads')
-    .select('id, job, goal, metadata, personal_profiles ( profile_data )')
-    .eq('metadata->>report_token', token)
-    .single();
-
-  if (error || !lead) {
-    console.error('[ExpressComplete] Lead not found for token:', token, error);
+  // 1. Fetch report from nedu.
+  const report = await neduApi.getReport(token).catch((err) => {
+    if (err?.status === 404) return null;
+    throw err;
+  });
+  if (!report) {
+    console.error('[ExpressComplete] Report not found for token:', token);
     throw new Error('Lead not found');
   }
 
-  const metadata = (lead.metadata as Record<string, any>) || {};
-
-  // 1b. Fetch quiz_submission separately (same pattern as report/repository.ts)
-  const { data: quizSub } = await supabase
-    .from('quiz_submissions')
-    .select('visitor_email, visitor_name')
-    .eq('lead_id', lead.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const email: string = quizSub?.visitor_email || (metadata.email as string) || '';
-  const fullName: string = quizSub?.visitor_name || (metadata.name as string) || 'bạn';
+  const email = report.lead.email || '';
+  const fullName = report.lead.full_name || 'bạn';
 
   if (!email) {
-    console.error('[ExpressComplete] No email found for lead:', lead.id);
+    console.error('[ExpressComplete] No email found for lead:', report.lead.id);
     throw new Error('No email found for lead');
   }
 
-  // Update metadata with consent
-  await supabase
-    .from('leads')
-    .update({ metadata: { ...metadata, consent } })
-    .eq('id', lead.id);
-
-  const profilesArray = lead.personal_profiles as any[];
-  const profileRow = Array.isArray(profilesArray) ? profilesArray[0] : (lead.personal_profiles as any);
-  const profile = (profileRow?.profile_data as Record<string, any>) || {};
-
   const reportUrl = `${BASE_URLS.landing}report/${token}`;
 
-  // 2. Send email
+  // 2. Send day-16 email.
   const emailSubject = 'Kết quả phân tích chuyên sâu của bạn từ N-Education';
   const emailBody = `Chào ${fullName},
 
@@ -68,29 +54,8 @@ Trân trọng,
   const html = buildHtml(emailBody, 'Xem Báo Cáo Ngay', reportUrl);
   await sendEmail({ to: email, subject: emailSubject, html });
 
-  // 3. Notify Telegram if consented
-  if (consent) {
-    const pLabel = profile.persona_label || 'Chưa xác định';
-    const cName = profile.primary_course_name || 'Chưa xác định';
-
-    const tgLead: Lead = {
-      id: lead.id,
-      email,
-      full_name: fullName,
-      day_number: 16, // using 16 as an arbitrary end-of-flow number
-      report_token: token,
-      persona_label: pLabel,
-      primary_course_name: cName,
-      primary_course_url: profile.primary_course_url || null,
-      why_fits: profile.why_fits || null,
-      mbti_type: profile.mbti_type || null,
-      enneagram_type: profile.enneagram_type?.toString() || null,
-      job: lead.job || null,
-      goal: lead.goal || null
-    };
-
-    await notifyTelegram(tgLead);
-  }
+  // 3. Mark complete on nedu — BE handles consent → Telegram fan-out.
+  await neduApi.completeAssessment(token, consent);
 
   return { success: true };
 }

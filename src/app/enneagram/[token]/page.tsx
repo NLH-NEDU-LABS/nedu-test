@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { neduApi } from '@/lib/nedu-api/client';
 import EnneagramQuizClient from './EnneagramQuizClient';
 import EnneagramResultView from './EnneagramResultView';
 
@@ -9,36 +9,21 @@ interface EnneagramPageProps {
 }
 
 export default async function EnneagramPage({ params, searchParams }: EnneagramPageProps) {
-  const resolvedParams = await params;
-  const token = resolvedParams.token;
-  
-  const resolvedSearchParams = await searchParams;
-  const nextStep = resolvedSearchParams.next;
-  const mode = resolvedSearchParams.mode;
-  
-  // Query leads theo report_token để lấy profile_data
-  const { data: lead } = await supabase
-    .from('leads')
-    .select('id, personal_profiles ( profile_data )')
-    .eq('metadata->>report_token', token)
-    .single();
+  const { token } = await params;
+  const { next: nextStep, mode } = await searchParams;
 
-  if (!lead) {
-    notFound();
-  }
+  const report = await neduApi.getReport(token).catch((err: any) => {
+    if (err?.status === 404) return null;
+    throw err;
+  });
+  if (!report) notFound();
 
-  const profileDataArray = lead.personal_profiles as { profile_data?: any }[] | undefined;
-  const pData = Array.isArray(profileDataArray) ? profileDataArray[0]?.profile_data : (lead.personal_profiles as any)?.profile_data;
-  const profileData = (pData || {}) as Record<string, any>;
+  const enneagramType = report.assessment.enneagram_type;
+  const aMeta = (report.assessment.metadata ?? {}) as Record<string, unknown>;
+  const enneagramDesc = (aMeta.enneagram_desc as string | undefined) ?? undefined;
 
-  const enneagramType = profileData.enneagram_type;
-  const enneagramDesc = profileData.enneagram_desc;
-
-  // Nếu đã có enneagram_type -> render EnneagramResultView (không cho làm lại)
   if (enneagramType) {
     return <EnneagramResultView enneagramType={enneagramType} enneagramDesc={enneagramDesc} token={token} nextStep={nextStep} mode={mode} />;
   }
-
-  // Nếu chưa có -> render bài test
   return <EnneagramQuizClient token={token} nextStep={nextStep} mode={mode} />;
 }

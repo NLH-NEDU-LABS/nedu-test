@@ -25,6 +25,8 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
   const [formData, setFormData] = useState<UserBirthData>({
     email: '',
     fullName: '',
+    phone: '',
+    telegramUsername: '',
     dob: '',
     birthTime: '',
     birthTimeUnknown: false,
@@ -38,6 +40,16 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
     e.preventDefault();
     if (!formData.birthTimeUnknown && !formData.birthTime) {
       alert('Vui lòng nhập Giờ sinh hoặc chọn "Không nhớ".');
+      return;
+    }
+    // Vietnamese mobile: starts with 0 or +84, total 9-11 digits
+    if (!/^(0|\+84)[0-9]{8,10}$/.test(formData.phone.replace(/\s/g, ''))) {
+      alert('Vui lòng nhập số điện thoại hợp lệ (VD: 0901234567).');
+      return;
+    }
+    // Telegram username: 5-32 chars, letters/digits/underscores, optional leading @
+    if (!/^@?[A-Za-z0-9_]{5,32}$/.test(formData.telegramUsername)) {
+      alert('Telegram username phải từ 5–32 ký tự, chỉ chữ/số/dấu _ (VD: @yourname).');
       return;
     }
     setIsLoading(true);
@@ -68,7 +80,7 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
 
           <form onSubmit={handleFormSubmit} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-[#8B7E74]">Họ và tên (Zalo)</label>
+              <label className="text-sm font-medium text-[#8B7E74]">Họ và tên</label>
               <div className="relative">
                 <input
                   type="text"
@@ -176,6 +188,40 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
             </div>
 
             <div className="space-y-1.5 border-t border-[#F0EBE5] pt-4 mt-2">
+              <label className="text-sm font-medium text-[#8B7E74]">Số điện thoại *</label>
+              <div className="relative">
+                <input
+                  required
+                  type="tel"
+                  inputMode="tel"
+                  placeholder="0901234567"
+                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-[#8B7E74]">Telegram username *</label>
+              <div className="relative">
+                <input
+                  required
+                  type="text"
+                  placeholder="@yourname"
+                  className="w-full px-4 py-3.5 bg-white border border-[#F0EBE5] rounded-xl text-sm focus:outline-none focus:border-[#8B5E3C] transition-all text-[#2D2D2D] shadow-sm"
+                  value={formData.telegramUsername}
+                  onChange={(e) => {
+                    let v = e.target.value.trim();
+                    if (v && !v.startsWith('@')) v = '@' + v;
+                    setFormData({...formData, telegramUsername: v});
+                  }}
+                />
+              </div>
+              <p className="text-xs text-[#8B7E74]">Để team N-Education hỗ trợ bạn nhanh hơn qua Telegram.</p>
+            </div>
+
+            <div className="space-y-1.5">
               <label className="text-sm font-medium text-[#8B7E74]">Công việc hiện tại *</label>
               <div className="relative">
                 <input 
