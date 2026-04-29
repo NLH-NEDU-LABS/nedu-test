@@ -1,22 +1,22 @@
 /**
  * Express complete flow — final step of test.nhi.sg quiz.
  *
- * 1. Fetch report data from nedu (for email rendering).
- * 2. Send day-16 email via SES.
- * 3. POST /complete to nedu with consent flag.
- *    BE handles: set aiProfileConsent + completedAt. If consent=true,
- *    BE emits lead.ingested → nedu's TelegramListener pings consultant.
- *    test.nhi.sg no longer fires Telegram directly.
+ * 1. Fetch report data from nedu (data store).
+ * 2. Send day-16 email via SES (FE owns email delivery).
+ * 3. POST /complete to nedu — BE chỉ set completedAt + aiProfileConsent.
+ * 4. If consent=true → notify Telegram (FE owns Telegram delivery).
  *
- * Migrated from Supabase 2026-04.
+ * BE là data store, mọi external side effect (email, Telegram) ở FE.
  */
 import { neduApi } from '@/lib/nedu-api/client';
+import { notifyTelegram } from '@/lib/telegram/client';
 import { buildHtml, sendEmail } from '@/lib/email/templates';
 import { BASE_URLS } from '@/config/constants';
+import type { Lead } from '@/lib/email-sequence/types';
 
 export async function completeExpressFlow(token: string, consent: boolean): Promise<{ success: boolean }> {
   // 1. Fetch report from nedu.
-  const report = await neduApi.getReport(token).catch((err) => {
+  const report = await neduApi.getReport(token).catch((err: any) => {
     if (err?.status === 404) return null;
     throw err;
   });
@@ -27,6 +27,8 @@ export async function completeExpressFlow(token: string, consent: boolean): Prom
 
   const email = report.lead.email || '';
   const fullName = report.lead.full_name || 'bạn';
+  const a = report.assessment;
+  const aMeta = (a.metadata ?? {}) as Record<string, unknown>;
 
   if (!email) {
     console.error('[ExpressComplete] No email found for lead:', report.lead.id);
@@ -54,8 +56,30 @@ Trân trọng,
   const html = buildHtml(emailBody, 'Xem Báo Cáo Ngay', reportUrl);
   await sendEmail({ to: email, subject: emailSubject, html });
 
-  // 3. Mark complete on nedu — BE handles consent → Telegram fan-out.
+  // 3. Mark complete on nedu (data only).
   await neduApi.completeAssessment(token, consent);
+
+  // 4. Notify Telegram if consented (FE side effect, fire-and-forget).
+  if (consent) {
+    const tgLead: Lead = {
+      id: report.lead.id,
+      email,
+      full_name: fullName,
+      day_number: 16,
+      report_token: token,
+      persona_label: a.persona_label ?? 'Chưa xác định',
+      primary_course_name: a.recommended_course_name ?? 'Chưa xác định',
+      primary_course_url: a.recommended_course_url ?? null,
+      why_fits: a.why_fits ?? null,
+      mbti_type: a.mbti_type ?? null,
+      enneagram_type: a.enneagram_type?.toString() ?? null,
+      job: report.lead.occupation ?? null,
+      goal: report.lead.goal ?? null,
+    };
+    await notifyTelegram(tgLead).catch((err) =>
+      console.error('[ExpressComplete] Telegram notify failed:', err),
+    );
+  }
 
   return { success: true };
 }
