@@ -6,6 +6,8 @@
 export interface UserBirthData {
   email: string;
   fullName?: string;
+  phone: string;             // Vietnamese mobile, required for CRM handoff
+  telegramUsername: string;  // @username, required so consultant can DM
   dob: string;           // YYYY-MM-DD
   birthTime: string;     // HH:MM
   birthTimeUnknown: boolean;

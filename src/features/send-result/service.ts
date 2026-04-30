@@ -4,18 +4,22 @@
  * Steps:
  *  1. Generate AI email via Gemini
  *  2. Send email via SES
- *  3. DB triple-insert: quiz_submission → lead → link
+ *  3. Persist lead + quiz_assessment to api.nedu.vn (single source of truth)
+ *
+ * Migrated from Supabase 2026-04 — quiz data now lives in nedu's
+ * `lead_quiz_assessments` table.
  */
 import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini/client';
 import { SEND_RESULT_EMAIL_PROMPT } from '@/lib/gemini/prompts';
 import { buildHtml, sendEmail } from '@/lib/email/templates';
 import { BASE_URLS } from '@/config/constants';
-import { createSubmission, updateLeadId } from '@/features/maxdiff/repository';
-import { createLead } from '@/features/lead/repository';
+import { neduApi } from '@/lib/nedu-api/client';
 
 export interface SendResultInput {
   name: string | null;
   email: string;
+  phone: string;
+  telegram_username: string;
   persona_label: string;
   persona_id: string;
   top_problem_1: string;
@@ -35,15 +39,10 @@ export interface SendResultInput {
   mode?: 'drip' | 'express';
 }
 
-/**
- * Process the send-result flow:
- *  - Generate + send Day 0 AI email (skipped in express mode)
- *  - Persist quiz_submission + lead to DB
- * Returns { report_token } — email already sent even if DB fails.
- */
 export async function processSendResult(input: SendResultInput): Promise<{ report_token: string }> {
   const {
-    name, email, persona_label, persona_id,
+    name, email, phone, telegram_username,
+    persona_label, persona_id,
     top_problem_1, top_problem_2,
     scores, ai_recommendation,
     source, occupation, feeling, dob, birthTime,
@@ -53,12 +52,12 @@ export async function processSendResult(input: SendResultInput): Promise<{ repor
   } = input;
 
   const primary_course_name = ai_recommendation?.primary_course_name || '';
-  const primary_course_id = ai_recommendation?.primary_course_id || '';
   const primary_course_url = ai_recommendation?.primary_course_url || '';
   const why_fits = ai_recommendation?.why_fits || '';
 
   const crypto = await import('crypto');
   const report_token = crypto.randomUUID();
+  const source_ref = crypto.randomUUID();
 
   // 1. Generate AI email content
   let emailSubject = 'Kết quả bài phân tích của bạn';
@@ -105,75 +104,66 @@ Chưa bán gì cả. KHÔNG ĐƯỢC CHÈN BẤT CỨ LINK NÀO.
     await sendEmail({ to: email, subject: emailSubject, html });
   }
 
-  // 3. Persist to DB (best-effort — email already sent)
-  try {
-    const submissionId = await createSubmission({
-      visitor_email: email,
-      visitor_name: name,
-      persona_id,
-      result_json: { primary_course_name, why_fits, top_problem_1, top_problem_2 },
-      answers: { occupation, feeling, has_consented_policy: true },
-      utm_source: source,
-    });
-
-    const leadId = await createLead({
-      quiz_persona: persona_id,
-      job: occupation,
-      goal: feeling,
-      dob,
-      birth_time: birthTime,
-      courses: primary_course_id ? [primary_course_id] : [],
-      metadata: {
-        report_token,
-        has_advanced: false,
-        assessment_mode: mode,
-        full_name: name,
-        gender,
-        birth_place: birthPlaceName || birthPlace || 'vietnam',
-        birth_place_lat: birthPlaceLat,
-        birth_place_lng: birthPlaceLng,
-      },
-    });
-
-    await updateLeadId(submissionId, leadId);
-
-    // 4. Auto-calculate Bazi & Numerology since we have the birth details
-    let bazi_data: any = null;
-    let numerology_data: any = null;
-    
-    if (dob) {
-      try {
-        const { calculate } = await import('@/features/bazi-numerology/service');
-        const calcRes = calculate({
-          dob,
-          birthTime: birthTime || '12:00',
-          birthPlace: birthPlaceName || birthPlace || 'vietnam',
-          gender: (gender as 0 | 1) ?? 0,
-          fullName: name || undefined
-        });
-        bazi_data = calcRes.bazi;
-        numerology_data = calcRes.numerology;
-      } catch (calcErr) {
-        console.error('[SendResult] Bazi/Numerology auto-calc error:', calcErr);
-      }
+  // 3. Auto-calculate Bazi & Numerology since we have the birth details
+  let bazi_data: Record<string, unknown> | null = null;
+  let numerology_data: Record<string, unknown> | null = null;
+  if (dob) {
+    try {
+      const { calculate } = await import('@/features/bazi-numerology/service');
+      const calcRes = calculate({
+        dob,
+        birthTime: birthTime || '12:00',
+        birthPlace: birthPlaceName || birthPlace || 'vietnam',
+        gender: (gender as 0 | 1) ?? 0,
+        fullName: name || undefined,
+      });
+      bazi_data = calcRes.bazi as Record<string, unknown>;
+      numerology_data = calcRes.numerology as Record<string, unknown>;
+    } catch (calcErr) {
+      console.error('[SendResult] Bazi/Numerology auto-calc error:', calcErr);
     }
-
-    // 5. Initialize the personal_profiles Single Source of Truth
-    const { upsertProfileData } = await import('@/features/shared/profile-repository');
-    await upsertProfileData(leadId, dob, {
-      persona_label,
-      ai_recommendation,
-      maxdiff_scores: scores,
-      primary_course_name,
-      primary_course_url,
-      why_fits,
-      ...(bazi_data && { bazi: bazi_data }),
-      ...(numerology_data && { numerology: numerology_data }),
-    });
-  } catch (dbError) {
-    // DB failure doesn't fail the request — email was already sent
-    console.error('[SendResult] DB error (email already sent):', dbError);
   }
+
+  // 4. Create lead + quiz assessment on nedu backend (single source of truth).
+  // Failure here MUST surface — nedu is primary storage now, no silent swallow.
+  await neduApi.startQuiz({
+    full_name: name || 'bạn',
+    phone,
+    report_token,
+    source_ref,
+    source: 'inbound',
+    source_channel: 'test.nhi.sg',
+    email,
+    birth_date: dob || undefined,
+    birth_time: birthTime || undefined,
+    occupation: occupation || undefined,
+    goal: feeling || undefined,
+    assessment_mode: mode,
+    utm_source: source || undefined,
+    metadata: {
+      telegram_username,
+      gender,
+      birth_place: birthPlaceName || birthPlace || 'vietnam',
+      birth_place_lat: birthPlaceLat,
+      birth_place_lng: birthPlaceLng,
+      persona_id,
+      top_problem_1,
+      top_problem_2,
+    },
+  });
+
+  // 5. Send quiz result data via PATCH (separate call — keeps start payload focused).
+  await neduApi.updateAssessment(report_token, {
+    persona_label,
+    recommended_course_name: primary_course_name || undefined,
+    recommended_course_url: primary_course_url || undefined,
+    why_fits: why_fits || undefined,
+    maxdiff_scores: scores,
+    full_recommendation: ai_recommendation,
+    bazi_data: bazi_data ?? undefined,
+    numerology_data: numerology_data ?? undefined,
+    top_problems: [top_problem_1, top_problem_2].filter(Boolean),
+  });
 
   return { report_token };
 }
