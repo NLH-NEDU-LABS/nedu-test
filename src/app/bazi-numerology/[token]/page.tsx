@@ -22,10 +22,10 @@ export default async function BaziNumerologyPage({
   const aMeta = (a.metadata ?? {}) as Record<string, unknown>;
   const leadMeta = (report.lead.metadata ?? {}) as Record<string, unknown>;
 
-  let baziData = a.bazi_data ?? null;
-  let numerologyData = a.numerology_data ?? null;
-  let baziInterp = (aMeta.bazi_interp as string | null) ?? null;
-  let numerologyInterp = (aMeta.numerology_interp as string | null) ?? null;
+  let baziData: unknown = a.bazi_data ?? null;
+  let numerologyData: unknown = a.numerology_data ?? null;
+  let baziInterp: string | null = (aMeta.bazi_interp as string | null) ?? null;
+  let numerologyInterp: string | null = (aMeta.numerology_interp as string | null) ?? null;
 
   if (!baziData || !baziInterp) {
     const { bazi, numerology } = calculate({
