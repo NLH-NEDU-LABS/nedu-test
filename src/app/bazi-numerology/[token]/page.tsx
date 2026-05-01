@@ -1,8 +1,6 @@
 import { notFound } from 'next/navigation';
-import { findByReportToken } from '@/features/lead/repository';
+import { neduApi } from '@/lib/nedu-api/client';
 import { calculate, interpret } from '@/features/bazi-numerology/service';
-import { upsertProfileData } from '@/features/shared/profile-repository';
-import { getBaziNumerologyReport } from '@/features/report/service';
 import { BaziResultView } from '@/components/quiz/BaziResultView';
 import { NumerologyResultView } from '@/components/quiz/NumerologyResultView';
 
@@ -13,23 +11,29 @@ export default async function BaziNumerologyPage({
 }) {
   const { token } = await params;
 
-  // 1. Try cache first
-  let data = await getBaziNumerologyReport(token);
-  if (data === null) notFound();
+  const report = await neduApi.getReport(token).catch((err: any) => {
+    if (err?.status === 404) return null;
+    throw err;
+  });
 
-  // 2. Generate + cache if missing
-  if (!data.bazi_data || !data.bazi_interp) {
-    const lead = await findByReportToken(token);
-    if (!lead) notFound();
+  if (!report) notFound();
 
-    const metadata = lead.metadata as Record<string, unknown>;
+  const a = report.assessment;
+  const aMeta = (a.metadata ?? {}) as Record<string, unknown>;
+  const leadMeta = (report.lead.metadata ?? {}) as Record<string, unknown>;
 
+  let baziData = a.bazi_data ?? null;
+  let numerologyData = a.numerology_data ?? null;
+  let baziInterp = (aMeta.bazi_interp as string | null) ?? null;
+  let numerologyInterp = (aMeta.numerology_interp as string | null) ?? null;
+
+  if (!baziData || !baziInterp) {
     const { bazi, numerology } = calculate({
-      dob: lead.dob ?? '',
+      dob: report.lead.birth_date ?? '',
       birthTime: null,
-      birthPlace: (metadata.birth_place as string) ?? 'vietnam',
-      gender: ((metadata.gender as 0 | 1) ?? 1),
-      fullName: (metadata.full_name as string) ?? undefined,
+      birthPlace: (leadMeta.birth_place as string) ?? 'vietnam',
+      gender: ((leadMeta.gender as 0 | 1) ?? 1),
+      fullName: report.lead.full_name ?? undefined,
     });
 
     const [bazi_interp, numerology_interp] = await Promise.all([
@@ -37,38 +41,32 @@ export default async function BaziNumerologyPage({
       interpret('numerology', numerology).catch(() => null),
     ]);
 
-    // We wrap these in a try-catch to avoid crashing the whole page
-    // if the database cache insertion fails (e.g., due to RLS or constraints).
     try {
-      await upsertProfileData(lead.id, lead.dob, {
-        bazi,
-        numerology,
-        bazi_interp,
-        numerology_interp,
+      await neduApi.updateAssessment(token, {
+        bazi_data: bazi as Record<string, unknown>,
+        numerology_data: numerology as Record<string, unknown>,
+        metadata: { ...aMeta, bazi_interp, numerology_interp },
       });
-    } catch (upsertError: any) {
-      console.error('Failed to cache bazi/numerology profile data:', upsertError?.message || upsertError);
+    } catch (err: any) {
+      console.error('Failed to cache bazi/numerology data:', err?.message || err);
     }
 
-    data = {
-      has_bazi: true,
-      bazi_data: bazi,
-      numerology_data: numerology,
-      bazi_interp: bazi_interp,
-      numerology_interp: numerology_interp,
-    };
+    baziData = bazi;
+    numerologyData = numerology;
+    baziInterp = bazi_interp;
+    numerologyInterp = numerology_interp;
   }
 
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto py-8 px-4 overflow-x-hidden w-full">
       <BaziResultView
-        baziData={data.bazi_data}
-        baziInterp={data.bazi_interp ?? undefined}
+        baziData={baziData}
+        baziInterp={baziInterp ?? undefined}
       />
       <hr className="w-full my-8 border-[#F0EBE5]" />
       <NumerologyResultView
-        numerologyData={data.numerology_data}
-        numerologyInterp={data.numerology_interp ?? undefined}
+        numerologyData={numerologyData}
+        numerologyInterp={numerologyInterp ?? undefined}
       />
     </div>
   );
