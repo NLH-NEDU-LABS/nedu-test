@@ -14,6 +14,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, report_token: result.report_token });
   } catch (err: any) {
     console.error('Send Result API failed:', err);
-    return NextResponse.json({ error: 'Failed to process email' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Failed to process email',
+        message: err?.message ?? String(err),
+        upstream_status: err?.status ?? null,
+      },
+      { status: 500 },
+    );
   }
 }

@@ -99,6 +99,8 @@ export const useQuizFlow = () => {
       const payload = {
         name: data.fullName,
         email: data.email,
+        phone: data.phone,
+        telegram_username: data.telegramUsername,
         persona_label: assessmentResult.persona_label,
         persona_id: assessmentResult.persona_id,
         top_problem_1: assessmentResult.top_problems[0]?.label || "",

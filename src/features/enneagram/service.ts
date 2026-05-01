@@ -1,10 +1,11 @@
 /**
  * Enneagram service — scoreAndDescribe().
  * Mirror of features/mbti/service.ts.
+ *
+ * Migrated from Supabase 2026-04 — fetches context + persists via api.nedu.vn.
  */
 import { ENNEAGRAM_NAMES } from './data';
-import { findByReportToken } from '@/features/lead/repository';
-import { upsertProfileData } from '@/features/shared/profile-repository';
+import { neduApi } from '@/lib/nedu-api/client';
 import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini/client';
 import { buildEnneagramPrompt } from '@/lib/gemini/prompts';
 
@@ -18,20 +19,19 @@ export interface EnneagramScoreResult {
   enneagram_desc: string;
 }
 
-/**
- * Score Enneagram, generate AI description, persist to DB.
- */
 export async function scoreAndDescribe(input: EnneagramScoreInput): Promise<EnneagramScoreResult> {
   const { token } = input;
   const typeStr = String(input.enneagram_type);
 
-  // 1. Find lead
-  const lead = await findByReportToken(token);
-  if (!lead) throw Object.assign(new Error('Lead not found'), { status: 404 });
+  // 1. Fetch existing assessment for AI prompt context.
+  const report = await neduApi.getReport(token).catch((err) => {
+    if (err?.status === 404) return null;
+    throw err;
+  });
+  if (!report) throw Object.assign(new Error('Lead not found'), { status: 404 });
 
-  const metadata = lead.metadata as Record<string, unknown>;
-  const persona_label = (metadata.persona_label as string) || 'Chưa xác định';
-  const goal = lead.goal || 'Chưa làm rõ';
+  const persona_label = report.assessment.persona_label || 'Chưa xác định';
+  const goal = report.lead.goal || 'Chưa làm rõ';
   const enneagram_name = ENNEAGRAM_NAMES[typeStr] || `Type ${typeStr}`;
 
   // 2. Generate AI description
@@ -51,10 +51,10 @@ export async function scoreAndDescribe(input: EnneagramScoreInput): Promise<Enne
     console.error('[Enneagram] Gemini error (after retries):', err);
   }
 
-  // 3. Persist to DB (Single Source of Truth)
-  await upsertProfileData(lead.id, lead.dob, {
+  // 3. Persist to nedu (enneagram_type column + enneagram_desc in metadata).
+  await neduApi.updateAssessment(token, {
     enneagram_type: typeStr,
-    enneagram_desc,
+    metadata: { enneagram_desc },
   });
 
   return { enneagram_type: typeStr, enneagram_desc };

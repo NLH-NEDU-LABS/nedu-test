@@ -93,7 +93,7 @@ export const FALLBACK_RECOMMENDATION = {
 export const BASE_URLS = {
   landing: 'https://test.nedu.vn/',
   neduSite: 'https://nedu.nhi.sg',
-  reportBase: process.env.NEXT_PUBLIC_REPORT_BASE_URL ?? 'https://test.nhi.sg',
+  reportBase: process.env.NEXT_PUBLIC_REPORT_BASE_URL ?? 'https://test.nedu.vn',
 } as const;
 
 // ---------------------------------------------------------------------------

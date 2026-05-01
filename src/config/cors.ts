@@ -10,8 +10,9 @@ export const ALLOWED_ORIGINS = [
   // Production app
   'https://test.nhi.sg',
   'https://nedu.nhi.sg',
-  // Landing page
+  // Landing page (production + preview)
   'https://test.nedu.vn',
+  'https://landing-lane-connect.vercel.app',
   // Local testing
   'http://localhost:8080',
   'http://localhost:5173',

@@ -1,13 +1,10 @@
 /**
  * MBTI service — scoreAndDescribe().
  *
- * Key improvement: uses shared profile-repository to eliminate
- * the duplicate SELECT → if/else INSERT/UPDATE pattern.
+ * Migrated from Supabase 2026-04 — fetches context + persists via api.nedu.vn.
  */
-import { calculateMBTI } from './scoring';
 import { MBTI_NAMES } from './data';
-import { findByReportToken } from '@/features/lead/repository';
-import { upsertProfileData } from '@/features/shared/profile-repository';
+import { neduApi } from '@/lib/nedu-api/client';
 import { getGeminiModel, geminiGenerateJSON } from '@/lib/gemini/client';
 import { buildMbtiPrompt } from '@/lib/gemini/prompts';
 
@@ -21,19 +18,18 @@ export interface MbtiScoreResult {
   mbti_desc: string;
 }
 
-/**
- * Score MBTI, generate AI description, persist to DB.
- */
 export async function scoreAndDescribe(input: MbtiScoreInput): Promise<MbtiScoreResult> {
   const { token, mbti_type } = input;
 
-  // 1. Find lead
-  const lead = await findByReportToken(token);
-  if (!lead) throw Object.assign(new Error('Lead not found'), { status: 404 });
+  // 1. Fetch existing assessment for AI prompt context.
+  const report = await neduApi.getReport(token).catch((err) => {
+    if (err?.status === 404) return null;
+    throw err;
+  });
+  if (!report) throw Object.assign(new Error('Lead not found'), { status: 404 });
 
-  const metadata = lead.metadata as Record<string, unknown>;
-  const persona_label = (metadata.persona_label as string) || 'Chưa xác định';
-  const goal = lead.goal || 'Chưa làm rõ';
+  const persona_label = report.assessment.persona_label || 'Chưa xác định';
+  const goal = report.lead.goal || 'Chưa làm rõ';
   const mbti_name = MBTI_NAMES[mbti_type] || mbti_type;
 
   // 2. Generate AI description
@@ -48,10 +44,10 @@ export async function scoreAndDescribe(input: MbtiScoreInput): Promise<MbtiScore
     console.error('[MBTI] Gemini error (after retries):', err);
   }
 
-  // 3. Persist to DB (Single Source of Truth)
-  await upsertProfileData(lead.id, lead.dob, {
+  // 3. Persist to nedu (mbti_type column + mbti_desc in metadata).
+  await neduApi.updateAssessment(token, {
     mbti_type,
-    mbti_desc,
+    metadata: { mbti_desc },
   });
 
   return { mbti_type, mbti_desc };

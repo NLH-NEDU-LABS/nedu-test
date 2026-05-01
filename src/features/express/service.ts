@@ -1,55 +1,43 @@
-import { supabase } from '@/lib/supabase';
+/**
+ * Express complete flow — final step of test.nhi.sg quiz.
+ *
+ * 1. Fetch report data from nedu (data store).
+ * 2. Send day-16 email via SES (FE owns email delivery).
+ * 3. POST /complete to nedu — BE chỉ set completedAt + aiProfileConsent.
+ * 4. If consent=true → notify Telegram (FE owns Telegram delivery).
+ *
+ * BE là data store, mọi external side effect (email, Telegram) ở FE.
+ */
+import { neduApi } from '@/lib/nedu-api/client';
 import { notifyTelegram } from '@/lib/telegram/client';
 import { buildHtml, sendEmail } from '@/lib/email/templates';
 import { BASE_URLS } from '@/config/constants';
-import type { Lead } from '@/features/email-sequence/types';
+import type { Lead } from '@/lib/email-sequence/types';
 
 export async function completeExpressFlow(token: string, consent: boolean): Promise<{ success: boolean }> {
-  // 1. Fetch lead info and personal profiles
-  // 1a. Fetch lead
-  const { data: lead, error } = await supabase
-    .from('leads')
-    .select('id, job, goal, metadata, personal_profiles ( profile_data )')
-    .eq('metadata->>report_token', token)
-    .single();
-
-  if (error || !lead) {
-    console.error('[ExpressComplete] Lead not found for token:', token, error);
+  // 1. Fetch report from nedu.
+  const report = await neduApi.getReport(token).catch((err: any) => {
+    if (err?.status === 404) return null;
+    throw err;
+  });
+  if (!report) {
+    console.error('[ExpressComplete] Report not found for token:', token);
     throw new Error('Lead not found');
   }
 
-  const metadata = (lead.metadata as Record<string, any>) || {};
-
-  // 1b. Fetch quiz_submission separately (same pattern as report/repository.ts)
-  const { data: quizSub } = await supabase
-    .from('quiz_submissions')
-    .select('visitor_email, visitor_name')
-    .eq('lead_id', lead.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const email: string = quizSub?.visitor_email || (metadata.email as string) || '';
-  const fullName: string = quizSub?.visitor_name || (metadata.name as string) || 'bạn';
+  const email = report.lead.email || '';
+  const fullName = report.lead.full_name || 'bạn';
+  const a = report.assessment;
+  const aMeta = (a.metadata ?? {}) as Record<string, unknown>;
 
   if (!email) {
-    console.error('[ExpressComplete] No email found for lead:', lead.id);
+    console.error('[ExpressComplete] No email found for lead:', report.lead.id);
     throw new Error('No email found for lead');
   }
 
-  // Update metadata with consent
-  await supabase
-    .from('leads')
-    .update({ metadata: { ...metadata, consent } })
-    .eq('id', lead.id);
+  const reportUrl = `${BASE_URLS.reportBase}/report/${token}`;
 
-  const profilesArray = lead.personal_profiles as any[];
-  const profileRow = Array.isArray(profilesArray) ? profilesArray[0] : (lead.personal_profiles as any);
-  const profile = (profileRow?.profile_data as Record<string, any>) || {};
-
-  const reportUrl = `${BASE_URLS.landing}report/${token}`;
-
-  // 2. Send email
+  // 2. Send day-16 email.
   const emailSubject = 'Kết quả phân tích chuyên sâu của bạn từ N-Education';
   const emailBody = `Chào ${fullName},
 
@@ -68,28 +56,29 @@ Trân trọng,
   const html = buildHtml(emailBody, 'Xem Báo Cáo Ngay', reportUrl);
   await sendEmail({ to: email, subject: emailSubject, html });
 
-  // 3. Notify Telegram if consented
-  if (consent) {
-    const pLabel = profile.persona_label || 'Chưa xác định';
-    const cName = profile.primary_course_name || 'Chưa xác định';
+  // 3. Mark complete on nedu (data only).
+  await neduApi.completeAssessment(token, consent);
 
+  // 4. Notify Telegram if consented (FE side effect, fire-and-forget).
+  if (consent) {
     const tgLead: Lead = {
-      id: lead.id,
+      id: report.lead.id,
       email,
       full_name: fullName,
-      day_number: 16, // using 16 as an arbitrary end-of-flow number
+      day_number: 16,
       report_token: token,
-      persona_label: pLabel,
-      primary_course_name: cName,
-      primary_course_url: profile.primary_course_url || null,
-      why_fits: profile.why_fits || null,
-      mbti_type: profile.mbti_type || null,
-      enneagram_type: profile.enneagram_type?.toString() || null,
-      job: lead.job || null,
-      goal: lead.goal || null
+      persona_label: a.persona_label ?? 'Chưa xác định',
+      primary_course_name: a.recommended_course_name ?? 'Chưa xác định',
+      primary_course_url: a.recommended_course_url ?? null,
+      why_fits: a.why_fits ?? null,
+      mbti_type: a.mbti_type ?? null,
+      enneagram_type: a.enneagram_type?.toString() ?? null,
+      job: report.lead.occupation ?? null,
+      goal: report.lead.goal ?? null,
     };
-
-    await notifyTelegram(tgLead);
+    await notifyTelegram(tgLead).catch((err) =>
+      console.error('[ExpressComplete] Telegram notify failed:', err),
+    );
   }
 
   return { success: true };
