@@ -35,7 +35,7 @@ export async function completeExpressFlow(token: string, consent: boolean): Prom
     throw new Error('No email found for lead');
   }
 
-  const reportUrl = `${BASE_URLS.landing}report/${token}`;
+  const reportUrl = `${BASE_URLS.reportBase}/report/${token}`;
 
   // 2. Send day-16 email.
   const emailSubject = 'Kết quả phân tích chuyên sâu của bạn từ N-Education';

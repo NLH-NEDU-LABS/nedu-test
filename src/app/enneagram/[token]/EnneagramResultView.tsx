@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { BASE_URLS } from '@/config/constants';
 
 export default function EnneagramResultView({ 
   enneagramType, 
@@ -27,10 +28,10 @@ export default function EnneagramResultView({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, consent })
       });
-      window.location.href = `https://test.nedu.vn/report/${token}`;
+      window.location.href = `${BASE_URLS.reportBase}/report/${token}`;
     } catch (e) {
       console.error(e);
-      window.location.href = `https://test.nedu.vn/report/${token}`;
+      window.location.href = `${BASE_URLS.reportBase}/report/${token}`;
     }
   };
 

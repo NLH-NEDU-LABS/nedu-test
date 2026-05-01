@@ -1,5 +1,6 @@
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 import type { Lead } from './types'
+import { BASE_URLS } from '@/config/constants'
 
 const ses = new SESClient({
   region: process.env.AWS_SES_REGION!,
@@ -95,7 +96,7 @@ function getTemplate(lead: Lead, day: number): EmailTemplate | null {
         subject: 'Full report tổng hợp 5 điểm số của bạn',
         content: `Chào ${name},\n\nHành trình 2 tuần qua — MaxDiff, MBTI, Enneagram, Bát Tự, Thần Số Học — tất cả giờ đã được tổng hợp thành một bức tranh đầy đủ về bạn.\n\nNhi đã đọc qua profile của bạn. Có một vài điểm giao thoa thú vị giữa các bài test mà Nhi muốn bạn tự khám phá.`,
         ctaLabel: 'Xem full report của tôi →',
-        ctaUrl: `https://test.nhi.sg/report/${token}`,
+        ctaUrl: `${BASE_URLS.reportBase}/report/${token}`,
       }
 
     case 16: {

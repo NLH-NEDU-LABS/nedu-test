@@ -6,6 +6,7 @@
  * becomes a re-export stub in Phase 1 to avoid breaking imports.
  */
 import type { Lead } from '@/lib/email-sequence/types';
+import { BASE_URLS } from '@/config/constants';
 
 /**
  * Send a Telegram message to the configured chat when a lead
@@ -27,7 +28,7 @@ export async function notifyTelegram(lead: Lead): Promise<void> {
     `🧠 MBTI: ${lead.mbti_type ?? 'Chưa làm'} | Enneagram: ${lead.enneagram_type ?? 'Chưa làm'}`,
     `🎯 Vấn đề: ${lead.goal ?? lead.job ?? 'Không rõ'}`,
     `📚 Khoá gợi ý: ${lead.primary_course_name ?? 'Chưa có'}`,
-    `🔗 Full report: https://test.nedu.vn/report/${lead.report_token}`,
+    `🔗 Full report: ${BASE_URLS.reportBase}/report/${lead.report_token}`,
     `📧 Email: ${lead.email}`,
   ].join('\n');
 
