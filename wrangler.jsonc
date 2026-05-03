@@ -10,5 +10,9 @@
   },
   "placement": {
     "mode": "smart"
+  },
+  "vars": {
+    "NEXT_PUBLIC_ASSESSMENT_MODE": "express",
+    "NEXT_PUBLIC_REPORT_BASE_URL": "https://nedu-test-dev.sonle.workers.dev"
   }
 }
