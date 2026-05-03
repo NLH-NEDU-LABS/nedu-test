@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cf": "opennextjs-cloudflare build",
+    "preview:cf": "opennextjs-cloudflare preview",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
@@ -20,7 +22,7 @@
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "lucide-react": "^1.7.0",
-    "next": "16.2.1",
+    "next": "^16.2.4",
     "puppeteer-core": "^24.40.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -29,6 +31,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.19.5",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -38,6 +41,7 @@
     "eslint-config-next": "16.2.1",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^3.1.2"
+    "vitest": "^3.1.2",
+    "wrangler": "^4.87.0"
   }
 }
