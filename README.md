@@ -1,34 +1,73 @@
-## Getting Started
+# test.nhi.sg — Nedu Assessment App
 
-First, run the development server:
+**Next.js** app chạy bài kiểm tra tính cách / định hướng học tập (MaxDiff, MBTI, Enneagram, Bazi).  
+Sau khi hoàn thành → lưu kết quả vào Supabase, gửi email, và redirect user sang **test.nedu.vn** để xem report.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## How it works
+
+```
+User mở test.nhi.sg
+  → làm quiz (MaxDiff → AI scoring → kết quả)
+  → kết quả lưu vào Supabase, sinh ra token
+  → redirect tới test.nedu.vn/report/{token}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Stack: Next.js · Supabase · Gemini AI · AWS SES · Cloudflare Workers (deploy)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup
 
-## Learn More
+```bash
+npm install
+cp .env.example .env.local   # điền các giá trị bên dưới
+npm run dev                  # http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Env vars (`.env.local`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Biến | Bắt buộc | Lấy ở đâu |
+|------|----------|-----------|
+| `SUPABASE_URL` | ✅ | Supabase project → Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Supabase project → Settings → API |
+| `GEMINI_API_KEY` | ✅ | [aistudio.google.com](https://aistudio.google.com) |
+| `NEXT_PUBLIC_REPORT_BASE_URL` | ✅ | Local: `http://localhost:8080` · Prod: `https://test.nedu.vn` |
+| `NEXT_PUBLIC_ASSESSMENT_MODE` | ✅ | Để `express` |
+| `NEDU_BACKEND_URL` | ⚠️ | URL backend nếu có service riêng (local: `http://localhost:8080`) |
+| `NEDU_INTERNAL_SECRET` | ⚠️ | Secret dùng để xác thực server-to-server |
+| `AWS_SES_REGION` | 📧 optional | `ap-southeast-1` |
+| `AWS_ACCESS_KEY_ID` | 📧 optional | AWS IAM credentials |
+| `AWS_SECRET_ACCESS_KEY` | 📧 optional | AWS IAM credentials |
+| `TELEGRAM_BOT_TOKEN` | 💬 optional | BotFather token |
+| `TELEGRAM_CHAT_ID` | 💬 optional | Chat/channel ID |
+| `GEONAMES_USERNAME` | 🌏 optional | [geonames.org](https://www.geonames.org) (cho Bazi geocode) |
+| `CRON_SECRET` | ⏰ optional | Bất kỳ string ngẫu nhiên (bảo vệ endpoint cron) |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Deploy (Cloudflare Workers)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run build:cf        # build với OpenNext
+npx wrangler deploy     # deploy lên Cloudflare
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Secrets (không để trong wrangler.jsonc) — set qua Cloudflare dashboard hoặc CLI:
+```bash
+npx wrangler secret put SUPABASE_URL
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+npx wrangler secret put GEMINI_API_KEY
+# ... tương tự các biến còn lại
+```
+
+---
+
+## Link với test.nedu.vn
+
+Repo này là **backend + frontend của quiz**.  
+Sau khi user hoàn thành, app redirect tới `NEXT_PUBLIC_REPORT_BASE_URL/report/{token}`.  
+**test.nedu.vn** nhận token đó và gọi lại `/api/report/{token}` của repo này để lấy dữ liệu hiển thị.
+
+→ Xem thêm: [test.nedu.vn repo](../test.nedu.vn)
