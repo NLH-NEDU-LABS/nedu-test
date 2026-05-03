@@ -70,4 +70,4 @@ Repo này là **backend + frontend của quiz**.
 Sau khi user hoàn thành, app redirect tới `NEXT_PUBLIC_REPORT_BASE_URL/report/{token}`.  
 **test.nedu.vn** nhận token đó và gọi lại `/api/report/{token}` của repo này để lấy dữ liệu hiển thị.
 
-→ Xem thêm: [test.nedu.vn repo](../test.nedu.vn)
+→ Xem thêm: [test.nedu.vn repo](https://github.com/NLH-NEDU-LABS/nedu-test-report)
