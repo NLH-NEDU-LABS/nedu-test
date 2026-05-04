@@ -67,12 +67,13 @@ Bật khi: **chị Hà / admin yêu cầu** cho người ngoài dùng. Cần AWS
 **`express`** — chế độ test nội bộ, dành cho học viên NEducation:
 
 ```
-User làm MaxDiff → nhận kết quả
+User làm liên tục một mạch:
+  MaxDiff → MBTI → Enneagram → Bazi
   → gửi 1 email duy nhất: report tổng hợp cuối
   → không có chuỗi email 16 ngày
 ```
 
-Bật khi: **giai đoạn test ban đầu** — học viên không cần chờ cả chuỗi drip.
+Bật khi: **giai đoạn test ban đầu** — học viên làm hết tất cả bài một lần, nhận kết quả ngay.
 
 > **Default hiện tại:** `express`. Đừng tự đổi sang `drip` nếu chưa có yêu cầu từ admin.
 
