@@ -13,6 +13,10 @@ export const ALLOWED_ORIGINS = [
   // Landing page (production + preview)
   'https://test.nedu.vn',
   'https://landing-lane-connect.vercel.app',
+  // Cloudflare Workers dev deployments (*.workers.dev)
+  /^https:\/\/.*\.workers\.dev$/,
+  // Vercel preview deployments
+  /^https:\/\/.*\.vercel\.app$/,
   // Local testing
   'http://localhost:8080',
   'http://localhost:5173',
