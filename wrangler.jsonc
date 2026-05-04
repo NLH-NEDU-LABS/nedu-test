@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nedu-test-prod",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": ".open-next/worker.js",
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "placement": {
+    "mode": "smart"
+  },
+  "vars": {
+    "NEXT_PUBLIC_ASSESSMENT_MODE": "express",
+    "NEXT_PUBLIC_REPORT_BASE_URL": "https://test.nedu.vn"
+  }
+}
