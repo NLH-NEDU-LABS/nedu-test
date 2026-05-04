@@ -37,8 +37,6 @@ npm run dev                  # http://localhost:3000
 | `GEMINI_API_KEY` | ✅ | [aistudio.google.com](https://aistudio.google.com) |
 | `NEXT_PUBLIC_REPORT_BASE_URL` | ✅ | Local: `http://localhost:8080` · Prod: `https://test.nedu.vn` |
 | `NEXT_PUBLIC_ASSESSMENT_MODE` | ✅ | `express` hoặc `drip` — xem bên dưới |
-| `SUPABASE_URL` | ⚠️ legacy | Còn trong env schema, chưa xoá — điền tạm để app khởi động |
-| `SUPABASE_SERVICE_ROLE_KEY` | ⚠️ legacy | Tương tự trên |
 | `AWS_SES_REGION` | 📧 optional | `ap-southeast-1` (chỉ cần khi dùng chế độ `drip`) |
 | `AWS_ACCESS_KEY_ID` | 📧 optional | AWS IAM credentials |
 | `AWS_SECRET_ACCESS_KEY` | 📧 optional | AWS IAM credentials |
