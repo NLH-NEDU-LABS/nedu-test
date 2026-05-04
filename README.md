@@ -47,12 +47,34 @@ npm run dev                  # http://localhost:3000
 
 ### Assessment Mode: `express` vs `drip`
 
-| Mode | Khi nào dùng | Email | Quiz flow |
-|------|-------------|-------|-----------|
-| `express` | Giai đoạn test ban đầu, dành cho học viên NEducation — họ không phải chờ | Không gửi email | MaxDiff → Flower → MBTI → Enneagram → redirect report |
-| `drip` | Khi admin (chị Hà) yêu cầu bật cho người ngoài — họ sẽ nhận email theo lịch đã set | Gửi AI-generated email Day 0 qua AWS SES ngay sau submit | MaxDiff → result → redirect report |
+**`drip`** — chế độ chính thức cho traffic bên ngoài (YouTube, fanpage, …):
 
-> **Default hiện tại:** `express`. Để bật `drip`, đổi biến này và đảm bảo AWS SES đã được cấu hình.
+```
+User nhấn link test.nhi.sg
+  → làm MaxDiff → nhận kết quả
+  → Day 0 : Teaser result + "Bạn là kiểu người nào?"
+  → Day 2 : MBTI trong email (link test đầy đủ)
+  → Day 5 : Enneagram
+  → Day 10: BaZi / Tử vi (nếu chưa có)
+  → Day 14: Full report tổng hợp 5 điểm số + link test.nedu.vn
+  → Day 16: Tư vấn viên liên hệ (dựa trên data)
+```
+
+Bật khi: **chị Hà / admin yêu cầu** cho người ngoài dùng. Cần AWS SES đã config.
+
+---
+
+**`express`** — chế độ test nội bộ, dành cho học viên NEducation:
+
+```
+User làm MaxDiff → nhận kết quả
+  → gửi 1 email duy nhất: report tổng hợp cuối
+  → không có chuỗi email 16 ngày
+```
+
+Bật khi: **giai đoạn test ban đầu** — học viên không cần chờ cả chuỗi drip.
+
+> **Default hiện tại:** `express`. Đừng tự đổi sang `drip` nếu chưa có yêu cầu từ admin.
 
 ---
 
