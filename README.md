@@ -34,7 +34,7 @@ npm run dev                  # http://localhost:3000
 | `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Supabase project → Settings → API |
 | `GEMINI_API_KEY` | ✅ | [aistudio.google.com](https://aistudio.google.com) |
 | `NEXT_PUBLIC_REPORT_BASE_URL` | ✅ | Local: `http://localhost:8080` · Prod: `https://test.nedu.vn` |
-| `NEXT_PUBLIC_ASSESSMENT_MODE` | ✅ | Để `express` |
+| `NEXT_PUBLIC_ASSESSMENT_MODE` | ✅ | `express` hoặc `drip` — xem bên dưới |
 | `NEDU_BACKEND_URL` | ⚠️ | URL backend nếu có service riêng (local: `http://localhost:8080`) |
 | `NEDU_INTERNAL_SECRET` | ⚠️ | Secret dùng để xác thực server-to-server |
 | `AWS_SES_REGION` | 📧 optional | `ap-southeast-1` |
@@ -44,6 +44,15 @@ npm run dev                  # http://localhost:3000
 | `TELEGRAM_CHAT_ID` | 💬 optional | Chat/channel ID |
 | `GEONAMES_USERNAME` | 🌏 optional | [geonames.org](https://www.geonames.org) (cho Bazi geocode) |
 | `CRON_SECRET` | ⏰ optional | Bất kỳ string ngẫu nhiên (bảo vệ endpoint cron) |
+
+### Assessment Mode: `express` vs `drip`
+
+| Mode | Khi nào dùng | Email | Quiz flow |
+|------|-------------|-------|-----------|
+| `express` | Giai đoạn test ban đầu, dành cho học viên NEducation — họ không phải chờ | Không gửi email | MaxDiff → Flower → MBTI → Enneagram → redirect report |
+| `drip` | Khi admin (chị Hà) yêu cầu bật cho người ngoài — họ sẽ nhận email theo lịch đã set | Gửi AI-generated email Day 0 qua AWS SES ngay sau submit | MaxDiff → result → redirect report |
+
+> **Default hiện tại:** `express`. Để bật `drip`, đổi biến này và đảm bảo AWS SES đã được cấu hình.
 
 ---
 
