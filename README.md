@@ -1,7 +1,7 @@
 # test.nhi.sg — Nedu Assessment App
 
 **Next.js** app chạy bài kiểm tra tính cách / định hướng học tập (MaxDiff, MBTI, Enneagram, Bazi).  
-Sau khi hoàn thành → lưu kết quả vào Supabase, gửi email, và redirect user sang **test.nedu.vn** để xem report.
+Sau khi hoàn thành → lưu kết quả vào backend, gửi email, và redirect user sang **test.nedu.vn** để xem report.
 
 ---
 
@@ -9,12 +9,14 @@ Sau khi hoàn thành → lưu kết quả vào Supabase, gửi email, và redire
 
 ```
 User mở test.nhi.sg
-  → làm quiz (MaxDiff → AI scoring → kết quả)
-  → kết quả lưu vào Supabase, sinh ra token
+  → làm quiz liên tục một mạch (MaxDiff → MBTI → Enneagram → Bazi)
+  → kết quả + lead data gửi về api.nedu.vn (single source of truth)
   → redirect tới test.nedu.vn/report/{token}
 ```
 
-Stack: Next.js · Supabase · Gemini AI · AWS SES · Cloudflare Workers (deploy)
+> App này chỉ xử lý logic tính toán và quiz flow. Toàn bộ data (lead, assessment) lưu trên **api.nedu.vn** — không dùng Supabase trực tiếp nữa.
+
+Stack: Next.js · Gemini AI · AWS SES · Cloudflare Workers (deploy)
 
 ---
 
@@ -30,14 +32,14 @@ npm run dev                  # http://localhost:3000
 
 | Biến | Bắt buộc | Lấy ở đâu |
 |------|----------|-----------|
-| `SUPABASE_URL` | ✅ | Supabase project → Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Supabase project → Settings → API |
+| `NEDU_BACKEND_URL` | ✅ | URL của api.nedu.vn (prod: `https://api.nedu.vn`) |
+| `NEDU_INTERNAL_SECRET` | ✅ | Secret server-to-server — lấy từ người bàn giao |
 | `GEMINI_API_KEY` | ✅ | [aistudio.google.com](https://aistudio.google.com) |
 | `NEXT_PUBLIC_REPORT_BASE_URL` | ✅ | Local: `http://localhost:8080` · Prod: `https://test.nedu.vn` |
 | `NEXT_PUBLIC_ASSESSMENT_MODE` | ✅ | `express` hoặc `drip` — xem bên dưới |
-| `NEDU_BACKEND_URL` | ⚠️ | URL backend nếu có service riêng (local: `http://localhost:8080`) |
-| `NEDU_INTERNAL_SECRET` | ⚠️ | Secret dùng để xác thực server-to-server |
-| `AWS_SES_REGION` | 📧 optional | `ap-southeast-1` |
+| `SUPABASE_URL` | ⚠️ legacy | Còn trong env schema, chưa xoá — điền tạm để app khởi động |
+| `SUPABASE_SERVICE_ROLE_KEY` | ⚠️ legacy | Tương tự trên |
+| `AWS_SES_REGION` | 📧 optional | `ap-southeast-1` (chỉ cần khi dùng chế độ `drip`) |
 | `AWS_ACCESS_KEY_ID` | 📧 optional | AWS IAM credentials |
 | `AWS_SECRET_ACCESS_KEY` | 📧 optional | AWS IAM credentials |
 | `TELEGRAM_BOT_TOKEN` | 💬 optional | BotFather token |
