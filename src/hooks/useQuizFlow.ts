@@ -88,15 +88,27 @@ export const useQuizFlow = () => {
 
   const handleAdvancedTestStart = useCallback((data: UserBirthData) => {
     setUserBirthData(data);
-    
+
+    // Tách 2 luồng độc lập:
+    //   (A) UI: user nhấn submit → chuyển ngay sang màn success, không chờ BE.
+    //   (B) Ingest lead: fire-and-forget POST /api/send-result chạy ngầm.
+    // Nếu (B) fail vì lý do gì đó (BE down, NO_CONSULTANT_AVAILABLE, ...)
+    // thì UI vẫn smooth, chỉ log lỗi vào console.
+    const token =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
     if (!isExpressMode) {
       setStep('flowerTest');
     } else {
-      setStep('expressLoading');
+      setReportToken(token);
+      setStep('expressSuccess');
     }
 
     if (assessmentResult && persona) {
       const payload = {
+        report_token: token,
         name: data.fullName,
         email: data.email,
         phone: data.phone,
@@ -123,16 +135,16 @@ export const useQuizFlow = () => {
       fetch('/api/send-result', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        keepalive: true,
       })
-      .then(res => res.json())
-      .then(resData => {
-        if (isExpressMode && resData.report_token) {
-          setReportToken(resData.report_token);
-          setStep('expressSuccess');
-        }
-      })
-      .catch(console.error);
+        .then(async (res) => {
+          if (!res.ok) {
+            const text = await res.text().catch(() => '<no body>');
+            console.error('[send-result] HTTP', res.status, text);
+          }
+        })
+        .catch((err) => console.error('[send-result] network error:', err));
     }
   }, [assessmentResult, persona]);
 

@@ -16,6 +16,10 @@ import { BASE_URLS } from '@/config/constants';
 import { neduApi } from '@/lib/nedu-api/client';
 
 export interface SendResultInput {
+  // FE pre-generate UUID rồi truyền xuống → dùng làm khóa idempotent + redirect
+  // sang /mbti/:token NGAY mà không cần đợi BE trả response. Nếu thiếu (legacy
+  // caller), service tự sinh để giữ tương thích ngược.
+  report_token?: string;
   name: string | null;
   email: string;
   phone: string;
@@ -56,7 +60,7 @@ export async function processSendResult(input: SendResultInput): Promise<{ repor
   const why_fits = ai_recommendation?.why_fits || '';
 
   const crypto = await import('crypto');
-  const report_token = crypto.randomUUID();
+  const report_token = input.report_token ?? crypto.randomUUID();
   const source_ref = crypto.randomUUID();
 
   // 1. Generate AI email content
