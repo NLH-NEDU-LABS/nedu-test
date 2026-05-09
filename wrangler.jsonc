@@ -1,9 +1,11 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "nedu-test-prod",
-  "compatibility_date": "2025-04-01",
+  "compatibility_date": "2025-11-01",
   "compatibility_flags": ["nodejs_compat"],
-  "main": ".open-next/worker.js",
+  // Custom wrapper thêm scheduled() cho cron; delegate fetch sang .open-next/worker.js.
+  // Wrapper import từ '../.open-next/worker.js' nên `build:cf` PHẢI chạy trước `wrangler deploy`.
+  "main": "cloudflare/worker.ts",
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
@@ -11,8 +13,35 @@
   "placement": {
     "mode": "smart"
   },
+  "observability": {
+    "enabled": true
+  },
+  // Cron Trigger thay cho Vercel Cron.
+  // Cloudflare đánh giá cron biểu thức theo UTC: "0 1 * * *" = 1AM UTC = 8AM giờ Việt Nam.
+  // Nếu muốn 1h sáng giờ VN thì đổi thành "0 18 * * *" (18:00 UTC ngày hôm trước).
+  "triggers": {
+    "crons": ["0 1 * * *"]
+  },
   "vars": {
     "NEXT_PUBLIC_ASSESSMENT_MODE": "express",
-    "NEXT_PUBLIC_REPORT_BASE_URL": "https://test.nedu.vn"
+    "NEXT_PUBLIC_REPORT_BASE_URL": "https://test.nhi.sg"
+  },
+  // Secrets (không commit) — set bằng `wrangler secret put <KEY>`:
+  //   NEDU_BACKEND_URL, NEDU_INTERNAL_SECRET, GEMINI_API_KEY, CRON_SECRET,
+  //   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+  //   AWS_SES_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY (drip mode),
+  //   GEONAMES_USERNAME, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (drip mode)
+  "env": {
+    "preview": {
+      "name": "nedu-test-preview",
+      "vars": {
+        "NEXT_PUBLIC_ASSESSMENT_MODE": "express",
+        "NEXT_PUBLIC_REPORT_BASE_URL": "https://nedu-test-preview.workers.dev"
+      },
+      // Preview thường không cần cron — bật khi cần test luồng drip
+      "triggers": {
+        "crons": []
+      }
+    }
   }
 }
