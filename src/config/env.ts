@@ -9,9 +9,15 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  // Supabase
-  SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL'),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
+  // Nedu Backend (NestJS) — toàn bộ data lead/assessment
+  NEDU_BACKEND_URL: z.string().url('NEDU_BACKEND_URL must be a valid URL'),
+  NEDU_INTERNAL_SECRET: z.string().min(1, 'NEDU_INTERNAL_SECRET is required'),
+
+  // Supabase — chỉ dùng cho drip mode (RPC get_leads_by_day).
+  // Optional ở schema để build/run express mode không cần set;
+  // nếu drip cron chạy mà thiếu thì supabase client sẽ throw at runtime (fail fast).
+  SUPABASE_URL: z.string().url().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
 
   // Gemini
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
@@ -20,13 +26,16 @@ const envSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().min(1, 'TELEGRAM_BOT_TOKEN is required'),
   TELEGRAM_CHAT_ID: z.string().min(1, 'TELEGRAM_CHAT_ID is required'),
 
-  // Vercel Cron auth
+  // Cron auth (Cloudflare Workers Cron Trigger gọi /api/cron/email-sequence)
   CRON_SECRET: z.string().min(1, 'CRON_SECRET is required'),
 
-  // AWS SES (optional — empty string allowed for local dev without email sending)
+  // AWS SES (optional — chỉ cần khi assessment mode = drip)
   AWS_ACCESS_KEY_ID: z.string().optional(),
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
   AWS_SES_REGION: z.string().default('ap-southeast-1'),
+
+  // Geocoding (optional — tính năng Bát Tự cần biết toạ độ nơi sinh)
+  GEONAMES_USERNAME: z.string().optional(),
 
   // App base URL
   NEXT_PUBLIC_REPORT_BASE_URL: z

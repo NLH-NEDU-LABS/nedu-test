@@ -8,6 +8,11 @@
  *
  * NOTE: Next.js middleware runs in the Edge Runtime.
  * Only use Web APIs (no Node builtins like 'crypto', 'fs').
+ *
+ * Deprecation note: Next 16 deprecated `middleware.ts` in favour of `proxy.ts`,
+ * but `proxy.ts` defaults to Node runtime and disallows opt-in to Edge — which
+ * is incompatible with @opennextjs/cloudflare (Cloudflare Workers only support
+ * Edge for middleware). Keep this file until OpenNext supports Node-runtime proxy.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getCorsHeaders } from '@/config/cors';
