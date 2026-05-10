@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "nedu-test-prod",
+  "name": "nedu-test",
   "compatibility_date": "2025-11-01",
   "compatibility_flags": ["nodejs_compat"],
   // Custom wrapper thêm scheduled() cho cron; delegate fetch sang .open-next/worker.js.
