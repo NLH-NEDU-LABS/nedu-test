@@ -25,23 +25,14 @@ function sumDigits(num: number): number {
 
 // ===== LIFE PATH NUMBER =====
 // Input: dob as "YYYY-MM-DD"
+// Method: all-digit (phổ biến trong numerology Việt) — cộng tất cả digits của dob,
+// reduce dần và CHECK master 11/22/33 ở mỗi bước.
+// Bug cũ: sumDigits luôn được gọi trước check master nên dob có total = 22 (vd 2/9/2018:
+// 9+2+11=22) bị mất master ngay lập tức và ra 4.
 export function calculateLifePathNumber(dob: string): number {
   const [year, month, day] = dob.split('-').map(Number);
-
-  const sumMonth = sumDigits(month);
-  const sumDay = sumDigits(day);
-  const sumYear = sumDigits(year);
-
-  let lifePath = sumDigits(sumMonth + sumDay + sumYear);
-
-  // Check master numbers
-  if ([11, 22, 33].includes(lifePath)) return lifePath;
-
-  while (lifePath > 9) {
-    lifePath = sumDigits(lifePath);
-  }
-
-  return lifePath;
+  const total = sumDigits(month) + sumDigits(day) + sumDigits(year);
+  return reduceDigitMaster(total);
 }
 
 // ===== DESTINY NUMBER (Expression Number) =====
@@ -62,12 +53,7 @@ export function calculateDestinyNumber(fullName: string): number {
     }
   }
 
-  while (letterSum > 9) {
-    if ([11, 22, 33].includes(letterSum)) break;
-    letterSum = String(letterSum).split('').reduce((s, d) => s + parseInt(d), 0);
-  }
-
-  return letterSum;
+  return reduceDigitMaster(letterSum);
 }
 
 // ===== SOUL URGE NUMBER (Heart's Desire) =====
@@ -89,13 +75,7 @@ export function calculateSoulUrgeNumber(fullName: string): number {
     }
   }
 
-  if ([11, 22, 33].includes(soulUrgeSum)) return soulUrgeSum;
-
-  while (soulUrgeSum > 9) {
-    soulUrgeSum = String(soulUrgeSum).split('').reduce((s, d) => s + parseInt(d), 0);
-  }
-
-  return soulUrgeSum;
+  return reduceDigitMaster(soulUrgeSum);
 }
 
 // ===== NAME CHART (Biểu đồ tên) =====

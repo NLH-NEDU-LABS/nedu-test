@@ -34,7 +34,7 @@ export interface CalculateResult {
  */
 export function calculate(input: CalculateInput): CalculateResult {
   const tz = getTimezoneForLocation(input.birthPlace);
-  const timeToUse = input.birthTime || '12:00';
+  const timeToUse = (input.birthTime || '12:00').slice(0, 5);
   const isoString = `${input.dob}T${timeToUse}:00${tz}`;
 
   const solarTime = getSolarTime(isoString, tz);
