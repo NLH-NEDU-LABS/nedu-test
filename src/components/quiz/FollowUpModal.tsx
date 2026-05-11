@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Mail, Calendar, Briefcase, ChevronRight, X, User, MapPin } from 'lucide-react';
+import Image from 'next/image';
+import { Mail, Calendar, Briefcase, ChevronRight, X, User, MapPin, HelpCircle } from 'lucide-react';
 import { LocationAutocomplete, type GeoLocation } from '@/components/ui/location-autocomplete';
 import type { UserBirthData } from '@/types/user-data';
 import { isExpressMode } from '@/config/constants';
@@ -22,6 +23,7 @@ function looksLikeVietnameseWithoutAccents(name: string): boolean {
 
 export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showTelegramGuide, setShowTelegramGuide] = useState(false);
   const [formData, setFormData] = useState<UserBirthData>({
     email: '',
     fullName: '',
@@ -58,6 +60,50 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1A1A1A]/40 backdrop-blur-sm animate-in fade-in duration-300">
+      {showTelegramGuide && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#1A1A1A]/60 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setShowTelegramGuide(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="telegram-guide-title"
+        >
+          <div
+            className="relative bg-white rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-200 flex flex-col max-h-[92vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#F0EBE5]">
+              <h4 id="telegram-guide-title" className="text-base font-semibold text-[#2D2D2D]">
+                Hướng dẫn lấy Telegram username
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowTelegramGuide(false)}
+                className="p-2 -mr-2 rounded-full text-[#A39A92] hover:text-[#2D2D2D] hover:bg-[#F9F8F6] transition-colors cursor-pointer"
+                aria-label="Đóng hướng dẫn"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-5 sm:p-6 overflow-y-auto custom-scrollbar bg-[#FAFAFA]">
+              <div className="rounded-xl overflow-hidden bg-white border border-[#F0EBE5] shadow-sm">
+                <Image
+                  src="/images/telegram-username-guide-v2.png"
+                  alt="Hướng dẫn lấy username Telegram: vào Setting để xem username dạng @yourname"
+                  width={1280}
+                  height={476}
+                  sizes="(max-width: 640px) 94vw, (max-width: 1024px) 640px, 720px"
+                  className="w-full h-auto block"
+                  priority
+                />
+              </div>
+              <p className="text-xs text-[#8B7E74] text-center mt-4 leading-relaxed">
+                Username gồm 5–32 ký tự, chỉ dùng chữ a–z, số 0–9 và dấu gạch dưới.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-300">
         
         {/* Nút đóng */}
@@ -203,7 +249,17 @@ export const FollowUpModal = ({ onClose, onSubmit }: FollowUpModalProps) => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-[#8B7E74]">Telegram username *</label>
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-[#8B7E74]">Telegram username *</label>
+                <button
+                  type="button"
+                  onClick={() => setShowTelegramGuide(true)}
+                  className="flex items-center gap-1 text-xs text-[#8B5E3C] hover:text-[#704B30] underline underline-offset-2 transition-colors cursor-pointer"
+                >
+                  <HelpCircle size={12} />
+                  Hướng dẫn lấy username
+                </button>
+              </div>
               <div className="relative">
                 <input
                   required

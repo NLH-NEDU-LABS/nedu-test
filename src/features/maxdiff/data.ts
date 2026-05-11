@@ -131,9 +131,9 @@ export const PERSONAS: Record<string, Persona> = {
     label: "Freelancer / Tự kinh doanh",
     emoji: "🦋",
     color: "#D85A30",
-    maxdiff_instruction: "Nếu chỉ ưu tiên một thứ duy nhất, bạn chọn gì NHẤT và bỏ gì CUỐI CÙNG?",
-    most_label: "ƯU TIÊN NHẤT",
-    least_label: "BỎ LẠI CUỐI CÙNG",
+    maxdiff_instruction: "Trong công việc, điều nào bạn COI TRỌNG NHẤT — và điều nào bạn ÍT BẬN TÂM NHẤT?",
+    most_label: "COI TRỌNG NHẤT",
+    least_label: "ÍT BẬN TÂM NHẤT",
     problem_pool: [
       { id: "ha_p1", label: "Thu nhập ổn định hơn", description: "Vấn đề liên quan đến thu nhập ổn định hơn" },
       { id: "ha_p2", label: "Không còn làm việc một mình nữa", description: "Vấn đề liên quan đến không còn làm việc một mình nữa" },
@@ -320,7 +320,7 @@ export const PERSONAS: Record<string, Persona> = {
     problem_pool: [
       { id: "lan_p1", label: "Tìm lại ý nghĩa đằng sau tất cả những gì đang làm", description: "Vấn đề liên quan đến tìm lại ý nghĩa đằng sau tất cả những gì đang làm" },
       { id: "lan_p2", label: "Sức khỏe — nền tảng của mọi thứ còn lại", description: "Vấn đề liên quan đến sức khỏe — nền tảng của mọi thứ còn lại" },
-      { id: "lan_p3", label: "Xây legacy — thứ tồn tại sau mình", description: "Vấn đề liên quan đến xây legacy — thứ tồn tại sau mình" },
+      { id: "lan_p3", label: "Xây dựng di sản — thứ còn mãi sau khi mình rời đi", description: "Vấn đề liên quan đến xây dựng di sản — thứ còn mãi sau khi mình rời đi" },
       { id: "lan_p4", label: "Có người kế thừa đáng tin cậy", description: "Vấn đề liên quan đến có người kế thừa đáng tin cậy" },
       { id: "lan_p5", label: "Bớt kiểm soát — tin tưởng hơn vào team", description: "Vấn đề liên quan đến bớt kiểm soát — tin tưởng hơn vào team" },
       { id: "lan_p6", label: "Tìm lại sự cân bằng đã đánh đổi bao năm", description: "Vấn đề liên quan đến tìm lại sự cân bằng đã đánh đổi bao năm" },

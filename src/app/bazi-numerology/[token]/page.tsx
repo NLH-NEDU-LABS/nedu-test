@@ -30,7 +30,7 @@ export default async function BaziNumerologyPage({
   if (!baziData || !baziInterp) {
     const { bazi, numerology } = calculate({
       dob: report.lead.birth_date ?? '',
-      birthTime: null,
+      birthTime: report.lead.birth_time ?? null,
       birthPlace: (leadMeta.birth_place as string) ?? 'vietnam',
       gender: ((leadMeta.gender as 0 | 1) ?? 1),
       fullName: report.lead.full_name ?? undefined,
