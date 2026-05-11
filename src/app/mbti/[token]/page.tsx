@@ -11,15 +11,20 @@ interface MbtiPageProps {
 // Token được tạo client-side và POST /api/send-result theo pattern fire-and-forget
 // (xem useQuizFlow.ts:92-148). User click Continue có thể đến đây trước khi BE persist
 // xong lead → 404 race. Retry để đợi BE thay vì block UX.
-async function getReportWithRetry(token: string, maxAttempts = 5, delayMs = 600) {
+//
+// KHÔNG dùng setTimeout giữa retry: Cloudflare Workers + OpenNext streaming SSR
+// crash khi setTimeout chạy trong async server component (isolate suspend).
+// Mỗi request CF→Railway tự nó mất ~300-500ms, 5 lần liên tiếp ≈ 2s đủ buffer.
+// Catch all error để fallback graceful notFound thay vì crash + digest hash.
+async function getReportWithRetry(token: string, maxAttempts = 5) {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const report = await neduApi.getReport(token).catch((err: any) => {
-      if (err?.status === 404) return null;
-      throw err;
-    });
-    if (report) return report;
-    if (attempt < maxAttempts - 1) {
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+    try {
+      const report = await neduApi.getReport(token);
+      if (report) return report;
+    } catch (err: any) {
+      if (err?.status !== 404 && attempt === maxAttempts - 1) {
+        console.error('[mbti] getReport failed:', err?.message ?? err);
+      }
     }
   }
   return null;
