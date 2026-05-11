@@ -112,6 +112,7 @@ export interface QuizReportResponse {
     full_name: string;
     email: string | null;
     birth_date: string | null;
+    birth_time: string | null;
     occupation: string | null;
     goal: string | null;
     metadata: Record<string, unknown> | null;
